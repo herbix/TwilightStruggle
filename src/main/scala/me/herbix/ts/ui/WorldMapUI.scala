@@ -15,6 +15,8 @@ import Resource._
   */
 class WorldMapUI(val game: Game) extends JPanel {
 
+  game.stateUpdateListeners :+= (() => repaint())
+
   var outerView: JScrollPane = null
 
   def setOuter(worldMapUIOuter: JScrollPane) = {

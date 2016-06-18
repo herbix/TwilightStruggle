@@ -11,6 +11,8 @@ import me.herbix.ts.util.Lang
   */
 class InfoUI(val game: Game) extends JPanel {
 
+  game.stateUpdateListeners :+= (() => repaint())
+
   import me.herbix.ts.util.Resource._
 
   override def paint(g: Graphics): Unit = {

@@ -17,4 +17,12 @@ object Lang {
 
   val heiti = "黑体"
 
+  val chooseFaction = "选择你的阵营："
+  val waitingForOpposite = "等待对方行动……"
+
+  val selfHand = "自己手牌"
+  val oppositeHand = "对手手牌"
+  val discardedCards = "弃牌堆"
+  val eventCards = "事件用牌"
+
 }

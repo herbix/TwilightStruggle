@@ -1,18 +1,22 @@
 package me.herbix.ts.ui
 
+import java.awt.image.BufferedImage
 import java.awt.{RenderingHints, Graphics2D, Graphics}
 import java.awt.event.{ActionEvent, ActionListener}
 import javax.swing.{JButton, JPanel}
 
 import me.herbix.ts.logic.{Faction, OperationInputChooseFaction, State, Game}
-import me.herbix.ts.util.Resource
+import me.herbix.ts.util.{Lang, Resource}
 
 /**
   * Created by Chaofan on 2016/6/17.
   */
 class ControlUI(val game: Game) extends JPanel with ActionListener {
 
-  var text = ""
+  game.stateUpdateListeners :+= (() => updateState())
+
+  var img: BufferedImage = null
+  val text = Array("", "", "", "")
   var buttons = Array(new JButton(), new JButton(), new JButton())
   val buttonMap: Map[AnyRef, Int] = buttons.indices.map(i => (buttons(i), i)).toMap
 
@@ -22,7 +26,6 @@ class ControlUI(val game: Game) extends JPanel with ActionListener {
     add(button)
     button.setVisible(false)
     button.addActionListener(this)
-    button.setFont(Resource.textFont)
   }
 
   updateState()
@@ -36,21 +39,25 @@ class ControlUI(val game: Game) extends JPanel with ActionListener {
     repaint()
   }
 
+  def resetText() = for (i <- text.indices) text(i) = ""
+
   def chooseFactionUI(): Unit = {
-    text = "选择你的阵营："
+    resetText()
+    text(3) = Lang.chooseFaction
     buttons(0).setVisible(true)
-    buttons(0).setText("美国")
+    buttons(0).setText(Lang.US)
     buttons(0).setLocation(20, 120)
-    buttons(0).setSize(70, 50)
+    buttons(0).setSize(70, 30)
     buttons(1).setVisible(true)
-    buttons(1).setText("苏联")
+    buttons(1).setText(Lang.USSR)
     buttons(1).setLocation(110, 120)
-    buttons(1).setSize(70, 50)
+    buttons(1).setSize(70, 30)
     buttons(2).setVisible(false)
   }
 
   def waitOtherUI(): Unit = {
-    text = "等待对方行动……"
+    resetText()
+    text(3) = Lang.waitingForOpposite
     buttons.foreach(_.setVisible(false))
   }
 
@@ -58,7 +65,17 @@ class ControlUI(val game: Game) extends JPanel with ActionListener {
     super.paint(g)
     g.asInstanceOf[Graphics2D].setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
     g.setFont(Resource.textFont)
-    g.drawString(text, 20, 60)
+    for (i <- text.indices) {
+      g.drawString(text(i), 20, i * 20 + 10)
+    }
+
+    if (img != null) {
+      val l = 10
+      val t = 45
+      val cardWidth = 100
+      g.drawImage(img, l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, null)
+      g.drawRoundRect(l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, 5, 5)
+    }
   }
 
   override def actionPerformed(e: ActionEvent): Unit = {

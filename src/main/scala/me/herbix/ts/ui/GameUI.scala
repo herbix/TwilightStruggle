@@ -29,13 +29,11 @@ class GameUI(playerId: Int) extends JFrame {
   val infoUI = new InfoUI(game)
   infoUI.setPreferredSize(new Dimension(200, 150))
   infoUI.setBackground(bgColor)
-  game.stateUpdateListeners = game.stateUpdateListeners :+ (() => infoUI.repaint())
   leftPanel.add(infoUI, BorderLayout.SOUTH)
 
   val controlUI = new ControlUI(game)
-  controlUI.setPreferredSize(new Dimension(200, 220))
+  controlUI.setPreferredSize(new Dimension(200, 200))
   controlUI.setBackground(bgColor)
-  game.stateUpdateListeners = game.stateUpdateListeners :+ (() => controlUI.updateState())
   leftPanel.add(controlUI, BorderLayout.NORTH)
 
   val historyUI = new HistoryUI
@@ -52,7 +50,6 @@ class GameUI(playerId: Int) extends JFrame {
   val worldMapUI = new WorldMapUI(game)
   val worldMapUIOuter = new JScrollPane(worldMapUI)
   worldMapUI.setOuter(worldMapUIOuter)
-  game.stateUpdateListeners = game.stateUpdateListeners :+ (() => worldMapUI.repaint())
   worldMapUIOuter.setPreferredSize(new Dimension(750, 480))
   worldMapUIOuter.setWheelScrollingEnabled(false)
   worldMapUIOuter.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
@@ -62,7 +59,6 @@ class GameUI(playerId: Int) extends JFrame {
   val handUI = new HandUI(game)
   handUI.setPreferredSize(new Dimension(600, 150))
   handUI.setBackground(bgColor)
-  game.stateUpdateListeners = game.stateUpdateListeners :+ (() => handUI.updateState())
   centerPanel.add(handUI, BorderLayout.SOUTH)
 
   val rightPanel = new JPanel
@@ -99,6 +95,7 @@ object GameUI {
     GameUI2.game.dice.setSeed(seed)
 
     GameUI1.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+    GameUI2.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     GameUI1.setVisible(true)
     GameUI2.setVisible(true)
   }

@@ -1,18 +1,19 @@
 package me.herbix.ts.ui
 
 import java.awt.event._
-import java.awt.{Graphics2D, RenderingHints, Graphics}
-import java.awt.image.BufferedImage
-import javax.swing.{JButton, JRadioButton, JPanel}
+import java.awt.{Graphics, Graphics2D, RenderingHints}
+import javax.swing.{JButton, JPanel}
 
-import me.herbix.ts.logic.{CardSet, Card, Game}
 import me.herbix.ts.logic.Faction._
-import me.herbix.ts.util.Resource
+import me.herbix.ts.logic.{Card, CardSet, Game}
+import me.herbix.ts.util.{Lang, Resource}
 
 /**
   * Created by Chaofan on 2016/6/14.
   */
 class HandUI(val game: Game) extends JPanel with ActionListener {
+
+  game.stateUpdateListeners :+= (() => updateState())
 
   val cardpos = new Array[Int](110)
   val cards = new Array[Card](110)
@@ -20,32 +21,35 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
 
   val cardWidth = 150
 
+  var cardHoverListeners: List[(Card) => Unit] = List()
+  var cardClickListeners: List[(Card) => Unit] = List()
+
   setLayout(null)
 
-  val selfHand = new JButton("自己手牌")
+  val selfHand = new JButton(Lang.selfHand)
   selfHand.setSelected(true)
   selfHand.setLocation(0, 5)
   selfHand.setSize(90, 35)
   selfHand.addActionListener(this)
   add(selfHand)
 
-  val otherHand = new JButton("对手手牌")
+  val otherHand = new JButton(Lang.oppositeHand)
   otherHand.setLocation(0, 40)
   otherHand.setSize(90, 35)
   otherHand.addActionListener(this)
   add(otherHand)
 
-  val discarded = new JButton("弃牌堆")
+  val discarded = new JButton(Lang.discardedCards)
   discarded.setLocation(0, 75)
   discarded.setSize(90, 35)
   discarded.addActionListener(this)
   add(discarded)
 
-  val eventCard = new JButton("事件用牌")
-  eventCard.setLocation(0, 110)
-  eventCard.setSize(90, 35)
-  eventCard.addActionListener(this)
-  add(eventCard)
+  val eventCards = new JButton(Lang.eventCards)
+  eventCards.setLocation(0, 110)
+  eventCards.setSize(90, 35)
+  eventCards.addActionListener(this)
+  add(eventCards)
 
 
   override def paint(g: Graphics): Unit = {
@@ -87,6 +91,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
         }
       }
       if (oldHoverCard != hoverCardId) {
+        cardHoverListeners.foreach(_(cards(hoverCardId)))
         updateCardPos()
         repaint()
       }
@@ -99,7 +104,11 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       updateCardPos()
       repaint()
     }
-    override def mouseClicked(e: MouseEvent): Unit = {}
+    override def mouseClicked(e: MouseEvent): Unit = {
+      if (hoverCardId != -1) {
+        cardClickListeners.foreach(_(cards(hoverCardId)))
+      }
+    }
     override def mouseEntered(e: MouseEvent): Unit = {}
     override def mousePressed(e: MouseEvent): Unit = {}
     override def mouseReleased(e: MouseEvent): Unit = {}
@@ -156,7 +165,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       game.hand(getOpposite(game.currentPlayer))
     } else if (discarded.isSelected) {
       game.discards
-    } else if (eventCard.isSelected) {
+    } else if (eventCards.isSelected) {
       null
     } else {
       null
@@ -176,7 +185,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
     selfHand.setSelected(false)
     otherHand.setSelected(false)
     discarded.setSelected(false)
-    eventCard.setSelected(false)
+    eventCards.setSelected(false)
     button.setSelected(true)
     updateState()
   }
