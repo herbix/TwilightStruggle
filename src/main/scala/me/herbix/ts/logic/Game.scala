@@ -10,6 +10,8 @@ import scala.collection.mutable
   */
 class Game {
 
+  var anotherGame: Game = null
+
   var playerId = 0
   var currentPlayer = Neutral
 
@@ -21,7 +23,6 @@ class Game {
   var turn = 1
   var round = 0
   var current = USSR
-
 
   val military = mutable.Map(US -> 0, USSR -> 0)
   val space = mutable.Map(US -> 0, USSR -> 0)
@@ -36,6 +37,15 @@ class Game {
 
   val dice = new Dice
 
+  var stateUpdateListeners: List[() => Unit] = List()
+
+  def sendNextState(input: OperationInput): Unit = {
+    nextState(input)
+    if (anotherGame != null) {
+      anotherGame.nextState(input)
+    }
+  }
+
   def nextState(input: OperationInput, currentState: State): Unit = {
     currentState match {
       case State.start => nextStateStart(input)
@@ -49,6 +59,9 @@ class Game {
         val top2 = stateStack(1)
         nextState(input, top2)
       case other => nextState(input, other)
+    }
+    for (listener <- stateUpdateListeners) {
+      listener()
     }
   }
 
@@ -103,6 +116,7 @@ class Game {
     worldMap.modifyInfluence("E.Germany", USSR, 3)
     worldMap.modifyInfluence("Finland", USSR, 1)
 
+    worldMap.modifyInfluence("Canada", US, 2)
     worldMap.modifyInfluence("Iran", US, 1)
     worldMap.modifyInfluence("Israel", US, 1)
     worldMap.modifyInfluence("Japan", US, 1)

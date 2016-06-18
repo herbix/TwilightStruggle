@@ -136,4 +136,9 @@ class WorldMap {
   addCountry(new Country("Botswana", 2, false, Africa), Set("Angola", "Zimbabwe"))
   addCountry(new Country("South Africa", 3, true, Africa), Set("Angola", "Botswana"))
 
+  modifyInfluence("US", Faction.US, 100)
+  modifyInfluence("USSR", Faction.USSR, 100)
+
+  val normalCountries = countries.filter(e => !e._2.regions.contains(Super))
+
 }

@@ -11,10 +11,7 @@ import me.herbix.ts.util.Lang
   */
 class InfoUI(val game: Game) extends JPanel {
 
-  val textFont = new Font(Lang.heiti, 0, 16)
-  val textColor = Color.DARK_GRAY
-  val usColor = Color.BLUE
-  val ussrColor = Color.RED
+  import me.herbix.ts.util.Resource._
 
   override def paint(g: Graphics): Unit = {
     super.paint(g)
