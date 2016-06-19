@@ -17,7 +17,7 @@ class Game {
 
   val worldMap = new WorldMap
 
-  var pendingInput: OperationInput = null
+  var pendingInput: Operation = null
   var stateStack = mutable.Stack(start)
 
   var turn = 1
@@ -39,20 +39,20 @@ class Game {
 
   var stateUpdateListeners: List[() => Unit] = List()
 
-  def sendNextState(input: OperationInput): Unit = {
+  def sendNextState(input: Operation): Unit = {
     nextState(input)
     if (anotherGame != null) {
       anotherGame.nextState(input)
     }
   }
 
-  def nextState(input: OperationInput, currentState: State): Unit = {
+  private def nextState(input: Operation, currentState: State): Unit = {
     currentState match {
       case State.start => nextStateStart(input)
     }
   }
 
-  def nextState(input: OperationInput): Unit = {
+  private def nextState(input: Operation): Unit = {
     stateStack.top match {
       case State.waitOther =>
         val top = stateStack.top
@@ -65,7 +65,7 @@ class Game {
     }
   }
 
-  def nextStateStart(input: OperationInput): Unit = {
+  private def nextStateStart(input: Operation): Unit = {
     if (pendingInput == null) {
       pendingInput = input
       if (input.playerId == playerId) {
@@ -75,8 +75,8 @@ class Game {
       if (stateStack.top == waitOther) {
         stateStack.pop()
       }
-      val input1 = input.asInstanceOf[OperationInputChooseFaction]
-      val input2 = pendingInput.asInstanceOf[OperationInputChooseFaction]
+      val input1 = input.asInstanceOf[OperationChooseFaction]
+      val input2 = pendingInput.asInstanceOf[OperationChooseFaction]
 
       val myInput = if (input1.playerId == playerId) input1 else input2
       val smallInput = if (input1.playerId < input2.playerId) input1 else input2
@@ -101,7 +101,7 @@ class Game {
     }
   }
 
-  def initGame(): Unit = {
+  private def initGame(): Unit = {
     deck.join(Cards.earlyWarSet)
 
     for (i <- 0 until 8) {

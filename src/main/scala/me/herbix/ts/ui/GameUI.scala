@@ -5,7 +5,7 @@ import java.awt.{Color, Dimension, ScrollPane, BorderLayout}
 import java.util.Random
 import javax.swing._
 
-import me.herbix.ts.logic.Game
+import me.herbix.ts.logic.{Operation, Game}
 
 /**
   * Created by Chaofan on 2016/6/13.
@@ -34,6 +34,7 @@ class GameUI(playerId: Int) extends JFrame {
   val controlUI = new ControlUI(game)
   controlUI.setPreferredSize(new Dimension(200, 200))
   controlUI.setBackground(bgColor)
+  controlUI.operationListeners :+= ((op: Operation) => if (op != null) game.sendNextState(op))
   leftPanel.add(controlUI, BorderLayout.NORTH)
 
   val historyUI = new HistoryUI
