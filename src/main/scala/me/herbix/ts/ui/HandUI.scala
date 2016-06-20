@@ -5,7 +5,7 @@ import java.awt.{Graphics, Graphics2D, RenderingHints}
 import javax.swing.{JButton, JPanel}
 
 import me.herbix.ts.logic.Faction._
-import me.herbix.ts.logic.{Card, CardSet, Game}
+import me.herbix.ts.logic.{Cards, Card, CardSet, Game}
 import me.herbix.ts.util.{Lang, Resource}
 
 /**
@@ -91,7 +91,9 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
         }
       }
       if (oldHoverCard != hoverCardId) {
-        cardHoverListeners.foreach(_(cards(hoverCardId)))
+        if (hoverCardId != -1) {
+          cardHoverListeners.foreach(_(cards(hoverCardId)))
+        }
         updateCardPos()
         repaint()
       }
@@ -146,7 +148,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
         100 + (w - cardWidth) * n / (c - 1)
       else
         100 + (w - cardWidth) * (n - 1) / (c - 1) + cardWidth
-      cards(n) = card
+      cards(n) = if (otherHand.isSelected) Cards.fromId(0) else card
       n += 1
     }
 

@@ -4,8 +4,8 @@ import java.awt._
 import javax.swing.JPanel
 
 import me.herbix.ts.logic.Faction._
-import me.herbix.ts.logic.{Region, Card, Country}
-import me.herbix.ts.util.{MapValue, Resource}
+import me.herbix.ts.logic._
+import me.herbix.ts.util.{Lang, MapValue, Resource}
 import me.herbix.ts.util.Resource._
 
 /**
@@ -41,12 +41,15 @@ class DetailUI extends JPanel {
     super.paint(g)
 
     val g2d = g.asInstanceOf[Graphics2D]
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
     g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
     mode match {
       case DetailMode.CountryMode =>
         paintCountry(g2d)
+      case DetailMode.CardMode =>
+        paintCard(g2d)
       case _ =>
     }
   }
@@ -54,6 +57,8 @@ class DetailUI extends JPanel {
   val stroke1 = new BasicStroke(2)
   val stroke2 = new BasicStroke(2, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10, Array(4, 3), 0)
   val stroke3 = new BasicStroke(1)
+  val countryTriangleX = Array(0, 180, 180)
+  val countryTriangleY = Array(120, 30, 120)
 
   def paintCountry(g: Graphics2D): Unit = {
     val colorTitle = if (country.critical) Resource.countryCriticalTitleColor else Resource.countryTitleColor
@@ -83,7 +88,7 @@ class DetailUI extends JPanel {
 
     if (color2 != null) {
       g.setColor(color2)
-      g.fillPolygon(Array(0, 180, 180), Array(120, 30, 120), 3)
+      g.fillPolygon(countryTriangleX, countryTriangleY, 3)
     }
 
     g.setStroke(stroke1)
@@ -150,6 +155,132 @@ class DetailUI extends JPanel {
     g.drawRoundRect(x, y, 82, 82, 20, 20)
     g.setColor(color)
     g.drawString(str, x + (82 - fm.stringWidth(str)) / 2, y + 64)
+  }
+
+  val cardStarX = new Array[Int](10)
+  val cardStarY = new Array[Int](10)
+  val cardStarR = 20.0
+  val cardStarR2 = cardStarR * Math.sin(Math.PI / 10) / Math.sin(Math.PI * 126 / 180)
+
+  for (i <- 0 until 5) {
+    cardStarX(i*2) = (-Math.sin(i * Math.PI * 2 / 5 - Math.PI / 5) * cardStarR2).toInt
+    cardStarY(i*2) = -(Math.cos(i * Math.PI * 2 / 5 - Math.PI / 5) * cardStarR2).toInt
+    cardStarX(i*2+1) = (-Math.sin(i * Math.PI * 2 / 5) * cardStarR).toInt
+    cardStarY(i*2+1) = -(Math.cos(i * Math.PI * 2 / 5) * cardStarR).toInt
+  }
+
+  def paintCard(g: Graphics2D): Unit = {
+    val period = Cards.getCardPeriod(card)
+    val titleColor = period match {
+      case 2 => Resource.cardTitleMidWar
+      case 3 => Resource.cardTitleLateWar
+      case _ => Resource.cardTitleEarlyWar
+    }
+    val titleText = period match {
+      case 2 => Lang.midWar
+      case 3 => Lang.lateWar
+      case _ => Lang.earlyWar
+    }
+
+    g.translate(10, 20)
+
+    g.setColor(titleColor)
+    g.fillRect(0, 0, 180, 17)
+    g.setColor(Color.BLACK)
+    g.drawRect(0, 0, 180, 17)
+
+    {
+      g.setFont(Resource.cardTitleFont)
+      g.setColor(Color.WHITE)
+      val fm = g.getFontMetrics
+      g.drawString(titleText, 38 + (142 - fm.stringWidth(titleText)) / 2, 15)
+    }
+
+    {
+      val trans = g.getTransform
+      g.translate(19, 9)
+      g.setColor(Color.BLACK)
+      g.fillPolygon(cardStarX, cardStarY, cardStarX.length)
+      g.translate(-1, 0)
+      card.faction match {
+        case Faction.US =>
+          g.setColor(Resource.cardStarUS2)
+          g.fillPolygon(cardStarX, cardStarY, cardStarX.length)
+          g.setColor(Resource.cardStarUS1)
+          g.drawPolygon(cardStarX, cardStarY, cardStarX.length)
+        case Faction.USSR =>
+          g.setColor(Resource.cardStarUSSR2)
+          g.fillPolygon(cardStarX, cardStarY, cardStarX.length)
+          g.setColor(Resource.cardStarUSSR1)
+          g.drawPolygon(cardStarX, cardStarY, cardStarX.length)
+        case Faction.Neutral =>
+          g.setColor(Resource.cardStarNeutral2)
+          g.fillPolygon(cardStarX, cardStarY, cardStarX.length)
+          g.setColor(Resource.cardStarNeutral1)
+          g.fillPolygon(cardStarX, cardStarY, cardStarX.length / 2 + 1)
+      }
+      if (card.op > 0) {
+        g.setFont(Resource.cardOpFont)
+        g.setColor(if (card.faction == USSR) Color.WHITE else Color.BLACK)
+        val str = card.op.toString
+        val fm = g.getFontMetrics
+        g.drawString(str, -fm.stringWidth(str) / 2, 7)
+      }
+      g.setTransform(trans)
+    }
+
+    val name = Lang.cardInfo(card.id)._1
+    val desc = Lang.cardInfo(card.id)._2
+
+    {
+      val trans = g.getTransform
+      g.setColor(Color.BLACK)
+      g.setFont(Resource.cardNameFont)
+      val fm = g.getFontMetrics
+      g.translate(90, 0)
+      val strWidth = fm.stringWidth(name)
+      if (strWidth > 180) {
+        g.scale(180.0 / strWidth, 1)
+      }
+      g.drawString(name, -strWidth / 2, 50)
+      g.setTransform(trans)
+    }
+
+    paintDesc(g, desc)
+  }
+
+  def paintDesc(g: Graphics2D, desc: String): Unit = {
+    g.setFont(Resource.cardDescFont)
+    g.setColor(Color.black)
+
+    val fm = g.getFontMetrics
+
+    val lines = desc.split("\n")
+    var currentRow = 78
+    var currentCol = 0
+    val ca = Array[Char](0)
+
+    for (line <- lines) {
+      val toDraw = "  " + line
+      for (i <- 0 until toDraw.length) {
+        val c = toDraw.charAt(i)
+        val cw = fm.charWidth(c)
+        if (currentCol + cw > 180 && c != '，' && c != '。') {
+          currentRow += 20
+          currentCol = 0
+        }
+        ca(0) = c
+        if (c == '~') {
+          g.drawChars(ca, 0, 1, currentCol, currentRow + fm.getHeight / 2)
+        } else {
+          g.drawChars(ca, 0, 1, currentCol, currentRow)
+        }
+        currentCol += cw
+      }
+      currentRow += 25
+      currentCol = 0
+    }
+
   }
 
 }

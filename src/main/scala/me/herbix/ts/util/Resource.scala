@@ -50,4 +50,23 @@ object Resource {
   val countryStabilityFont = new Font("Arial", Font.BOLD, 28)
   val countryInfluenceFont = new Font(Lang.heiti, 0, 64)
 
+  val cardTitleEarlyWar = new Color(0xff01abce)
+  val cardTitleMidWar = new Color(0xff0088aa)
+  val cardTitleLateWar = new Color(0xff282f42)
+
+  val cardStarNeutral1 = Color.WHITE
+  val cardStarNeutral2 = new Color(0xfff04b47)
+
+  val cardStarUS1 = new Color(0xff0978bd)
+  val cardStarUS2 = Color.WHITE
+
+  val cardStarUSSR1 = new Color(0xffffce00)
+  val cardStarUSSR2 = new Color(0xffd62432)
+
+  val cardTitleFont = new Font(Lang.lishu, 0, 18)
+  val cardOpFont = new Font("Arial", Font.BOLD, 18)
+  val cardNameFont = new Font(Lang.lishu, 0, 24)
+  val cardDescFont = new Font(Lang.heiti, 0, 13)
+
+
 }
