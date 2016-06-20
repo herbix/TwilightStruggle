@@ -1,5 +1,7 @@
 package me.herbix.ts.logic
 
+import java.util.Random
+
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.State._
 
@@ -35,7 +37,7 @@ class Game {
 
   val flags = new Flags
 
-  val dice = new Dice
+  val random = new Random
 
   var stateUpdateListeners: List[() => Unit] = List()
 
@@ -49,6 +51,9 @@ class Game {
   private def nextState(input: Operation, currentState: State): Unit = {
     currentState match {
       case State.start => nextStateStart(input)
+      case State.putStartUSSR => nextStatePutStart(input, putStartUS)
+      case State.putStartUS => nextStatePutStart(input, putStartUSExtra)
+      case State.putStartUSExtra => nextStatePutStart(input, chooseHeadlineCard)
     }
   }
 
@@ -60,9 +65,7 @@ class Game {
         nextState(input, top2)
       case other => nextState(input, other)
     }
-    for (listener <- stateUpdateListeners) {
-      listener()
-    }
+    stateUpdateListeners.foreach(_())
   }
 
   private def nextStateStart(input: Operation): Unit = {
@@ -84,7 +87,7 @@ class Game {
       if (input1.faction != input2.faction) {
         currentPlayer = myInput.faction
       } else {
-        val smallChange = dice.nextBoolean()
+        val smallChange = random.nextBoolean()
         if (smallChange == (smallInput == myInput)) {
           currentPlayer = if (myInput.faction == US) USSR else US
         } else {
@@ -105,8 +108,8 @@ class Game {
     deck.join(Cards.earlyWarSet)
 
     for (i <- 0 until 8) {
-      hand(US).add(deck.pickAndRemove(dice))
-      hand(USSR).add(deck.pickAndRemove(dice))
+      hand(US).add(deck.pickAndRemove(random))
+      hand(USSR).add(deck.pickAndRemove(random))
     }
     hand(USSR).add(Cards.chinaCard)
 
@@ -126,5 +129,16 @@ class Game {
     worldMap.modifyInfluence("Panama", US, 1)
     worldMap.modifyInfluence("South Africa", US, 1)
     worldMap.modifyInfluence("UK", US, 5)
+  }
+
+  def nextStatePutStart(input: Operation, next: State): Unit = {
+    val op = input.asInstanceOf[OperationModifyInfluence]
+    val isAdd = op.isAdd
+    val faction = op.faction
+    for ((country, value) <- op.detail) {
+      worldMap.countries(country.name).influence(faction) += (if (isAdd) value else -value)
+    }
+    stateStack.pop()
+    stateStack.push(next)
   }
 }

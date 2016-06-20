@@ -18,4 +18,19 @@ object Cards {
   def midWarSet = cardMap.filter(e => e._1 > 35 && e._1 <= 81).values
   def lateWarSet = cardMap.filter(e => e._1 > 81 && e._1 <= 102).values
   def chinaCard = cardMap(6)
+
+  def isEarlyWarCard(card: Card): Boolean = {
+    val i = card.id
+    i <= 35 || (i >= 103 && i <= 106)
+  }
+
+  def isMidWarCard(card: Card): Boolean = {
+    val i = card.id
+    (i >= 36 && i <= 81) || (i >= 107 && i <= 108)
+  }
+
+  def isLateWarCard(card: Card): Boolean = {
+    val i = card.id
+    (i >= 82 && i <= 102) || (i >= 109 && i <= 110)
+  }
 }

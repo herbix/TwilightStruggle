@@ -2,6 +2,7 @@ package me.herbix.ts.logic
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Region.Region
+import me.herbix.ts.util.Lang
 
 import scala.collection.mutable
 
@@ -14,4 +15,6 @@ class Country(val name: String, val stability: Int, val critical: Boolean, val r
     this(name, stability, critical, Set(region))
 
   val influence = mutable.Map(US -> 0, USSR -> 0)
+
+  override def toString = Lang.countryNames(name)
 }

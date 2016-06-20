@@ -8,3 +8,6 @@ import me.herbix.ts.logic.Faction.Faction
 abstract class Operation(val playerId: Int)
 
 class OperationChooseFaction(playerId: Int, val faction: Faction) extends Operation(playerId)
+
+class OperationModifyInfluence(playerId: Int, val faction: Faction, val isAdd: Boolean, val detail: Map[Country, Int])
+  extends Operation(playerId)

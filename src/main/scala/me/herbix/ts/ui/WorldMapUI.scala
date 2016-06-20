@@ -1,14 +1,15 @@
 package me.herbix.ts.ui
 
-import java.awt.event._
 import java.awt._
-import java.awt.image.BufferedImage
-import javax.imageio.ImageIO
-import javax.swing.{SwingUtilities, JViewport, JScrollPane, JPanel}
+import java.awt.event._
+import javax.swing.{JPanel, JScrollPane, SwingUtilities}
 
-import me.herbix.ts.logic.{Faction, Game}
+import me.herbix.ts.logic.{Faction, Country, Game}
+import me.herbix.ts.util.Resource._
 import me.herbix.ts.util.{MapValue, Resource}
-import Resource._
+
+import scala.List
+import scala.collection.mutable
 
 /**
   * Created by Chaofan on 2016/6/14.
@@ -29,10 +30,17 @@ class WorldMapUI(val game: Game) extends JPanel {
     })
   }
 
-  var minscale = 0.299
+  var minscale = 0.3
   var scale = 0.7
 
   val bg = worldMap
+
+  var pendingInfluenceChange: mutable.Map[Country, Int] = null
+  var pendingInfluenceFaction = Faction.US
+  var pendingInfluenceIsAdd = true
+
+  var countryHoverListeners: List[Country => Unit] = List()
+  var countryClickListeners: List[(Country, Int) => Unit] = List()
 
   setPreferredSize(new Dimension((bg.getWidth * scale).toInt, (bg.getHeight * scale).toInt))
 
@@ -71,6 +79,7 @@ class WorldMapUI(val game: Game) extends JPanel {
     var oldx = 0
     var oldy = 0
     var dragging = false
+    var oldHoverCountry: Country = null
     override def mousePressed(e: MouseEvent): Unit = {
       if (e.getButton != MouseEvent.BUTTON1) {
         dragging = true
@@ -81,6 +90,24 @@ class WorldMapUI(val game: Game) extends JPanel {
     override def mouseReleased(e: MouseEvent): Unit = {
       dragging = false
     }
+    override def mouseClicked(e: MouseEvent): Unit = {
+      val country = findCountry(e.getX, e.getY)
+      if (country != oldHoverCountry) {
+        oldHoverCountry = country
+      }
+      if (country != null) {
+        countryClickListeners.foreach(_(country, e.getButton))
+      }
+    }
+    override def mouseMoved(e: MouseEvent): Unit = {
+      val country = findCountry(e.getX, e.getY)
+      if (country != oldHoverCountry) {
+        oldHoverCountry = country
+        if (country != null) {
+          countryHoverListeners.foreach(_(country))
+        }
+      }
+    }
     override def mouseDragged(e: MouseEvent): Unit = {
       val x = e.getX - outerView.getHorizontalScrollBar.getValue
       val y = e.getY - outerView.getVerticalScrollBar.getValue
@@ -89,6 +116,17 @@ class WorldMapUI(val game: Game) extends JPanel {
       oldx = x
       oldy = y
     }
+    def findCountry(x: Int, y: Int): Country =
+      MapValue.countryPosMap.find(e => {
+        val nx = x / scale
+        val ny = y / scale
+        val cx = e._2._1
+        val cy = e._2._2
+        nx >= cx && nx < cx + 101 && ny >= cy && ny < cy + 67
+      }) match {
+        case Some(e) => game.worldMap.countries(e._1)
+        case None => null
+      }
   }
 
   addMouseListener(mouseAdapter)
@@ -151,21 +189,35 @@ class WorldMapUI(val game: Game) extends JPanel {
     val fm = g.getFontMetrics
 
     for ((name, country) <- game.worldMap.normalCountries) {
-      val usInfluence = country.influence(US)
-      val ussrInfluence = country.influence(USSR)
+      val influenceChanged = pendingInfluenceChange.contains(country)
+      val usInfluenceChanged = influenceChanged && pendingInfluenceFaction == US
+      val ussrInfluenceChanged = influenceChanged && pendingInfluenceFaction == USSR
+      val factor = if (pendingInfluenceIsAdd) 1 else -1
+
+      val usInfluence = country.influence(US) + factor *
+        (if (usInfluenceChanged) pendingInfluenceChange(country) else 0)
+      val ussrInfluence = country.influence(USSR) + factor *
+        (if (ussrInfluenceChanged) pendingInfluenceChange(country) else 0)
+
+      val usDrawColor = if (usInfluenceChanged) usColorInfluenceChange else usColor
+      val usBgColor = if (usInfluenceChanged) new Color(255, 255, 255, 128) else Color.WHITE
+      val ussrDrawColor = if (ussrInfluenceChanged) ussrColorInfluenceChange else ussrColor
+      val ussrBgColor = if (ussrInfluenceChanged) new Color(255, 255, 255, 128) else Color.WHITE
+
       val (x, y) = MapValue.countryPosMap(name)
+
       if (usInfluence > 0) {
         if (usInfluence - ussrInfluence >= country.stability) {
-          drawInfluenceToken(g, fm, usInfluence.toString, usColor, Color.WHITE, x + 2, y + 18)
+          drawInfluenceToken(g, fm, usInfluence.toString, usDrawColor, usBgColor, x + 2, y + 18)
         } else {
-          drawInfluenceToken(g, fm, usInfluence.toString, Color.WHITE, usColor, x + 2, y + 18)
+          drawInfluenceToken(g, fm, usInfluence.toString, usBgColor, usDrawColor, x + 2, y + 18)
         }
       }
       if (ussrInfluence > 0) {
         if (ussrInfluence - usInfluence >= country.stability) {
-          drawInfluenceToken(g, fm, ussrInfluence.toString, ussrColor, Color.WHITE, x + 52, y + 18)
+          drawInfluenceToken(g, fm, ussrInfluence.toString, ussrDrawColor, ussrBgColor, x + 52, y + 18)
         } else {
-          drawInfluenceToken(g, fm, ussrInfluence.toString, Color.WHITE, ussrColor, x + 52, y + 18)
+          drawInfluenceToken(g, fm, ussrInfluence.toString, ussrBgColor, ussrDrawColor, x + 52, y + 18)
         }
       }
     }

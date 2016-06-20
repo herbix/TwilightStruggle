@@ -1,11 +1,12 @@
 package me.herbix.ts.ui
 
-import java.awt.event.{ComponentEvent, ComponentListener, WindowEvent, WindowListener}
+import java.awt.event._
 import java.awt.{Color, Dimension, ScrollPane, BorderLayout}
 import java.util.Random
 import javax.swing._
 
-import me.herbix.ts.logic.{Operation, Game}
+import me.herbix.ts.logic.{Card, Country, Operation, Game}
+import scala.collection.mutable
 
 /**
   * Created by Chaofan on 2016/6/13.
@@ -14,8 +15,8 @@ class GameUI(playerId: Int) extends JFrame {
 
   val game = new Game
 
+  // UI start
   UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
-
   setLayout(new BorderLayout)
 
   val bgColor = getBackground // new Color(213, 189, 181)
@@ -80,6 +81,28 @@ class GameUI(playerId: Int) extends JFrame {
   setTitle("Player - " + game.playerId)
 
   pack()
+  // UI end
+
+  val pendingInfluenceChange: mutable.Map[Country, Int] = mutable.Map()
+  controlUI.uiInfluence.pendingInfluenceChange = pendingInfluenceChange
+  worldMapUI.pendingInfluenceChange = pendingInfluenceChange
+  worldMapUI.countryClickListeners :+= ((country: Country, button: Int) => {
+    if (button == MouseEvent.BUTTON1 && controlUI.uiType == controlUI.UIType.Influence) {
+      controlUI.uiInfluence.addInfluence(country, 1)
+    }
+  })
+  controlUI.uiInfluence.updateListeners :+= (() => {
+    worldMapUI.pendingInfluenceFaction = controlUI.uiInfluence.targetFaction
+    worldMapUI.pendingInfluenceIsAdd = controlUI.uiInfluence.isAdd
+    worldMapUI.repaint()
+  })
+
+  worldMapUI.countryHoverListeners :+= ((country: Country) => {
+    detailUI.setCountry(country)
+  })
+  handUI.cardHoverListeners :+= ((card: Card) => {
+    detailUI.setCard(card)
+  })
 
 }
 
@@ -92,8 +115,8 @@ object GameUI {
     GameUI2.game.anotherGame = GameUI1.game
 
     val seed = new Random().nextLong()
-    GameUI1.game.dice.setSeed(seed)
-    GameUI2.game.dice.setSeed(seed)
+    GameUI1.game.random.setSeed(seed)
+    GameUI2.game.random.setSeed(seed)
 
     GameUI1.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     GameUI2.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
