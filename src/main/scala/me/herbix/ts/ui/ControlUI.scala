@@ -1,8 +1,7 @@
 package me.herbix.ts.ui
 
-import java.awt.image.BufferedImage
 import java.awt.{CardLayout, RenderingHints, Graphics2D, Graphics}
-import java.awt.event.{ActionEvent, ActionListener}
+import java.awt.event.{MouseEvent, MouseMotionListener, ActionEvent, ActionListener}
 import javax.swing.table.DefaultTableModel
 import javax.swing._
 
@@ -23,6 +22,7 @@ class ControlUI(val game: Game) extends JPanel {
     type UIType = Value
     val ChooseFaction, Waiting = Value
     val Influence = Value
+    val SelectCard = Value
   }
 
   import UIType._
@@ -32,6 +32,7 @@ class ControlUI(val game: Game) extends JPanel {
   val uiChooseFaction = new ControlSubUIChooseFaction(this)
   val uiWaiting = new ControlSubUIText(this, Array("", "", Lang.waitingForOpposite))
   val uiInfluence = new ControlSubUIModifyInfluence(this)
+  val uiSelectCard = new ControlSubUISelectCard(this)
 
   var operationListeners: List[Operation => Unit] = List()
 
@@ -39,6 +40,7 @@ class ControlUI(val game: Game) extends JPanel {
   add(uiChooseFaction, ChooseFaction.toString)
   add(uiWaiting, Waiting.toString)
   add(uiInfluence, Influence.toString)
+  add(uiSelectCard, SelectCard.toString)
 
   updateState()
 
@@ -52,23 +54,24 @@ class ControlUI(val game: Game) extends JPanel {
       case State.start => chooseFactionUI()
       case State.waitOther => waitOtherUI()
       case State.putStartUSSR =>
-        if (game.currentPlayer == Faction.USSR) {
-          addInfluenceUI(6, Lang.putEastEurope, true, true, game.currentPlayer, _.forall(_._1.regions.contains(Region.EastEurope)))
+        if (game.playerFaction == Faction.USSR) {
+          addInfluenceUI(6, Lang.putEastEurope, true, true, game.playerFaction, _.forall(_._1.regions.contains(Region.EastEurope)))
         } else {
           waitOtherUI()
         }
       case State.putStartUS =>
-        if (game.currentPlayer == Faction.US) {
-          addInfluenceUI(7, Lang.putWestEurope, true, true, game.currentPlayer, _.forall(_._1.regions.contains(Region.WestEurope)))
+        if (game.playerFaction == Faction.US) {
+          addInfluenceUI(7, Lang.putWestEurope, true, true, game.playerFaction, _.forall(_._1.regions.contains(Region.WestEurope)))
         } else {
           waitOtherUI()
         }
       case State.putStartUSExtra =>
-        if (game.currentPlayer == Faction.US) {
-          addInfluenceUI(1, Lang.putExtra, true, true, game.currentPlayer, _.forall(_._1.influence(Faction.US) > 0))
+        if (game.playerFaction == Faction.US) {
+          addInfluenceUI(1, Lang.putExtra, true, true, game.playerFaction, _.forall(_._1.influence(Faction.US) > 0))
         } else {
           waitOtherUI()
         }
+      case State.chooseHeadlineCard => selectCardUI(Lang.chooseHeadline)
       case _ => waitOtherUI()
     }
     repaint()
@@ -87,6 +90,12 @@ class ControlUI(val game: Game) extends JPanel {
     uiInfluence.validCheck = valid
     uiInfluence.text(0) = String.format(tip, point.toString)
     uiInfluence.updatePendingInfluenceChange()
+  }
+
+  def selectCardUI(tip: String) = {
+    showSubUI(SelectCard)
+    uiSelectCard.text(0) = tip
+    uiSelectCard.resetCard()
   }
 
 }
@@ -125,10 +134,12 @@ class ControlSubUIText(parent: ControlUI, val text: Array[String]) extends Contr
 }
 
 class ControlSubUIImage(parent: ControlUI, array: Array[String]) extends ControlSubUIText(parent, array) {
-  var img: BufferedImage = null
+  var img = Resource.card(0)
 
   override def paint(g: Graphics): Unit = {
     super.paint(g)
+
+    g.asInstanceOf[Graphics2D].setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
 
     if (img != null) {
       val l = 10
@@ -159,9 +170,9 @@ class ControlSubUIChooseFaction(parent: ControlUI) extends
 class ControlSubUIModifyInfluence(parent: ControlUI) extends
   ControlSubUIText(parent, Array("")) {
 
-  val buttonDone = addButton("完成", 10, 165, 60, 30)
-  val buttonCancel = addButton("取消", 70, 165, 60, 30)
-  val buttonReset = addButton("重置", 130, 165, 60, 30)
+  val buttonDone = addButton(Lang.done, 10, 165, 60, 30)
+  val buttonCancel = addButton(Lang.cancel, 70, 165, 60, 30)
+  val buttonReset = addButton(Lang.reset, 130, 165, 60, 30)
 
   val tableModel = new DefaultTableModel()
   val table = new JTable(tableModel)
@@ -170,14 +181,14 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
   var point = 0
   var ignoreControl = false
   var isAdd = true
-  var targetFaction = parent.game.currentPlayer
+  var targetFaction = parent.game.playerFaction
   var validCheck: Map[Country, Int] => Boolean = null
   var pendingInfluenceChange: mutable.Map[Country, Int] = null
 
   var updateListeners: List[() => Unit] = List()
 
-  tableModel.addColumn("国家")
-  tableModel.addColumn("影响力")
+  tableModel.addColumn(Lang.country)
+  tableModel.addColumn(Lang.influence)
   table.setRowHeight(25)
   table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
   tableOuter.setLocation(0, 40)
@@ -188,7 +199,7 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
   def updatePendingInfluenceChange(): Unit = {
     tableModel.setRowCount(0)
     for ((country, modifyValue) <- pendingInfluenceChange) {
-      val influence = country.influence(parent.game.currentPlayer)
+      val influence = country.influence(parent.game.playerFaction)
       tableModel.addRow(Array[Object](country, f"$influence -> ${influence + modifyValue}"))
     }
     val rest = point - calculateInfluenceCost()
@@ -209,12 +220,12 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
   def calculateInfluenceCost(): Int = {
     var cost = 0
     for ((country, modifyValue) <- pendingInfluenceChange) {
-      val influence = country.influence(parent.game.currentPlayer)
+      val influence = country.influence(parent.game.playerFaction)
       val c =
         if (ignoreControl)
           modifyValue
         else {
-          val influenceOpposite = country.influence(Faction.getOpposite(parent.game.currentPlayer))
+          val influenceOpposite = country.influence(Faction.getOpposite(parent.game.playerFaction))
           if (influenceOpposite - influence >= country.stability) {
             modifyValue + Math.min(modifyValue, influenceOpposite - influence - country.stability + 1)
           } else {
@@ -272,5 +283,39 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
         parent.operationListeners.foreach(_(op))
     }
   }
+}
+
+class ControlSubUISelectCard(parent: ControlUI) extends ControlSubUIImage(parent, Array("")) {
+  var card = Cards.fromId(0)
+
+  val buttonDone = addButton(Lang.done, 120, 100, 70, 30)
+
+  var cardHoverListeners: List[Card => Unit] = List()
+
+  def resetCard() = setCard(Cards.fromId(0))
+
+  def setCard(card: Card): Unit = {
+    img = Resource.card(card.id)
+    this.card = card
+    buttonDone.setEnabled(card.id != 0)
+    repaint()
+  }
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val op = new OperationSelectCard(parent.game.playerId, parent.game.playerFaction, card)
+    parent.operationListeners.foreach(_(op))
+  }
+
+  addMouseMotionListener(new MouseMotionListener {
+    override def mouseMoved(e: MouseEvent): Unit = {
+      val x = e.getX
+      val y = e.getY
+      if (x >= 10 && x < 110 && y >= 45 && y < 185) {
+        cardHoverListeners.foreach(_(card))
+      }
+    }
+    override def mouseDragged(e: MouseEvent): Unit = {}
+  })
+
 }
 

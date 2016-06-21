@@ -91,6 +91,11 @@ class GameUI(playerId: Int) extends JFrame {
       controlUI.uiInfluence.addInfluence(country, 1)
     }
   })
+  handUI.cardClickListeners :+= ((card: Card) => {
+    if ((handUI.selfHand.isSelected || handUI.eventCards.isSelected) && controlUI.uiType == controlUI.UIType.SelectCard) {
+      controlUI.uiSelectCard.setCard(card)
+    }
+  })
   controlUI.uiInfluence.updateListeners :+= (() => {
     worldMapUI.pendingInfluenceFaction = controlUI.uiInfluence.targetFaction
     worldMapUI.pendingInfluenceIsAdd = controlUI.uiInfluence.isAdd
@@ -101,6 +106,9 @@ class GameUI(playerId: Int) extends JFrame {
     detailUI.setCountry(country)
   })
   handUI.cardHoverListeners :+= ((card: Card) => {
+    detailUI.setCard(card)
+  })
+  controlUI.uiSelectCard.cardHoverListeners :+= ((card: Card) => {
     detailUI.setCard(card)
   })
 

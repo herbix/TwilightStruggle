@@ -42,10 +42,10 @@ class InfoUI(val game: Game) extends JPanel {
     g.drawString(game.military(Faction.USSR).toString, 100 + w1 + w2, 88)
 
     val w3 = fm.stringWidth(Lang.currentPlayer)
-    if (game.currentPlayer == Faction.US) {
+    if (game.playerFaction == Faction.US) {
       g.setColor(usColor)
       g.drawString(Lang.US, 10 + w3, 28)
-    } else if (game.currentPlayer == Faction.USSR) {
+    } else if (game.playerFaction == Faction.USSR) {
       g.setColor(ussrColor)
       g.drawString(Lang.USSR, 10 + w3, 28)
     }

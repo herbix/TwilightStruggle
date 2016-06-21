@@ -15,8 +15,8 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
 
   game.stateUpdateListeners :+= (() => updateState())
 
-  val cardpos = new Array[Int](110)
-  val cards = new Array[Card](110)
+  val cardpos = new Array[Int](120)
+  val cards = new Array[Card](120)
   var hoverCardId = -1
 
   val cardWidth = 150
@@ -159,12 +159,12 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
   }
 
   def getShowCardSet: CardSet = {
-    if (game.currentPlayer == Neutral) {
+    if (game.playerFaction == Neutral) {
       null
     } else if (selfHand.isSelected) {
-      game.hand(game.currentPlayer)
+      game.hand(game.playerFaction)
     } else if (otherHand.isSelected) {
-      game.hand(getOpposite(game.currentPlayer))
+      game.hand(getOpposite(game.playerFaction))
     } else if (discarded.isSelected) {
       game.discards
     } else if (eventCards.isSelected) {

@@ -160,7 +160,7 @@ class WorldMapUI(val game: Game) extends JPanel {
     import me.herbix.ts.logic.Faction._
 
     val round = if (game.round < 1) 1 else game.round
-    drawToken(g, if (game.current == US) usColor else ussrColor,
+    drawToken(g, if (game.phasingPlayer == US && game.round >= 1) usColor else ussrColor,
       (MapValue.round1._1 * (8 - round) + MapValue.round8._1 * (round - 1)) / 7 + (MapValue.roundSize._1 - tokenSize) / 2,
       MapValue.round1._2 + (MapValue.roundSize._2 - tokenSize) / 2
     )

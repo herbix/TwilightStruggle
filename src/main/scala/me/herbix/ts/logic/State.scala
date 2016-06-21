@@ -15,5 +15,6 @@ object State extends Enumeration {
   val cardE, cardO, cardOE, cardEO = Value
   val cardEvent, cardOp = Value
   val cardOpAddInfluence, cardOpAdjust, cardOpCoup = Value
+  val cardEventStart, cardEvent1, cardEvent2, cardEvent3, cardEvent4, cardEvent5, cardEventEnd = Value
 
 }

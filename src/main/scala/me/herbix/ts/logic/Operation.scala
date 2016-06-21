@@ -11,3 +11,5 @@ class OperationChooseFaction(playerId: Int, val faction: Faction) extends Operat
 
 class OperationModifyInfluence(playerId: Int, val faction: Faction, val isAdd: Boolean, val detail: Map[Country, Int])
   extends Operation(playerId)
+
+class OperationSelectCard(playerId: Int, val faction: Faction, val card: Card) extends Operation(playerId)

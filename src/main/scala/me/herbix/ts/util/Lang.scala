@@ -32,9 +32,18 @@ object Lang {
   val putWestEurope = "请在西欧放置%s点影响力"
   val putExtra = "请在已有国放置%s点影响力"
 
+  var country = "国家"
+  val influence = "影响力"
+
+  val done = "完成"
+  val cancel = "取消"
+  val reset = "重置"
+
   val earlyWar = "冷战早期"
   val midWar = "冷战中期"
   val lateWar = "冷战后期"
+
+  val chooseHeadline = "请选择一张头条牌"
 
   val countryNames = mutable.Map[String, String]()
 
