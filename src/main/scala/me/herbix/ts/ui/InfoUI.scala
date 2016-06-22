@@ -24,13 +24,13 @@ class InfoUI(val game: Game) extends JPanel {
     g.drawString(Lang.currentPlayer, 10, 28)
     g.drawString(String.format(Lang.turn, game.turn.toString, game.round.toString), 10, 58)
     g.drawString(String.format(Lang.deck, game.deck.cardCount.toString), 100, 58)
-    g.drawString(Lang.space + " : ", 10, 88)
+    g.drawString(Lang.spaceComma + " : ", 10, 88)
     g.drawString(Lang.military + " : ", 100, 88)
     g.drawString(String.format(Lang.defcon, game.defcon.toString), 10, 118)
     g.drawString(Lang.vp, 100, 118)
 
     val fm = g.getFontMetrics
-    val w1 = fm.stringWidth(Lang.space)
+    val w1 = fm.stringWidth(Lang.spaceComma)
     val w2 = fm.stringWidth(" :")
 
     g.setColor(usColor)

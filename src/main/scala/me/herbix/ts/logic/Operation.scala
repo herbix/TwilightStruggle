@@ -1,5 +1,6 @@
 package me.herbix.ts.logic
 
+import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
 
 /**
@@ -13,3 +14,6 @@ class OperationModifyInfluence(playerId: Int, val faction: Faction, val isAdd: B
   extends Operation(playerId)
 
 class OperationSelectCard(playerId: Int, val faction: Faction, val card: Card) extends Operation(playerId)
+
+class OperationSelectCardAndAction(playerId: Int, faction: Faction, card: Card, val action: Action)
+  extends OperationSelectCard(playerId, faction, card)

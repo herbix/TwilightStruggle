@@ -6,6 +6,7 @@ import javax.swing.table.DefaultTableModel
 import javax.swing._
 
 import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic
 import me.herbix.ts.logic._
 import me.herbix.ts.util.{Lang, Resource}
 
@@ -23,6 +24,7 @@ class ControlUI(val game: Game) extends JPanel {
     val ChooseFaction, Waiting = Value
     val Influence = Value
     val SelectCard = Value
+    val SelectCardAndAction = Value
   }
 
   import UIType._
@@ -33,6 +35,7 @@ class ControlUI(val game: Game) extends JPanel {
   val uiWaiting = new ControlSubUIText(this, Array("", "", Lang.waitingForOpposite))
   val uiInfluence = new ControlSubUIModifyInfluence(this)
   val uiSelectCard = new ControlSubUISelectCard(this)
+  val uiSelectCardAndAction = new ControlSubUISelectCardAndAction(this)
 
   var operationListeners: List[Operation => Unit] = List()
 
@@ -41,6 +44,7 @@ class ControlUI(val game: Game) extends JPanel {
   add(uiWaiting, Waiting.toString)
   add(uiInfluence, Influence.toString)
   add(uiSelectCard, SelectCard.toString)
+  add(uiSelectCardAndAction, SelectCardAndAction.toString)
 
   updateState()
 
@@ -71,7 +75,13 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
-      case State.chooseHeadlineCard => selectCardUI(Lang.chooseHeadline)
+      case State.selectHeadlineCard => selectCardUI(Lang.selectHeadline)
+      case State.selectCardAndAction =>
+        if (game.playerFaction == game.phasingPlayer) {
+          selectCardAndActionUI()
+        } else {
+          waitOtherUI()
+        }
       case _ => waitOtherUI()
     }
     repaint()
@@ -96,6 +106,11 @@ class ControlUI(val game: Game) extends JPanel {
     showSubUI(SelectCard)
     uiSelectCard.text(0) = tip
     uiSelectCard.resetCard()
+  }
+
+  def selectCardAndActionUI() = {
+    showSubUI(SelectCardAndAction)
+    uiSelectCardAndAction.resetCard()
   }
 
 }
@@ -133,8 +148,22 @@ class ControlSubUIText(parent: ControlUI, val text: Array[String]) extends Contr
   }
 }
 
-class ControlSubUIImage(parent: ControlUI, array: Array[String]) extends ControlSubUIText(parent, array) {
+abstract class ControlSubUICard(parent: ControlUI, array: Array[String]) extends ControlSubUIText(parent, array) {
   var img = Resource.card(0)
+  var card = Cards.fromId(0)
+
+  var cardHoverListeners: List[Card => Unit] = List()
+
+  def resetCard() = setCard(Cards.fromId(0))
+
+  def setCard(card: Card): Unit = {
+    img = Resource.card(card.id)
+    this.card = card
+    updateCard()
+    repaint()
+  }
+
+  def updateCard(): Unit
 
   override def paint(g: Graphics): Unit = {
     super.paint(g)
@@ -149,10 +178,21 @@ class ControlSubUIImage(parent: ControlUI, array: Array[String]) extends Control
       g.drawRoundRect(l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, 5, 5)
     }
   }
+
+  addMouseMotionListener(new MouseMotionListener {
+    override def mouseMoved(e: MouseEvent): Unit = {
+      val x = e.getX
+      val y = e.getY
+      if (x >= 10 && x < 110 && y >= 45 && y < 185) {
+        cardHoverListeners.foreach(_(card))
+      }
+    }
+    override def mouseDragged(e: MouseEvent): Unit = {}
+  })
 }
 
 class ControlSubUIChooseFaction(parent: ControlUI) extends
-  ControlSubUIText(parent, Array("", "", Lang.chooseFaction)) {
+  ControlSubUIText(parent, Array("", "", Lang.selectFaction)) {
 
   val usButton = addButton(Lang.US, 20, 120, 70, 30)
   val ussrButton  = addButton(Lang.USSR, 110, 120, 70, 30)
@@ -285,20 +325,12 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
   }
 }
 
-class ControlSubUISelectCard(parent: ControlUI) extends ControlSubUIImage(parent, Array("")) {
-  var card = Cards.fromId(0)
+class ControlSubUISelectCard(parent: ControlUI) extends ControlSubUICard(parent, Array("")) {
 
   val buttonDone = addButton(Lang.done, 120, 100, 70, 30)
 
-  var cardHoverListeners: List[Card => Unit] = List()
-
-  def resetCard() = setCard(Cards.fromId(0))
-
-  def setCard(card: Card): Unit = {
-    img = Resource.card(card.id)
-    this.card = card
+  override def updateCard(): Unit = {
     buttonDone.setEnabled(card.id != 0)
-    repaint()
   }
 
   override def actionPerformed(e: ActionEvent): Unit = {
@@ -306,16 +338,35 @@ class ControlSubUISelectCard(parent: ControlUI) extends ControlSubUIImage(parent
     parent.operationListeners.foreach(_(op))
   }
 
-  addMouseMotionListener(new MouseMotionListener {
-    override def mouseMoved(e: MouseEvent): Unit = {
-      val x = e.getX
-      val y = e.getY
-      if (x >= 10 && x < 110 && y >= 45 && y < 185) {
-        cardHoverListeners.foreach(_(card))
-      }
-    }
-    override def mouseDragged(e: MouseEvent): Unit = {}
-  })
+}
 
+class ControlSubUISelectCardAndAction(parent: ControlUI) extends ControlSubUICard(parent, Array(Lang.selectCardAndAction)) {
+
+  val buttonSpace = addButton(Lang.space, 120, 50, 70, 30)
+  val buttonEvent = addButton(Lang.event, 120, 100, 70, 30)
+  val buttonOperation = addButton(Lang.operation, 120, 150, 70, 30)
+
+  override def updateCard(): Unit = {
+    val b = card.id != 0
+    buttonSpace.setEnabled(b)
+    buttonEvent.setEnabled(b)
+    buttonOperation.setEnabled(b)
+    if (card.faction == Faction.getOpposite(parent.game.playerFaction)) {
+      buttonEvent.setText(Lang.eventFirst)
+      buttonOperation.setText(Lang.operationFirst)
+    } else {
+      buttonEvent.setText(Lang.event)
+      buttonOperation.setText(Lang.operation)
+    }
+  }
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    e.getSource match {
+      case this.buttonSpace =>
+        val op = new OperationSelectCardAndAction(parent.game.playerId, parent.game.playerFaction, card, logic.Action.Space)
+        parent.operationListeners.foreach(_(op))
+      case _ =>
+    }
+  }
 }
 

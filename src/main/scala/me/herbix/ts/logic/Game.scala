@@ -5,6 +5,7 @@ import java.util.Random
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.State._
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 /**
@@ -50,13 +51,21 @@ class Game {
     }
   }
 
+  @tailrec
   private def nextState(input: Operation, currentState: State): Unit = {
     currentState match {
       case State.start => nextStateMayWait(input, nextStateStart)
       case State.putStartUSSR => nextStatePutStart(input, putStartUS)
       case State.putStartUS => nextStatePutStart(input, putStartUSExtra)
-      case State.putStartUSExtra => nextStatePutStart(input, chooseHeadlineCard)
-      case State.chooseHeadlineCard => nextStateMayWait(input, nextStateChooseHeadline)
+      case State.putStartUSExtra => nextStatePutStart(input, selectHeadlineCard)
+      case State.selectHeadlineCard => nextStateMayWait(input, nextStateChooseHeadline)
+      case State.solveHeadLineCard1 => nextStateSolveHeadline1()
+      case State.solveHeadLineCard2 => nextStateSolveHeadline2()
+      case State.selectCardAndAction => nextStateSelectCardAndAction(input: Operation)
+    }
+    if (stateStack.top == State.cardEventEnd) {
+      stateStack.pop()
+      nextState(null, stateStack.top)
     }
   }
 
@@ -153,6 +162,10 @@ class Game {
     }
   }
 
+  def discardCard(card: Card, force: Boolean = false): Unit = {
+    discards.add(card)
+  }
+
   def nextStateChooseHeadline(input: Operation): Unit = {
     val input1 = input.asInstanceOf[OperationSelectCard]
     val input2 = pendingInput.asInstanceOf[OperationSelectCard]
@@ -160,6 +173,12 @@ class Game {
     val inputA = if (input1.card.op > input2.card.op || (input1.card.op == input2.card.op && input1.faction == US))
       input1 else input2
     val inputB = if (input1 == inputA) input2 else input1
+
+    hand(inputA.faction).remove(inputA.card)
+    hand(inputB.faction).remove(inputB.card)
+
+    discardCard(inputA.card)
+    discardCard(inputB.card)
 
     currentEventCard = inputA.card
     phasingPlayer = inputA.faction
@@ -171,5 +190,70 @@ class Game {
 
     stateStack.push(cardEventStart)
     currentEventCard.nextState(this, null)
+  }
+
+  def nextStateSolveHeadline1() = {
+    val input = pendingInput.asInstanceOf[OperationSelectCard]
+
+    currentEventCard = input.card
+    phasingPlayer = input.faction
+
+    pendingInput = null
+
+    stateStack.pop()
+    stateStack.push(solveHeadLineCard2)
+
+    stateStack.push(cardEventStart)
+    currentEventCard.nextState(this, null)
+  }
+
+  def nextStateSolveHeadline2() = {
+    currentEventCard = null
+
+    round = 1
+    phasingPlayer = USSR
+
+    stateStack.pop()
+    stateStack.push(selectCardAndAction)
+  }
+
+  def nextRound() = {
+    if (phasingPlayer == USSR) {
+      phasingPlayer = US
+    } else {
+      phasingPlayer = USSR
+      round += 1
+    }
+  }
+
+  def rollDice() = random.nextInt(6) + 1
+
+  def increaseSpace(faction: Faction, value: Int) = {
+    space(faction) += value
+  }
+
+  def nextStateSelectCardAndAction(input: Operation): Unit = {
+    val op = input.asInstanceOf[OperationSelectCardAndAction]
+    val alwaysTriggerEvent = op.card.faction == Faction.getOpposite(phasingPlayer) && op.card.canPlayAsEvent(this)
+
+    hand(op.faction).remove(op.card)
+
+    op.action match {
+      case Action.Space =>
+        discardCard(op.card, true)
+        if (rollDice() <= 4) {
+          increaseSpace(op.faction, 1)
+        }
+        nextRound()
+      case Action.Event =>
+        discardCard(op.card)
+      case Action.Operation =>
+        discardCard(op.card, !alwaysTriggerEvent)
+    }
+
+    if (op.action == Action.Event || (op.action == Action.Operation && alwaysTriggerEvent)) {
+      currentEventCard = op.card
+    }
+
   }
 }

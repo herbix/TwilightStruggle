@@ -8,6 +8,7 @@ import scala.collection.mutable
   * Created by Chaofan on 2016/6/17.
   */
 abstract class Card(val id: Int, val op: Int, val faction: Faction) {
+  def canPlayAsEvent(game: Game): Boolean = true
   def nextState(game: Game, input: Operation): Unit = {
     if (game.stateStack.top == State.cardEventStart) {
       game.stateStack.pop()

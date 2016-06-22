@@ -12,7 +12,7 @@ object Lang {
   val vp = "ＶＰ: "
   val defcon = "核战: %s"
   val military = "军事: "
-  val space = "太空: "
+  val spaceComma = "太空: "
   val deck = "牌堆: %s"
   val turn = "回合: %s-%s"
   val currentPlayer = "当前玩家为："
@@ -20,7 +20,7 @@ object Lang {
   val heiti = "黑体"
   val lishu = "隶书"
 
-  val chooseFaction = "选择你的阵营"
+  val selectFaction = "选择你的阵营"
   val waitingForOpposite = "等待对方行动"
 
   val selfHand = "自己手牌"
@@ -43,7 +43,18 @@ object Lang {
   val midWar = "冷战中期"
   val lateWar = "冷战后期"
 
-  val chooseHeadline = "请选择一张头条牌"
+  val selectHeadline = "请选择头条牌"
+
+  val selectCardAndAction = "请选择要打出的牌"
+
+  val space = "太空"
+  val event = "事件"
+  val operation = "行动"
+  val eventFirst = "先事件"
+  val operationFirst = "先行动"
+
+  val realignment = "调整阵营"
+  val coup = "政变"
 
   val countryNames = mutable.Map[String, String]()
 
