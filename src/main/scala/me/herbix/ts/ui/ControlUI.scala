@@ -240,7 +240,7 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
     tableModel.setRowCount(0)
     for ((country, modifyValue) <- pendingInfluenceChange) {
       val influence = country.influence(parent.game.playerFaction)
-      tableModel.addRow(Array[Object](country, f"$influence -> ${influence + modifyValue}"))
+      tableModel.addRow(Array[Object](new CountryDelegate(country), f"$influence -> ${influence + modifyValue}"))
     }
     val rest = point - calculateInfluenceCost()
     text(0) = String.format(tip, rest.toString)
@@ -302,7 +302,7 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
       case this.buttonCancel =>
         val selectedRow = table.getSelectedRow
         if (selectedRow >= 0) {
-          val country = tableModel.getValueAt(selectedRow, 0).asInstanceOf[Country]
+          val country = tableModel.getValueAt(selectedRow, 0).asInstanceOf[CountryDelegate].country
           pendingInfluenceChange(country) -= 1
           if (pendingInfluenceChange(country) == 0) {
             pendingInfluenceChange -= country
@@ -322,6 +322,10 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
         pendingInfluenceChange.clear()
         parent.operationListeners.foreach(_(op))
     }
+  }
+
+  class CountryDelegate(val country: Country) {
+    override def toString = Lang.countryNames(country.name)
   }
 }
 

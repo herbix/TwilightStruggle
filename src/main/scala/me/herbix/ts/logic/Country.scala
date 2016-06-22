@@ -16,5 +16,5 @@ class Country(val name: String, val stability: Int, val critical: Boolean, val r
 
   val influence = mutable.Map(US -> 0, USSR -> 0)
 
-  override def toString = Lang.countryNames(name)
+  override def toString = name
 }

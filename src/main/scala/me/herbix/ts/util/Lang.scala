@@ -1,5 +1,9 @@
 package me.herbix.ts.util
 
+import me.herbix.ts.logic.Faction
+import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic.Faction.Faction
+
 import scala.collection.mutable
 
 /**
@@ -8,6 +12,12 @@ import scala.collection.mutable
 object Lang {
   val USSR = "苏联"
   val US = "美国"
+
+  def getName(faction: Faction) = faction match {
+    case Faction.US => US
+    case Faction.USSR => USSR
+    case Faction.Neutral => null
+  }
 
   val vp = "ＶＰ: "
   val defcon = "核战: %s"
@@ -42,6 +52,9 @@ object Lang {
   val earlyWar = "冷战早期"
   val midWar = "冷战中期"
   val lateWar = "冷战后期"
+
+  val goodFlag = "有利标记"
+  val badFlag = "不利标记"
 
   val selectHeadline = "请选择头条牌"
 
@@ -465,6 +478,24 @@ object Lang {
   addCardInfo("尤里和萨曼莎*", "本回合的剩下的行动轮内，每当美国发动政变，苏联就得1VP。")
   addCardInfo("出售预警机给沙特*", "美国在沙特阿拉伯增加两点行动力。\n不可作为事件打出“穆斯林革命”。")
 
+  val flagInfo = new Array[(Map[Faction, String], String)](120)
+  var flagInfoCount = 0
+  def addFlagInfo(name: String, desc: String): Unit = {
+    flagInfo(flagInfoCount) = (Map(Faction.US -> name, Faction.USSR -> name, Faction.Neutral -> name), desc)
+    flagInfoCount += 1
+  }
+  def addFlagInfo(usName: String, ussrName: String, neutralName: String, desc: String): Unit = {
+    flagInfo(flagInfoCount) = (Map(Faction.US -> usName, Faction.USSR -> ussrName, Faction.Neutral -> neutralName), desc)
+    flagInfoCount += 1
+  }
+
+  addFlagInfo("太空竞赛限制", "%1$s本回合已尝试过1次太空竞赛，除非%1$s有“送动物上太空”标记，否则不能再次进行太空竞赛尝试。")
+  addFlagInfo("太空竞赛限制", "%1$s本回合已尝试过2次太空竞赛，不能再次进行太空竞赛尝试。")
+  addFlagInfo("送动物上太空", "%1$s每回合可以进行2次太空竞赛尝试。")
+  addFlagInfo("常驻地球轨道的人", "%1$s的对手须先选择和展示头条牌。")
+  addFlagInfo("鹰落在月亮上", "熊落在月亮上", "有人落在月亮上", "%1$s可以弃掉1张持牌。")
+  addFlagInfo("太空站", "%1$s可以进行8个行动轮。")
+  addFlagInfo("面朝下的中国牌", "%1$s刚从对手接收中国牌，本回合不能使用。")
 
 
 }

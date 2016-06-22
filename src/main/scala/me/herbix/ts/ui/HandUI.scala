@@ -77,7 +77,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
   }
 
   addMouseMotionListener(new MouseMotionAdapter {
-    override def mouseMoved (e: MouseEvent): Unit = {
+    override def mouseMoved(e: MouseEvent): Unit = {
       val x = e.getX
       val y = e.getY
       val oldHoverCard = hoverCardId

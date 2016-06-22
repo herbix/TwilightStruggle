@@ -5,7 +5,8 @@ import java.awt.{Color, Dimension, ScrollPane, BorderLayout}
 import java.util.Random
 import javax.swing._
 
-import me.herbix.ts.logic.{Card, Country, Operation, Game}
+import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic._
 import scala.collection.mutable
 
 /**
@@ -73,7 +74,7 @@ class GameUI(playerId: Int) extends JFrame {
   detailUI.setPreferredSize(new Dimension(200, 300))
   rightPanel.add(detailUI, BorderLayout.NORTH)
 
-  val flagsUI = new FlagsUI
+  val flagsUI = new FlagsUI(game)
   flagsUI.setBackground(bgColor)
   rightPanel.add(flagsUI)
 
@@ -116,6 +117,9 @@ class GameUI(playerId: Int) extends JFrame {
   controlUI.uiSelectCard.cardHoverListeners :+= ((card: Card) => {
     detailUI.setCard(card)
   })
+  flagsUI.flagHoverListeners :+= ((faction: Faction, flag: Flag) => {
+    detailUI.setFlag(faction, flag)
+  })
 
 }
 
@@ -128,6 +132,8 @@ object GameUI {
     GameUI2.game.anotherGame = GameUI1.game
 
     val seed = new Random().nextLong()
+    GameUI1.game.randomSeed = seed
+    GameUI2.game.randomSeed = seed
     GameUI1.game.random.setSeed(seed)
     GameUI2.game.random.setSeed(seed)
 

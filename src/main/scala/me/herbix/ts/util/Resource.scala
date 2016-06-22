@@ -3,7 +3,9 @@ package me.herbix.ts.util
 import java.awt.{Color, Font}
 import javax.imageio.ImageIO
 
+import me.herbix.ts.logic.Flag
 import me.herbix.ts.logic.Region.Region
+import me.herbix.ts.logic.Faction._
 
 import scala.collection.mutable
 
@@ -15,6 +17,17 @@ object Resource {
   val card = (0 to 110)
     .map(i => (i, ImageIO.read(getClass.getResourceAsStream(f"/cards/$i%03d.png"))))
     .toMap
+  val flag = (0 to 6).map(i => {
+    val in = getClass.getResourceAsStream(f"/flags/$i%02d.png")
+    if (in != null) {
+      val img = ImageIO.read(in)
+      (i, Map(US -> img, USSR -> img, Neutral -> img))
+    } else {
+      val inA = getClass.getResourceAsStream(f"/flags/$i%02dA.png")
+      val inS = getClass.getResourceAsStream(f"/flags/$i%02dS.png")
+      (i, Map(US -> ImageIO.read(inA), USSR -> ImageIO.read(inS)))
+    }
+  }).toMap
 
   val textFont = new Font(Lang.heiti, 0, 16)
   val textFont2 = new Font(Lang.lishu, 0, 32)

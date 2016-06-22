@@ -40,6 +40,7 @@ class Game {
 
   val flags = new Flags
 
+  var randomSeed = 0l
   val random = new Random
 
   var stateUpdateListeners: List[() => Unit] = List()
@@ -243,6 +244,11 @@ class Game {
         discardCard(op.card, true)
         if (rollDice() <= 4) {
           increaseSpace(op.faction, 1)
+        }
+        if (flags.hasFlag(op.faction, Flags.Space1)) {
+          flags.addFlag(op.faction, Flags.Space2)
+        } else {
+          flags.addFlag(op.faction, Flags.Space1)
         }
         nextRound()
       case Action.Event =>
