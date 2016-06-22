@@ -28,7 +28,7 @@ class Game {
   var phasingPlayer = USSR
 
   val military = mutable.Map(US -> 0, USSR -> 0)
-  val space = mutable.Map(US -> 0, USSR -> 0)
+  val space = mutable.Map(US -> SpaceLevel(0), USSR -> SpaceLevel(0))
   var vp = 0
   var defcon = 5
 
@@ -163,8 +163,14 @@ class Game {
     }
   }
 
-  def discardCard(card: Card, force: Boolean = false): Unit = {
-    discards.add(card)
+  def discardCard(card: Card, from: Faction, force: Boolean = false): Unit = {
+    if (card == Cards.chinaCard) {
+      val opposite = Faction.getOpposite(from)
+      hand(opposite).add(card)
+      flags.addFlag(opposite, Flags.cantPlayChinaCard)
+    } else if (force || !card.isRemovedAfterEvent) {
+      discards.add(card)
+    }
   }
 
   def nextStateChooseHeadline(input: Operation): Unit = {
@@ -178,8 +184,8 @@ class Game {
     hand(inputA.faction).remove(inputA.card)
     hand(inputB.faction).remove(inputB.card)
 
-    discardCard(inputA.card)
-    discardCard(inputB.card)
+    discardCard(inputA.card, inputA.faction)
+    discardCard(inputB.card, inputB.faction)
 
     currentEventCard = inputA.card
     phasingPlayer = inputA.faction
@@ -230,19 +236,44 @@ class Game {
   def rollDice() = random.nextInt(6) + 1
 
   def increaseSpace(faction: Faction, value: Int) = {
-    space(faction) += value
+    var selfSpace = space(faction)
+    val oppositeFaction = Faction.getOpposite(faction)
+
+    for (i <- 0 until value) {
+      val nextLevel = selfSpace.nextLevel
+      if (nextLevel != null) {
+        selfSpace = nextLevel
+        if (selfSpace.flag != null) {
+          if (flags.hasFlag(oppositeFaction, selfSpace.flag)) {
+            flags.removeFlag(oppositeFaction, selfSpace.flag)
+          } else {
+            flags.addFlag(faction, selfSpace.flag)
+          }
+        }
+      }
+    }
+    space(faction) = selfSpace
+
+    val oppositeSpace = space(oppositeFaction)
+    vp += Faction.getVpFactor(faction) *
+      (if (oppositeSpace.level < selfSpace.level) selfSpace.firstVp else selfSpace.secondVp)
   }
 
   def nextStateSelectCardAndAction(input: Operation): Unit = {
     val op = input.asInstanceOf[OperationSelectCardAndAction]
-    val alwaysTriggerEvent = op.card.faction == Faction.getOpposite(phasingPlayer) && op.card.canPlayAsEvent(this)
+    val oppositeCard = op.card.faction == Faction.getOpposite(phasingPlayer)
+    val alwaysTriggerEvent = oppositeCard && op.card.canPlayAsEvent(this)
 
     hand(op.faction).remove(op.card)
 
+    if (op.action == Action.Event || (op.action == Action.Operation && alwaysTriggerEvent)) {
+      currentEventCard = op.card
+    }
+
     op.action match {
       case Action.Space =>
-        discardCard(op.card, true)
-        if (rollDice() <= 4) {
+        discardCard(op.card, op.faction, true)
+        if (rollDice() <= space(op.faction).nextLevel.rollMax) {
           increaseSpace(op.faction, 1)
         }
         if (flags.hasFlag(op.faction, Flags.Space1)) {
@@ -252,14 +283,33 @@ class Game {
         }
         nextRound()
       case Action.Event =>
-        discardCard(op.card)
+        discardCard(op.card, op.faction)
+        stateStack.pop()
+        if (!oppositeCard) {
+          stateStack.push(State.cardE)
+        } else {
+          stateStack.push(State.cardEO)
+        }
+        stateStack.push(State.cardEvent)
+        stateStack.push(State.cardEventStart)
+        currentEventCard.nextState(this, null)
       case Action.Operation =>
-        discardCard(op.card, !alwaysTriggerEvent)
+        discardCard(op.card, op.faction, !alwaysTriggerEvent)
+        stateStack.pop()
+        if (!oppositeCard) {
+          stateStack.push(State.cardO)
+        } else {
+          stateStack.push(State.cardOE)
+        }
+        stateStack.push(State.cardOperation)
+        stateStack.push(State.cardOperationSelect)
     }
 
-    if (op.action == Action.Event || (op.action == Action.Operation && alwaysTriggerEvent)) {
-      currentEventCard = op.card
-    }
+  }
 
+  def canSpace(faction: Faction): Boolean = {
+    space(faction) != SpaceLevel.Station &&
+      (!flags.hasFlag(faction, Flags.Space1) ||
+        (!flags.hasFlag(faction, Flags.Space2) && flags.hasFlag(faction, Flags.SpaceAwardTwoSpace)))
   }
 }

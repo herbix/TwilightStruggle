@@ -352,7 +352,7 @@ class ControlSubUISelectCardAndAction(parent: ControlUI) extends ControlSubUICar
 
   override def updateCard(): Unit = {
     val b = card.id != 0
-    buttonSpace.setEnabled(b)
+    buttonSpace.setEnabled(b && parent.game.canSpace(parent.game.playerFaction))
     buttonEvent.setEnabled(b)
     buttonOperation.setEnabled(b)
     if (card.faction == Faction.getOpposite(parent.game.playerFaction)) {
@@ -365,12 +365,17 @@ class ControlSubUISelectCardAndAction(parent: ControlUI) extends ControlSubUICar
   }
 
   override def actionPerformed(e: ActionEvent): Unit = {
-    e.getSource match {
+    val op = e.getSource match {
       case this.buttonSpace =>
-        val op = new OperationSelectCardAndAction(parent.game.playerId, parent.game.playerFaction, card, logic.Action.Space)
-        parent.operationListeners.foreach(_(op))
+        new OperationSelectCardAndAction(parent.game.playerId, parent.game.playerFaction, card, logic.Action.Space)
+      case this.buttonEvent =>
+        new OperationSelectCardAndAction(parent.game.playerId, parent.game.playerFaction, card, logic.Action.Event)
+      case this.buttonOperation =>
+        new OperationSelectCardAndAction(parent.game.playerId, parent.game.playerFaction, card, logic.Action.Operation)
       case _ =>
+        null
     }
+    parent.operationListeners.foreach(_(op))
   }
 }
 

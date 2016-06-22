@@ -55,6 +55,6 @@ object Flags {
   val SpaceAwardTwoSpace = Flag(Always, true)
   val SpaceAwardHeadlineThen = Flag(Always, true)
   val SpaceAwardMayDiscard = Flag(Always, true)
-  val SpaceAwardTwoTake8Rounds = Flag(Always, true)
+  val SpaceAwardTake8Rounds = Flag(Always, true)
   val cantPlayChinaCard = Flag(ThisTurn, false)
 }

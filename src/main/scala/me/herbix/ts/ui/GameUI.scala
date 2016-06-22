@@ -99,6 +99,7 @@ class GameUI(playerId: Int) extends JFrame {
           controlUI.uiSelectCard.setCard(card)
         case controlUI.UIType.SelectCardAndAction =>
           controlUI.uiSelectCardAndAction.setCard(card)
+        case _ =>
       }
     }
   })
@@ -115,6 +116,9 @@ class GameUI(playerId: Int) extends JFrame {
     detailUI.setCard(card)
   })
   controlUI.uiSelectCard.cardHoverListeners :+= ((card: Card) => {
+    detailUI.setCard(card)
+  })
+  controlUI.uiSelectCardAndAction.cardHoverListeners :+= ((card: Card) => {
     detailUI.setCard(card)
   })
   flagsUI.flagHoverListeners :+= ((faction: Faction, flag: Flag) => {

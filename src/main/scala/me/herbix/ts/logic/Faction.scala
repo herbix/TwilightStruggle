@@ -12,4 +12,10 @@ object Faction extends Enumeration {
     case USSR => US
     case _ => Neutral
   }
+
+  def getVpFactor(faction: Faction): Int = faction match {
+    case US => 1
+    case USSR => -1
+    case _ => 0
+  }
 }

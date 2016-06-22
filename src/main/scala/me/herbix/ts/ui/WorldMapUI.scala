@@ -176,12 +176,12 @@ class WorldMapUI(val game: Game) extends JPanel {
     )
 
     drawToken(g, usColor,
-      (MapValue.space8._1 * game.space(US) + MapValue.space0._1 * (8 - game.space(US))) / 8 + (MapValue.spaceSize._1 - tokenSize) / 2,
+      (MapValue.space8._1 * game.space(US).level + MapValue.space0._1 * (8 - game.space(US).level)) / 8 + (MapValue.spaceSize._1 - tokenSize) / 2,
       MapValue.space8._2 + (MapValue.spaceSize._2 - tokenSize * 2) / 2
     )
 
     drawToken(g, ussrColor,
-      (MapValue.space8._1 * game.space(USSR) + MapValue.space0._1 * (8 - game.space(USSR))) / 8 + (MapValue.spaceSize._1 - tokenSize) / 2,
+      (MapValue.space8._1 * game.space(USSR).level + MapValue.space0._1 * (8 - game.space(USSR).level)) / 8 + (MapValue.spaceSize._1 - tokenSize) / 2,
       MapValue.space8._2 + MapValue.spaceSize._2 / 2
     )
 
