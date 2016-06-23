@@ -1,8 +1,8 @@
 package me.herbix.ts.util
 
-import me.herbix.ts.logic.Faction
+import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
-import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic.{Action, Faction}
 
 import scala.collection.mutable
 
@@ -13,7 +13,7 @@ object Lang {
   val USSR = "苏联"
   val US = "美国"
 
-  def getName(faction: Faction) = faction match {
+  def getFactionName(faction: Faction) = faction match {
     case Faction.US => US
     case Faction.USSR => USSR
     case Faction.Neutral => null
@@ -66,6 +66,7 @@ object Lang {
   val eventFirst = "先事件"
   val operationFirst = "先行动"
 
+  val addInfluence = "增加影响力"
   val realignment = "调整阵营"
   val coup = "政变"
 
@@ -77,7 +78,17 @@ object Lang {
   val increase = "增加"
   val decrease = "减少"
 
+  def getActionName(action: Action) = action match {
+    case Action.Space => space
+    case Action.Event => event
+    case Action.Operation => operation
+    case Action.Influence => addInfluence
+    case Action.Realignment => realignment
+    case Action.Coup => coup
+  }
+
   val historyStartGame = "开始游戏"
+  val historyTurnStart = "第%s回合开始"
   val historyTurnHeadline = "第%s回合头条"
   val historyTurnRound = "第%s回合第%s行动轮"
   val historyPickCard = "%s抽取了%s张牌"
@@ -85,6 +96,20 @@ object Lang {
   val historyModifyInfluence = "%2$s了%1$s影响力："
   val historyModifyInfluenceDetail = "%1$s %2$s -> %3$s"
   val historyPlayHeadline = "%s打出“%s”作为头条"
+  val historyEvent = "%s发动了“%s”的事件"
+  val historyCardAction = "%s打出“%s”用于%s"
+  val historyCardActionOpposite = "%s打出“%s”，先%s，后%s"
+  val historyCardOperation = "%s用“%s”的行动力%s点进行%s行动"
+  val historyOperationSpace = "%s的太空竞赛掷点为%s"
+  val historyOperationRealignment = "在%s进行调整阵营：美国掷得%s，调整为%s；苏联掷得%s，调整为%s"
+  val historyOperationCoup = "%s在%s发动政变，掷得%s，行动力%s，影响力变数得%s"
+  val historySpace = "%s的太空竞赛等级从%s前进到%s"
+  val historyVp = "%s得%sVP"
+  val historyDefconImprove = "核战等级从%s级改善到%s级"
+  val historyDefconDegrade = "核战等级从%s级恶化到%s级"
+  val historyDefconStay = "核战等级保持%s级不变"
+  val historyMilitary = "%s的军事行动数从%s增加到%s"
+  val historyMilitaryReset = "重置%s的军事行动数"
 
   val countryNames = mutable.Map[String, String]()
 
@@ -513,6 +538,9 @@ object Lang {
   addFlagInfo("鹰落在月亮上", "熊落在月亮上", "有人落在月亮上", "%1$s可以弃掉1张持牌。")
   addFlagInfo("太空站", "%1$s可以进行8个行动轮。")
   addFlagInfo("面朝下的中国牌", "%1$s刚从对手接收中国牌，本回合不能使用。")
+  addFlagInfo("核战等级限制", "双方不能在欧洲调整阵营或发动政变。")
+  addFlagInfo("核战等级限制", "双方不能在亚洲调整阵营或发动政变。")
+  addFlagInfo("核战等级限制", "双方不能在中东调整阵营或发动政变。")
 
 
 }

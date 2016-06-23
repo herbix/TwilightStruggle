@@ -305,7 +305,7 @@ class DetailUI extends JPanel {
     val desc = if (flagFaction == Neutral)
       Lang.flagInfo(flag.id)._2
     else
-      String.format(Lang.flagInfo(flag.id)._2, Lang.getName(flagFaction))
+      String.format(Lang.flagInfo(flag.id)._2, Lang.getFactionName(flagFaction))
 
     paintName(g, name)
     paintDesc(g, desc)

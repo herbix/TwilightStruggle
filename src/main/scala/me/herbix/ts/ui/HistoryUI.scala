@@ -1,6 +1,6 @@
 package me.herbix.ts.ui
 
-import java.awt.{Dimension, RenderingHints, Graphics2D, Graphics}
+import java.awt._
 import javax.swing.JPanel
 
 import me.herbix.ts.logic._
@@ -37,6 +37,8 @@ class HistoryUI(game: Game) extends JPanel {
       case h: HistoryTurnRound =>
         val str = if (h.round == 0) {
           String.format(Lang.historyTurnHeadline, h.turn.toString)
+        } else if (h.round == -1) {
+          String.format(Lang.historyTurnStart, h.turn.toString)
         } else {
           String.format(Lang.historyTurnRound, h.turn.toString, h.round.toString)
         }
@@ -47,12 +49,14 @@ class HistoryUI(game: Game) extends JPanel {
         } else {
           ""
         })
-      case h: HistoryPickCard => String.format(Lang.historyPickCard, Lang.getName(h.faction), h.count.toString)
-      case h: HistoryGetCard => String.format(Lang.historyGetCard, Lang.getName(h.faction), Lang.cardInfo(h.card.id)._1)
+      case h: HistoryPickCard =>
+        String.format(Lang.historyPickCard, Lang.getFactionName(h.faction), h.count.toString)
+      case h: HistoryGetCard =>
+        String.format(Lang.historyGetCard, Lang.getFactionName(h.faction), Lang.cardInfo(h.card.id)._1)
       case h: HistoryModifyInfluence =>
         val sb = new StringBuilder
         val change = if (h.isAdd) Lang.increase else Lang.decrease
-        sb.append(String.format(Lang.historyModifyInfluence, Lang.getName(h.faction), change))
+        sb.append(String.format(Lang.historyModifyInfluence, Lang.getFactionName(h.faction), change))
         sb.append('\n')
         for ((country, oldValue, newValue) <- h.detail) {
           sb.append(String.format(Lang.historyModifyInfluenceDetail, Lang.countryNames(country.name), oldValue.toString, newValue.toString))
@@ -60,7 +64,48 @@ class HistoryUI(game: Game) extends JPanel {
         }
         sb.length -= 1
         sb.toString
-      case h: HistoryPlayHeadline => String.format(Lang.historyPlayHeadline, Lang.getName(h.faction), Lang.cardInfo(h.card.id)._1)
+      case h: HistoryPlayHeadline =>
+        String.format(Lang.historyPlayHeadline, Lang.getFactionName(h.faction), Lang.cardInfo(h.card.id)._1)
+      case h: HistoryEvent =>
+        val faction = if (h.card.faction != Faction.Neutral) h.card.faction else h.faction
+        String.format(Lang.historyEvent, Lang.getFactionName(faction), Lang.cardInfo(h.card.id)._1)
+      case h: HistoryCardAction =>
+        if (!h.oppositeCard || h.action == Action.Space) {
+          String.format(Lang.historyCardAction, Lang.getFactionName(h.faction), Lang.cardInfo(h.card.id)._1, Lang.getActionName(h.action))
+        } else {
+          val otherAction = if (h.action == Action.Event) Action.Operation else Action.Event
+          String.format(Lang.historyCardActionOpposite, Lang.getFactionName(h.faction), Lang.cardInfo(h.card.id)._1, Lang.getActionName(h.action), Lang.getActionName(otherAction))
+        }
+      case h: HistoryCardOperation =>
+        String.format(Lang.historyCardOperation, Lang.getFactionName(h.faction), Lang.cardInfo(h.card.id)._1, h.card.op.toString, Lang.getActionName(h.operation))
+      case h: HistoryOperationSpace =>
+        String.format(Lang.historyOperationSpace, Lang.getFactionName(h.faction), h.roll.toString)
+      case h: HistoryOperationRealignment =>
+        String.format(Lang.historyOperationRealignment, Lang.countryNames(h.country.name),
+          h.usDice.toString, h.modifiedUsDice.toString,
+          h.ussrDice.toString, h.modifiedUssrDice.toString)
+      case h: HistoryOperationCoup =>
+        String.format(Lang.historyOperationCoup, Lang.getFactionName(h.faction), Lang.countryNames(h.country.name),
+          h.dice.toString, h.modifier.toString, h.result.toString)
+      case h: HistorySpace =>
+        String.format(Lang.historySpace, Lang.getFactionName(h.faction), h.oldLevel.toString, h.newLevel.toString)
+      case h: HistoryVp =>
+        String.format(Lang.historyVp, Lang.getFactionName(h.faction), h.vpChange.toString)
+      case h: HistoryDefcon =>
+        val formatStr = if (h.oldValue < h.newValue) {
+          Lang.historyDefconImprove
+        } else if (h.oldValue > h.newValue) {
+          Lang.historyDefconDegrade
+        } else {
+          Lang.historyDefconStay
+        }
+        String.format(formatStr, h.oldValue.toString, h.newValue.toString)
+      case h: HistoryMilitary =>
+        if (h.newValue == 0) {
+          String.format(Lang.historyMilitaryReset, Lang.getFactionName(h.faction))
+        } else {
+          String.format(Lang.historyMilitary, Lang.getFactionName(h.faction), h.oldValue.toString, h.newValue.toString)
+        }
       case h => h.toString
     }
     var height = 25
@@ -73,12 +118,12 @@ class HistoryUI(game: Game) extends JPanel {
     for (ch <- str) {
       if (ch == '\n') {
         cx = 0
-        height += 20
+        height += 18
       } else {
         val chw = fm.charWidth(ch)
         if (cx + chw > w - 10) {
           cx = 0
-          height += 18
+          height += 16
         }
         cx += chw
       }
@@ -101,19 +146,38 @@ class HistoryUI(game: Game) extends JPanel {
     val fm = g.getFontMetrics
     val w = getWidth
 
-    for (opmeta <- historyText) {
+    for (historyMeta <- historyText) {
+      historyMeta.history match {
+        case h: HistoryStartGame =>
+          g.setColor(Color.LIGHT_GRAY)
+          g.fillRect(0, top + 3, w, historyMeta.height)
+        case h: HistoryTurnRound =>
+          h.faction match {
+            case Faction.Neutral => g.setColor(Color.LIGHT_GRAY)
+            case Faction.US => g.setColor(Resource.usColorInfluenceChange)
+            case Faction.USSR => g.setColor(Resource.ussrColorInfluenceChange)
+          }
+          g.fillRect(0, top + 3, w, historyMeta.height)
+        case _ =>
+      }
+
+      g.setColor(Color.GRAY)
+      g.drawLine(0, top + 3, w, top + 3)
+
+      g.setColor(Color.BLACK)
+
       var height = top + 20
       var cx = 0
 
-      for (ch <- opmeta.text) {
+      for (ch <- historyMeta.text) {
         if (ch == '\n') {
           cx = 0
-          height += 20
+          height += 18
         } else {
           val chw = fm.charWidth(ch)
           if (cx + chw > w - 10) {
             cx = 0
-            height += 18
+            height += 16
           }
           chArr(0) = ch
           g.drawChars(chArr, 0, 1, cx + 5, height)
@@ -121,7 +185,7 @@ class HistoryUI(game: Game) extends JPanel {
         }
       }
 
-      top += opmeta.height
+      top += historyMeta.height
     }
   }
 

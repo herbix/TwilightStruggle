@@ -44,6 +44,9 @@ class Flags {
   def hasFlag(faction: Faction, flag: Flag): Boolean = {
     flagSets(faction).contains(flag) || flagSets(Neutral).contains(flag)
   }
+  def hasFlag(flag: Flag): Boolean = {
+    flagSets.exists(_._2.contains(flag))
+  }
   def turnEnds(): Unit = {
     flagSets.foreach(_._2.retain(_.flagType == Always))
   }
@@ -57,4 +60,7 @@ object Flags {
   val SpaceAwardMayDiscard = Flag(Always, true)
   val SpaceAwardTake8Rounds = Flag(Always, true)
   val cantPlayChinaCard = Flag(ThisTurn, false)
+  val Defcon4Penalty = Flag(Always, false)
+  val Defcon3Penalty = Flag(Always, false)
+  val Defcon2Penalty = Flag(Always, false)
 }

@@ -17,7 +17,7 @@ object Resource {
   val card = (0 to 110)
     .map(i => (i, ImageIO.read(getClass.getResourceAsStream(f"/cards/$i%03d.png"))))
     .toMap
-  val flag = (0 to 6).map(i => {
+  val flag = (0 to 9).map(i => {
     val in = getClass.getResourceAsStream(f"/flags/$i%02d.png")
     if (in != null) {
       val img = ImageIO.read(in)

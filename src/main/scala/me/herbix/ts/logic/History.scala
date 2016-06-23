@@ -23,7 +23,7 @@ class HistoryOperationCoup(val faction: Faction, val country: Country, val dice:
 class HistorySpace(val faction: Faction, val oldLevel: Int, val newLevel: Int) extends History
 class HistoryDefcon(val oldValue: Int, val newValue: Int) extends History
 class HistoryVp(val faction: Faction, val vpChange: Int, val vpResult: Int) extends History
-class HistoryMilitary(val faction: Faction, val oldVal: Int, val newVal: Int) extends History
+class HistoryMilitary(val faction: Faction, val oldValue: Int, val newValue: Int) extends History
 class HistoryPickCard(val faction: Faction, val count: Int) extends History
 class HistoryGetCard(val faction: Faction, val card: Card) extends History
 class HistoryLoseCard(val faction: Faction, val card: Card) extends History

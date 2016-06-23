@@ -60,9 +60,11 @@ class FlagsUI(game: Game) extends JPanel {
         val id = (x / 49) + (y / 49) * 4
         if (id < flags.length) {
           val flag = flags(id)
-          if (flag != null && flag != hoverFlag) {
+          if (flag != hoverFlag) {
             hoverFlag = flag
-            flagHoverListeners.foreach(_(flag._1, flag._2))
+            if (flag != null) {
+              flagHoverListeners.foreach(_ (flag._1, flag._2))
+            }
           }
         }
       }

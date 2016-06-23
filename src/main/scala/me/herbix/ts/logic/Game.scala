@@ -126,6 +126,7 @@ class Game {
     pendingInput = null
 
     history.push(new HistoryStartGame)
+    history.push(new HistoryTurnRound(turn, -1, Neutral))
 
     initGame()
 
@@ -222,6 +223,7 @@ class Game {
     if (card == Cards.chinaCard) {
       val opposite = Faction.getOpposite(from)
       hand(opposite).add(card)
+      history.push(new HistoryGetCard(opposite, card))
       flags.addFlag(opposite, Flags.cantPlayChinaCard)
     } else if (force || !card.isRemovedAfterEvent) {
       discards.add(card)
@@ -345,14 +347,16 @@ class Game {
 
   def addVp(faction: Faction, value: Int): Unit = {
     vp += Faction.getVpFactor(faction) * value
-    history.push(new HistoryVp(faction, value, vp))
+    if (value != 0) {
+      history.push(new HistoryVp(faction, value, vp))
+    }
   }
 
   def setDefcon(newVal: Int): Unit = {
     val oldVal = defcon
     defcon = newVal
     checkDefcon()
-    history.push(new HistoryDefcon(oldVal, newVal))
+    history.push(new HistoryDefcon(oldVal, defcon))
   }
 
   def nextTurn(): Unit = {
@@ -364,7 +368,7 @@ class Game {
     }
     round = 0
 
-    history.push(new HistoryTurnRound(turn, round, Neutral))
+    history.push(new HistoryTurnRound(turn, -1, Neutral))
 
     if (turn == 4) {
       deck.join(Cards.midWarSet)
@@ -401,6 +405,8 @@ class Game {
     setDefcon(defcon + 1)
 
     flags.turnEnds()
+
+    history.push(new HistoryTurnRound(turn, round, Neutral))
 
     stateStack.push(State.selectHeadlineCard)
   }
@@ -521,6 +527,20 @@ class Game {
     stateStack.pop()
   }
 
+  def canRealignment(faction: Faction, country: Country): Boolean = {
+    if (country.regions.contains(Region.Europe) && flags.hasFlag(faction, Flags.Defcon4Penalty)) return false
+    if (country.regions.contains(Region.Asia) && flags.hasFlag(faction, Flags.Defcon3Penalty)) return false
+    if (country.regions.contains(Region.MidEast) && flags.hasFlag(faction, Flags.Defcon2Penalty)) return false
+    true
+  }
+
+  def canCoup(faction: Faction, country: Country): Boolean = {
+    if (country.regions.contains(Region.Europe) && flags.hasFlag(faction, Flags.Defcon4Penalty)) return false
+    if (country.regions.contains(Region.Asia) && flags.hasFlag(faction, Flags.Defcon3Penalty)) return false
+    if (country.regions.contains(Region.MidEast) && flags.hasFlag(faction, Flags.Defcon2Penalty)) return false
+    true
+  }
+
   def nextStateOperationRealignment(input: Operation) = {
     val op = input.asInstanceOf[OperationSelectCountry]
     val country = worldMap.countries(op.detail.head.name)
@@ -543,9 +563,11 @@ class Game {
     })
     history.push(new HistoryOperationRealignment(country, rollUSOriginal, rollUSSROriginal, rollUS, rollUSSR))
     if (rollUS > rollUSSR) {
-      modifyInfluence(USSR, false, Map(country -> Math.min(rollUS - rollUSSR, country.influence(USSR))))
+      val decreaseValue = Math.min(rollUS - rollUSSR, country.influence(USSR))
+      if (decreaseValue > 0) modifyInfluence(USSR, false, Map(country -> decreaseValue))
     } else if (rollUS < rollUSSR) {
-      modifyInfluence(US, false, Map(country -> Math.min(rollUSSR - rollUS, country.influence(US))))
+      val decreaseValue = Math.min(rollUSSR - rollUS, country.influence(US))
+      if (decreaseValue > 0) modifyInfluence(US, false, Map(country -> decreaseValue))
     }
     currentUsedOp += 1
     if (currentUsedOp >= currentCard.op) {
@@ -561,6 +583,9 @@ class Game {
     if (defcon > 5) {
       defcon = 5
     }
+    if (defcon <= 4) flags.addFlag(Neutral, Flags.Defcon4Penalty) else flags.removeFlag(Neutral, Flags.Defcon4Penalty)
+    if (defcon <= 3) flags.addFlag(Neutral, Flags.Defcon3Penalty) else flags.removeFlag(Neutral, Flags.Defcon3Penalty)
+    if (defcon <= 2) flags.addFlag(Neutral, Flags.Defcon2Penalty) else flags.removeFlag(Neutral, Flags.Defcon2Penalty)
   }
 
   def addMilitary(faction: Faction, op: Int) = setMilitary(faction, military(faction) + op)
