@@ -88,8 +88,12 @@ class GameUI(playerId: Int) extends JFrame {
   controlUI.uiInfluence.pendingInfluenceChange = pendingInfluenceChange
   worldMapUI.pendingInfluenceChange = pendingInfluenceChange
   worldMapUI.countryClickListeners :+= ((country: Country, button: Int) => {
-    if (button == MouseEvent.BUTTON1 && controlUI.uiType == controlUI.UIType.Influence) {
-      controlUI.uiInfluence.addInfluence(country, 1)
+    if (button == MouseEvent.BUTTON1) {
+      controlUI.uiType match {
+        case controlUI.UIType.Influence => controlUI.uiInfluence.addInfluence(country, 1)
+        case controlUI.UIType.SelectCountry => controlUI.uiSelectCountry.addCountry(country)
+        case _ =>
+      }
     }
   })
   handUI.cardClickListeners :+= ((card: Card) => {
@@ -124,6 +128,15 @@ class GameUI(playerId: Int) extends JFrame {
   flagsUI.flagHoverListeners :+= ((faction: Faction, flag: Flag) => {
     detailUI.setFlag(faction, flag)
   })
+
+  val pendingCountrySelection: mutable.Set[Country] = mutable.Set()
+  controlUI.uiSelectCountry.pendingCountrySelection = pendingCountrySelection
+  worldMapUI.pendingCountrySelection = pendingCountrySelection
+
+  controlUI.uiSelectCountry.updateListeners :+= (() => {
+    worldMapUI.repaint()
+  })
+
 
 }
 

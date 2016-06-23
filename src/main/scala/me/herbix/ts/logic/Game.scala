@@ -32,7 +32,8 @@ class Game {
   var vp = 0
   var defcon = 5
 
-  var currentEventCard: Card = null
+  var currentCard: Card = null
+  var currentUsedOp = 0
 
   val hand = Map(US -> new CardSet, USSR -> new CardSet)
   val deck = new CardSet
@@ -62,10 +63,18 @@ class Game {
       case State.selectHeadlineCard => nextStateMayWait(input, nextStateChooseHeadline)
       case State.solveHeadLineCard1 => nextStateSolveHeadline1()
       case State.solveHeadLineCard2 => nextStateSolveHeadline2()
-      case State.selectCardAndAction => nextStateSelectCardAndAction(input: Operation)
+      case State.selectCardAndAction => nextStateSelectCardAndAction(input)
+      case State.cardEvent => nextStateCardEvent()
+      case State.cardOperationSelect => nextStateOperationSelect(input)
+      case State.cardOperationAddInfluence => nextStateOperationInfluence(input)
+      case State.cardOperationRealignment => nextStateOperationRealignment(input)
+      case State.cardOperationCoup => nextStateOperationCoup(input)
+      case State.cardOperation => nextStateCardOperation()
     }
     if (stateStack.top == State.cardEventEnd) {
       stateStack.pop()
+      nextState(null, stateStack.top)
+    } else if (stateStack.top == State.cardOperation) {
       nextState(null, stateStack.top)
     }
   }
@@ -155,6 +164,26 @@ class Game {
     stateStack.push(next)
   }
 
+  def calculateInfluenceCost(pendingInfluenceChange: mutable.Map[Country, Int], faction: Faction, ignoreControl: Boolean): Int = {
+    var cost = 0
+    for ((country, modifyValue) <- pendingInfluenceChange) {
+      val influence = country.influence(faction)
+      val c =
+        if (ignoreControl)
+          modifyValue
+        else {
+          val influenceOpposite = country.influence(Faction.getOpposite(faction))
+          if (influenceOpposite - influence >= country.stability) {
+            modifyValue + Math.min(modifyValue, influenceOpposite - influence - country.stability + 1)
+          } else {
+            modifyValue
+          }
+        }
+      cost += c
+    }
+    cost
+  }
+
   def modifyInfluence(op: OperationModifyInfluence): Unit = {
     val isAdd = op.isAdd
     val faction = op.faction
@@ -187,7 +216,7 @@ class Game {
     discardCard(inputA.card, inputA.faction)
     discardCard(inputB.card, inputB.faction)
 
-    currentEventCard = inputA.card
+    currentCard = inputA.card
     phasingPlayer = inputA.faction
 
     pendingInput = inputB
@@ -196,13 +225,13 @@ class Game {
     stateStack.push(solveHeadLineCard1)
 
     stateStack.push(cardEventStart)
-    currentEventCard.nextState(this, null)
+    currentCard.nextState(this, null)
   }
 
   def nextStateSolveHeadline1() = {
     val input = pendingInput.asInstanceOf[OperationSelectCard]
 
-    currentEventCard = input.card
+    currentCard = input.card
     phasingPlayer = input.faction
 
     pendingInput = null
@@ -211,11 +240,11 @@ class Game {
     stateStack.push(solveHeadLineCard2)
 
     stateStack.push(cardEventStart)
-    currentEventCard.nextState(this, null)
+    currentCard.nextState(this, null)
   }
 
   def nextStateSolveHeadline2() = {
-    currentEventCard = null
+    currentCard = null
 
     round = 1
     phasingPlayer = USSR
@@ -224,14 +253,20 @@ class Game {
     stateStack.push(selectCardAndAction)
   }
 
-  def nextRound() = {
+  @tailrec
+  private def nextRound(): Unit = {
     if (phasingPlayer == USSR) {
       phasingPlayer = US
     } else {
       phasingPlayer = USSR
       round += 1
     }
+    if (hand(phasingPlayer).cardCount == 0) {
+      nextRound()
+    }
   }
+
+  def isAfterFinalRound = if (turn <= 3) round >= 7 else round >= 8
 
   def rollDice() = random.nextInt(6) + 1
 
@@ -261,13 +296,13 @@ class Game {
 
   def nextStateSelectCardAndAction(input: Operation): Unit = {
     val op = input.asInstanceOf[OperationSelectCardAndAction]
-    val oppositeCard = op.card.faction == Faction.getOpposite(phasingPlayer)
+    val oppositeCard = op.card.faction == Faction.getOpposite(op.faction)
     val alwaysTriggerEvent = oppositeCard && op.card.canPlayAsEvent(this)
 
     hand(op.faction).remove(op.card)
 
-    if (op.action == Action.Event || (op.action == Action.Operation && alwaysTriggerEvent)) {
-      currentEventCard = op.card
+    if (op.action != Action.Space) {
+      currentCard = op.card
     }
 
     op.action match {
@@ -292,7 +327,7 @@ class Game {
         }
         stateStack.push(State.cardEvent)
         stateStack.push(State.cardEventStart)
-        currentEventCard.nextState(this, null)
+        currentCard.nextState(this, null)
       case Action.Operation =>
         discardCard(op.card, op.faction, !alwaysTriggerEvent)
         stateStack.pop()
@@ -312,4 +347,125 @@ class Game {
       (!flags.hasFlag(faction, Flags.Space1) ||
         (!flags.hasFlag(faction, Flags.Space2) && flags.hasFlag(faction, Flags.SpaceAwardTwoSpace)))
   }
+
+  def canCardSpace(card: Card, faction: Faction): Boolean = {
+    card.id != 0 && canSpace(faction) && space(faction).nextLevel.op <= card.op
+  }
+
+  def canCardEvent(card: Card, playerFaction: Faction): Boolean = {
+    card.id != 0 && card.canPlayAsEvent(this)
+  }
+
+  def canCardOperation(card: Card, playerFaction: Faction): Boolean = {
+    card.id != 0 && card.op > 0
+  }
+
+  def nextStateCardEvent() = {
+    stateStack.pop()
+    stateStack.top match {
+      case State.cardEO =>
+        stateStack.push(State.cardOperation)
+        stateStack.push(State.cardOperationSelect)
+      case State.cardOE | State.cardE =>
+        currentCard = null
+        nextRound()
+        stateStack.pop()
+        stateStack.push(State.selectCardAndAction)
+    }
+  }
+
+  def nextStateOperationSelect(input: Operation) = {
+    val op = input.asInstanceOf[OperationSelectOperation]
+    stateStack.pop()
+
+    op.action match {
+      case Action.Influence =>
+        stateStack.push(State.cardOperationAddInfluence)
+      case Action.Realignment =>
+        stateStack.push(State.cardOperationRealignment)
+        currentUsedOp = 0
+      case Action.Coup =>
+        stateStack.push(State.cardOperationCoup)
+    }
+  }
+
+  def nextStateOperationInfluence(input: Operation) = {
+    val op = input.asInstanceOf[OperationModifyInfluence]
+    modifyInfluence(op)
+    stateStack.pop()
+  }
+
+  def nextStateOperationRealignment(input: Operation) = {
+    val op = input.asInstanceOf[OperationSelectCountry]
+    val country = worldMap.countries(op.detail.head.name)
+    var rollUS = rollDice()
+    var rollUSSR = rollDice()
+    if (country.influence(US) > country.influence(USSR)) {
+      rollUS += 1
+    } else if (country.influence(US) < country.influence(USSR)) {
+      rollUSSR += 1
+    }
+    rollUS += worldMap.links(country.name).count(name => {
+      val country = worldMap.countries(name)
+      country.influence(US) - country.influence(USSR) >= country.stability
+    })
+    rollUSSR += worldMap.links(country.name).count(name => {
+      val country = worldMap.countries(name)
+      country.influence(USSR) - country.influence(US) >= country.stability
+    })
+    if (rollUS > rollUSSR) {
+      country.influence(USSR) -= Math.min(rollUS - rollUSSR, country.influence(USSR))
+    } else if (rollUS < rollUSSR) {
+      country.influence(US) -= Math.min(rollUSSR - rollUS, country.influence(US))
+    }
+    currentUsedOp += 1
+    if (currentUsedOp >= currentCard.op) {
+      stateStack.pop()
+    }
+  }
+
+  def checkDefcon() = {
+    if (defcon <= 1) {
+      defcon = 1
+      // TODO gameover
+    }
+  }
+
+  def nextStateOperationCoup(input: Operation) = {
+    val op = input.asInstanceOf[OperationSelectCountry]
+    val country = worldMap.countries(op.detail.head.name)
+    val coupFactor = Math.max(0, rollDice() + currentCard.op - 2 * country.stability)
+
+    val factionSelf = op.faction
+    val factionOpposite = Faction.getOpposite(factionSelf)
+
+    val oppositeDown = Math.min(coupFactor, country.influence(factionOpposite))
+    val selfUp = coupFactor - oppositeDown
+
+    country.influence(factionOpposite) -= oppositeDown
+    country.influence(factionSelf) += selfUp
+
+    if (country.critical) {
+      defcon -= 1
+      checkDefcon()
+    }
+
+    stateStack.pop()
+  }
+
+  def nextStateCardOperation() = {
+    stateStack.pop()
+    stateStack.top match {
+      case State.cardOE =>
+        stateStack.push(State.cardEvent)
+        stateStack.push(State.cardEventStart)
+        currentCard.nextState(this, null)
+      case State.cardEO | State.cardO =>
+        currentCard = null
+        nextRound()
+        stateStack.pop()
+        stateStack.push(State.selectCardAndAction)
+    }
+  }
+
 }

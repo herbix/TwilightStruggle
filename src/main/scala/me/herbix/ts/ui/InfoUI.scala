@@ -34,11 +34,11 @@ class InfoUI(val game: Game) extends JPanel {
     val w2 = fm.stringWidth(" :")
 
     g.setColor(usColor)
-    g.drawString(game.space(Faction.US).toString, 10 + w1, 88)
+    g.drawString(game.space(Faction.US).level.toString, 10 + w1, 88)
     g.drawString(game.military(Faction.US).toString, 100 + w1, 88)
 
     g.setColor(ussrColor)
-    g.drawString(game.space(Faction.USSR).toString, 10 + w1 + w2, 88)
+    g.drawString(game.space(Faction.USSR).level.toString, 10 + w1 + w2, 88)
     g.drawString(game.military(Faction.USSR).toString, 100 + w1 + w2, 88)
 
     val w3 = fm.stringWidth(Lang.currentPlayer)

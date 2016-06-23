@@ -25,6 +25,8 @@ class ControlUI(val game: Game) extends JPanel {
     val Influence = Value
     val SelectCard = Value
     val SelectCardAndAction = Value
+    val SelectOperation = Value
+    val SelectCountry = Value
   }
 
   import UIType._
@@ -36,6 +38,8 @@ class ControlUI(val game: Game) extends JPanel {
   val uiInfluence = new ControlSubUIModifyInfluence(this)
   val uiSelectCard = new ControlSubUISelectCard(this)
   val uiSelectCardAndAction = new ControlSubUISelectCardAndAction(this)
+  val uiSelectOperation = new ControlSubUISelectOperation(this)
+  val uiSelectCountry = new ControlSubUISelectCountry(this)
 
   var operationListeners: List[Operation => Unit] = List()
 
@@ -45,6 +49,8 @@ class ControlUI(val game: Game) extends JPanel {
   add(uiInfluence, Influence.toString)
   add(uiSelectCard, SelectCard.toString)
   add(uiSelectCardAndAction, SelectCardAndAction.toString)
+  add(uiSelectOperation, SelectOperation.toString)
+  add(uiSelectCountry, SelectCountry.toString)
 
   updateState()
 
@@ -82,6 +88,37 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
+      case State.cardOperationSelect =>
+        if (game.playerFaction == game.phasingPlayer) {
+          selectOperationUI(Lang.operationSelect)
+        } else {
+          waitOtherUI()
+        }
+      case State.cardOperationAddInfluence =>
+        if (game.playerFaction == game.phasingPlayer) {
+          addInfluenceUI(game.currentCard.op, Lang.operationAddInfluence, true, false, game.playerFaction,
+            _.forall(e => {
+              val country = e._1
+              country.influence(game.playerFaction) > 0 ||
+                game.worldMap.links(country.name).exists(game.worldMap.countries(_).influence(game.playerFaction) > 0)
+            })
+          )
+        } else {
+          waitOtherUI()
+        }
+      case State.cardOperationRealignment =>
+        if (game.playerFaction == game.phasingPlayer) {
+          selectCountryUI(1, game.currentCard.op - game.currentUsedOp, Lang.operationRealignment, _ => true)
+        } else {
+          waitOtherUI()
+        }
+      case State.cardOperationCoup =>
+        if (game.playerFaction == game.phasingPlayer) {
+          selectCountryUI(1, game.currentCard.op, Lang.operationCoup,
+            _.forall(_.influence(Faction.getOpposite(game.playerFaction)) > 0))
+        } else {
+          waitOtherUI()
+        }
       case _ => waitOtherUI()
     }
     repaint()
@@ -98,7 +135,6 @@ class ControlUI(val game: Game) extends JPanel {
     uiInfluence.ignoreControl = ignoreControl
     uiInfluence.targetFaction = targetFaction
     uiInfluence.validCheck = valid
-    uiInfluence.text(0) = String.format(tip, point.toString)
     uiInfluence.updatePendingInfluenceChange()
   }
 
@@ -111,6 +147,20 @@ class ControlUI(val game: Game) extends JPanel {
   def selectCardAndActionUI() = {
     showSubUI(SelectCardAndAction)
     uiSelectCardAndAction.resetCard()
+  }
+
+  def selectOperationUI(tip: String) = {
+    showSubUI(SelectOperation)
+    uiSelectOperation.text(1) = String.format(tip, game.currentCard.op.toString)
+  }
+
+  def selectCountryUI(point: Int, point2: Int, tip: String, valid: Set[Country] => Boolean): Unit = {
+    showSubUI(SelectCountry)
+    uiSelectCountry.tip = tip
+    uiSelectCountry.point = point
+    uiSelectCountry.point2 = point2
+    uiSelectCountry.validCheck = valid
+    uiSelectCountry.updatePendingCountrySelection()
   }
 
 }
@@ -242,7 +292,7 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
       val influence = country.influence(parent.game.playerFaction)
       tableModel.addRow(Array[Object](new CountryDelegate(country), f"$influence -> ${influence + modifyValue}"))
     }
-    val rest = point - calculateInfluenceCost()
+    val rest = point - parent.game.calculateInfluenceCost(pendingInfluenceChange, parent.game.playerFaction, ignoreControl)
     text(0) = String.format(tip, rest.toString)
     buttonDone.setEnabled(rest == 0)
     if (tableModel.getRowCount > 0) {
@@ -253,28 +303,9 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
   }
 
   def checkInfluence(): Boolean = {
-    calculateInfluenceCost() <= point && validCheck(pendingInfluenceChange.toMap) &&
+    parent.game.calculateInfluenceCost(pendingInfluenceChange, parent.game.playerFaction, ignoreControl) <= point &&
+      validCheck(pendingInfluenceChange.toMap) &&
       (isAdd || pendingInfluenceChange.forall(e => e._1.influence(targetFaction) >= e._2))
-  }
-
-  def calculateInfluenceCost(): Int = {
-    var cost = 0
-    for ((country, modifyValue) <- pendingInfluenceChange) {
-      val influence = country.influence(parent.game.playerFaction)
-      val c =
-        if (ignoreControl)
-          modifyValue
-        else {
-          val influenceOpposite = country.influence(Faction.getOpposite(parent.game.playerFaction))
-          if (influenceOpposite - influence >= country.stability) {
-            modifyValue + Math.min(modifyValue, influenceOpposite - influence - country.stability + 1)
-          } else {
-            modifyValue
-          }
-        }
-      cost += c
-    }
-    cost
   }
 
   def addInfluence(country: Country, value: Int): Unit = {
@@ -323,10 +354,10 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
         parent.operationListeners.foreach(_(op))
     }
   }
+}
 
-  class CountryDelegate(val country: Country) {
-    override def toString = Lang.countryNames(country.name)
-  }
+class CountryDelegate(val country: Country) {
+  override def toString = Lang.countryNames(country.name)
 }
 
 class ControlSubUISelectCard(parent: ControlUI) extends ControlSubUICard(parent, Array("")) {
@@ -344,17 +375,17 @@ class ControlSubUISelectCard(parent: ControlUI) extends ControlSubUICard(parent,
 
 }
 
-class ControlSubUISelectCardAndAction(parent: ControlUI) extends ControlSubUICard(parent, Array(Lang.selectCardAndAction)) {
+class ControlSubUISelectCardAndAction(parent: ControlUI)
+  extends ControlSubUICard(parent, Array(Lang.selectCardAndAction)) {
 
   val buttonSpace = addButton(Lang.space, 120, 50, 70, 30)
   val buttonEvent = addButton(Lang.event, 120, 100, 70, 30)
   val buttonOperation = addButton(Lang.operation, 120, 150, 70, 30)
 
   override def updateCard(): Unit = {
-    val b = card.id != 0
-    buttonSpace.setEnabled(b && parent.game.canSpace(parent.game.playerFaction))
-    buttonEvent.setEnabled(b)
-    buttonOperation.setEnabled(b)
+    buttonSpace.setEnabled(parent.game.canCardSpace(card, parent.game.playerFaction))
+    buttonEvent.setEnabled(parent.game.canCardEvent(card, parent.game.playerFaction))
+    buttonOperation.setEnabled(parent.game.canCardOperation(card, parent.game.playerFaction))
     if (card.faction == Faction.getOpposite(parent.game.playerFaction)) {
       buttonEvent.setText(Lang.eventFirst)
       buttonOperation.setText(Lang.operationFirst)
@@ -365,17 +396,109 @@ class ControlSubUISelectCardAndAction(parent: ControlUI) extends ControlSubUICar
   }
 
   override def actionPerformed(e: ActionEvent): Unit = {
-    val op = e.getSource match {
-      case this.buttonSpace =>
-        new OperationSelectCardAndAction(parent.game.playerId, parent.game.playerFaction, card, logic.Action.Space)
-      case this.buttonEvent =>
-        new OperationSelectCardAndAction(parent.game.playerId, parent.game.playerFaction, card, logic.Action.Event)
-      case this.buttonOperation =>
-        new OperationSelectCardAndAction(parent.game.playerId, parent.game.playerFaction, card, logic.Action.Operation)
-      case _ =>
-        null
+    val action = e.getSource match {
+      case this.buttonSpace => logic.Action.Space
+      case this.buttonEvent => logic.Action.Event
+      case this.buttonOperation => logic.Action.Operation
     }
+    val op = new OperationSelectCardAndAction(parent.game.playerId, parent.game.playerFaction, card, action)
     parent.operationListeners.foreach(_(op))
   }
 }
 
+class ControlSubUISelectOperation(parent: ControlUI) extends ControlSubUIText(parent, Array("", "", "")) {
+
+  val influence = addButton(Lang.influence, 40, 85, 120, 30)
+  val realignment = addButton(Lang.realignment, 40, 120, 120, 30)
+  val coup = addButton(Lang.coup, 40, 155, 120, 30)
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val action = e.getSource match {
+      case this.influence => logic.Action.Influence
+      case this.realignment => logic.Action.Realignment
+      case this.coup => logic.Action.Coup
+    }
+    val op = new OperationSelectOperation(parent.game.playerId, parent.game.playerFaction, action)
+    parent.operationListeners.foreach(_(op))
+  }
+
+}
+
+class ControlSubUISelectCountry(parent: ControlUI) extends
+  ControlSubUIText(parent, Array("")) {
+
+  val buttonDone = addButton(Lang.done, 10, 165, 60, 30)
+  val buttonCancel = addButton(Lang.cancel, 70, 165, 60, 30)
+  val buttonReset = addButton(Lang.reset, 130, 165, 60, 30)
+
+  val tableModel = new DefaultTableModel()
+  val table = new JTable(tableModel)
+  val tableOuter = new JScrollPane(table)
+
+  var tip = "%s(%s)"
+  var point = 0
+  var point2 = 0
+  var validCheck: Set[Country] => Boolean = null
+
+  var pendingCountrySelection: mutable.Set[Country] = null
+
+  var updateListeners: List[() => Unit] = List()
+
+  tableModel.addColumn(Lang.country)
+  table.setRowHeight(25)
+  table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+  tableOuter.setLocation(0, 40)
+  tableOuter.setSize(200, 120)
+  tableOuter.setBorder(null)
+  add(tableOuter)
+
+  def addCountry(country: Country): Unit = {
+    pendingCountrySelection += country
+    if (checkSelection()) {
+      updatePendingCountrySelection()
+    } else {
+      pendingCountrySelection -= country
+    }
+  }
+
+  def checkSelection(): Boolean = {
+    point - pendingCountrySelection.size >= 0 && validCheck(pendingCountrySelection.toSet)
+  }
+
+  def updatePendingCountrySelection(): Unit = {
+    tableModel.setRowCount(0)
+    for (country <- pendingCountrySelection) {
+      tableModel.addRow(Array[Object](new CountryDelegate(country)))
+    }
+    val rest = point - pendingCountrySelection.size
+    text(0) = String.format(tip, rest.toString, point2.toString)
+    buttonDone.setEnabled(rest == 0)
+    if (tableModel.getRowCount > 0) {
+      table.setRowSelectionInterval(0, 0)
+    }
+    updateListeners.foreach(_())
+    repaint()
+  }
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    e.getSource match {
+      case this.buttonReset =>
+        pendingCountrySelection.clear()
+        updatePendingCountrySelection()
+      case this.buttonCancel =>
+        val selectedRow = table.getSelectedRow
+        if (selectedRow >= 0) {
+          val country = tableModel.getValueAt(selectedRow, 0).asInstanceOf[CountryDelegate].country
+          pendingCountrySelection -= country
+          updatePendingCountrySelection()
+          if (tableModel.getRowCount > selectedRow) {
+            table.setRowSelectionInterval(selectedRow, selectedRow)
+          }
+        }
+      case this.buttonDone =>
+        val op = new OperationSelectCountry(parent.game.playerId, parent.game.playerFaction, pendingCountrySelection.toSet)
+        pendingCountrySelection.clear()
+        parent.operationListeners.foreach(_(op))
+    }
+  }
+}

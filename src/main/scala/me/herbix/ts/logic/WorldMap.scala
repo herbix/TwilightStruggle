@@ -43,8 +43,8 @@ class WorldMap {
     countryObj.influence(faction) = newValue
   }
 
-  addCountry(new Country("US", -1, false, Super))
-  addCountry(new Country("USSR", -1, false, Super))
+  addCountry(new Country("US", 50, false, Super))
+  addCountry(new Country("USSR", 50, false, Super))
 
   addCountry(new Country("Mexico", 2, true, MidAmerica), Set("US"))
   addCountry(new Country("Guatemala", 1, false, MidAmerica), Set("Mexico"))

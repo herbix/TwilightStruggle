@@ -8,6 +8,8 @@ import scala.collection.mutable
   * Created by Chaofan on 2016/6/17.
   */
 abstract class Card(val id: Int, val op: Int, val faction: Faction) {
+  def canHeadline(game: Game): Boolean = true
+  def canBeDiscarded(game: Game): Boolean = true
   def canPlayAsEvent(game: Game): Boolean = true
   def isRemovedAfterEvent = false
   def nextState(game: Game, input: Operation): Unit = {

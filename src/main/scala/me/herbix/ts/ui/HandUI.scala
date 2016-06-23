@@ -82,7 +82,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       val y = e.getY
       val oldHoverCard = hoverCardId
       hoverCardId = -1
-      if (!(y >= 0 && y < 160 && x >= 10 && x < getWidth - 10)) {
+      if (!(y >= 0 && y < 160 && x >= 10 && x < getWidth)) {
         return
       }
       for (i <- cardpos.indices) {
@@ -135,7 +135,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       return
     }
 
-    val w = Math.min(getWidth - cardWidth - 110, 120 * (hand.cardCount - 1))
+    val w = Math.min(getWidth - cardWidth - 101, 120 * (hand.cardCount - 1))
     val c = hand.cardCount - 1
     var n = 0
 

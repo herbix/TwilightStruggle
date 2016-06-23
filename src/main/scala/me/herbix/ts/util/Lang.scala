@@ -69,6 +69,11 @@ object Lang {
   val realignment = "调整阵营"
   val coup = "政变"
 
+  val operationSelect = "请用%s行动力来行动"
+  val operationAddInfluence = "请用%s行动力来增加影响力"
+  val operationRealignment = "请调整%1$s个国家（剩余%2$s）"
+  val operationCoup = "请政变%1$s个国家（行动力%2$s）"
+
   val countryNames = mutable.Map[String, String]()
 
   countryNames += "Mexico" -> "墨西哥"

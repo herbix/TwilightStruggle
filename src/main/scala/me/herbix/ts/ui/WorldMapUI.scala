@@ -39,6 +39,8 @@ class WorldMapUI(val game: Game) extends JPanel {
   var pendingInfluenceFaction = Faction.US
   var pendingInfluenceIsAdd = true
 
+  var pendingCountrySelection: mutable.Set[Country] = null
+
   var countryHoverListeners: List[Country => Unit] = List()
   var countryClickListeners: List[(Country, Int) => Unit] = List()
 
@@ -219,6 +221,11 @@ class WorldMapUI(val game: Game) extends JPanel {
         } else {
           drawInfluenceToken(g, fm, ussrInfluence.toString, ussrBgColor, ussrDrawColor, x + 52, y + 18)
         }
+      }
+
+      if (pendingCountrySelection.contains(country)) {
+        g.setColor(selectedCountry)
+        g.fillRect(x, y, MapValue.countrySize._1, MapValue.countrySize._2)
       }
     }
   }

@@ -17,3 +17,7 @@ class OperationSelectCard(playerId: Int, val faction: Faction, val card: Card) e
 
 class OperationSelectCardAndAction(playerId: Int, faction: Faction, card: Card, val action: Action)
   extends OperationSelectCard(playerId, faction, card)
+
+class OperationSelectOperation(playerId: Int, val faction: Faction, val action: Action) extends Operation(playerId)
+
+class OperationSelectCountry(playerId: Int, val faction: Faction, val detail: Set[Country]) extends Operation(playerId)
