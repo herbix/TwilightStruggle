@@ -20,8 +20,8 @@ class WorldMapUI(val game: Game) extends JPanel {
 
   var outerView: JScrollPane = null
 
-  def setOuter(worldMapUIOuter: JScrollPane) = {
-    outerView = worldMapUIOuter
+  def setOuter(outer: JScrollPane) = {
+    outerView = outer
     outerView.addComponentListener(new ComponentAdapter {
       override def componentResized(e: ComponentEvent): Unit = {
         minscale = Math.max((outerView.getWidth - 2).toDouble / bg.getWidth, (outerView.getHeight - 2).toDouble / bg.getHeight)
@@ -139,6 +139,7 @@ class WorldMapUI(val game: Game) extends JPanel {
 
     val g2d = g.asInstanceOf[Graphics2D]
 
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
     g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
     g2d.scale(scale, scale)

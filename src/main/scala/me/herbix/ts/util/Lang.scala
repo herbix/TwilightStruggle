@@ -74,6 +74,18 @@ object Lang {
   val operationRealignment = "请调整%1$s个国家（剩余%2$s）"
   val operationCoup = "请政变%1$s个国家（行动力%2$s）"
 
+  val increase = "增加"
+  val decrease = "减少"
+
+  val historyStartGame = "开始游戏"
+  val historyTurnHeadline = "第%s回合头条"
+  val historyTurnRound = "第%s回合第%s行动轮"
+  val historyPickCard = "%s抽取了%s张牌"
+  val historyGetCard = "%s获得了“%s”"
+  val historyModifyInfluence = "%2$s了%1$s影响力："
+  val historyModifyInfluenceDetail = "%1$s %2$s -> %3$s"
+  val historyPlayHeadline = "%s打出“%s”作为头条"
+
   val countryNames = mutable.Map[String, String]()
 
   countryNames += "Mexico" -> "墨西哥"

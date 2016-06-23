@@ -66,7 +66,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
 
     g.setColor(Resource.textColor)
 
-    for (card <- hand.cards) {
+    for (card <- hand) {
       val l = cardpos(n)
       val img = if (otherHand.isSelected) Resource.card(0) else Resource.card(card.id)
       val t = if (n == hoverCardId) 0 else 10
@@ -139,7 +139,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
     val c = hand.cardCount - 1
     var n = 0
 
-    for (card <- hand.cards) {
+    for (card <- hand) {
       cardpos(n) = if (c == 0)
         100
       else if (hoverCardId == c || hoverCardId == -1 || c == 1 || w / c > cardWidth)

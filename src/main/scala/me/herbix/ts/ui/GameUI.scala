@@ -39,11 +39,11 @@ class GameUI(playerId: Int) extends JFrame {
   controlUI.operationListeners :+= ((op: Operation) => if (op != null) game.sendNextState(op))
   leftPanel.add(controlUI, BorderLayout.NORTH)
 
-  val historyUI = new HistoryUI
-  historyUI.setPreferredSize(new Dimension(180, 500))
+  val historyUI = new HistoryUI(game)
   historyUI.setBackground(bgColor)
   val historyUIOuter = new JScrollPane(historyUI)
   historyUIOuter.setBorder(null)
+  historyUIOuter.getVerticalScrollBar.setUnitIncrement(40)
   leftPanel.add(historyUIOuter)
 
   val centerPanel = new JPanel

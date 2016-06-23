@@ -7,11 +7,14 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/12.
   */
-class CardSet {
-  val cards = mutable.Set[Card]()
+class CardSet extends mutable.Iterable[Card] {
+  private val cards = mutable.Set[Card]()
 
   def cardCount = cards.size
-  def isEmpty = cards.isEmpty
+  override def isEmpty = cards.isEmpty
+  override def iterator: Iterator[Card] = cards.iterator
+  def has(card: Card): Boolean = cards.contains(card)
+  def clear() = cards.clear()
 
   def join(iterable: Iterable[Card]): Unit = {
     cards ++= iterable
@@ -35,4 +38,5 @@ class CardSet {
   def add(card: Card): Unit = {
     cards.add(card)
   }
+
 }
