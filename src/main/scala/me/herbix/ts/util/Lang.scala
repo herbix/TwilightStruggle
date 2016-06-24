@@ -87,12 +87,20 @@ object Lang {
     case Action.Coup => coup
   }
 
+  val discardHeldCard = "可以弃掉一张持牌"
+
+  val yes = "是"
+  val no = "否"
+
+  val take8rounds = "是否要进行8个行动轮"
+
   val historyStartGame = "开始游戏"
   val historyTurnStart = "第%s回合开始"
   val historyTurnHeadline = "第%s回合头条"
   val historyTurnRound = "第%s回合第%s行动轮"
   val historyPickCard = "%s抽取了%s张牌"
   val historyGetCard = "%s获得了“%s”"
+  val historyDiscardCard = "%s丢弃了“%s”"
   val historyModifyInfluence = "%2$s了%1$s影响力："
   val historyModifyInfluenceDetail = "%1$s %2$s -> %3$s"
   val historyPlayHeadline = "%s打出“%s”作为头条"

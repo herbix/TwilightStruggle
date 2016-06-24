@@ -53,6 +53,8 @@ class HistoryUI(game: Game) extends JPanel {
         String.format(Lang.historyPickCard, Lang.getFactionName(h.faction), h.count.toString)
       case h: HistoryGetCard =>
         String.format(Lang.historyGetCard, Lang.getFactionName(h.faction), Lang.cardInfo(h.card.id)._1)
+      case h: HistoryDiscardCard =>
+        String.format(Lang.historyDiscardCard, Lang.getFactionName(h.faction), Lang.cardInfo(h.card.id)._1)
       case h: HistoryModifyInfluence =>
         val sb = new StringBuilder
         val change = if (h.isAdd) Lang.increase else Lang.decrease

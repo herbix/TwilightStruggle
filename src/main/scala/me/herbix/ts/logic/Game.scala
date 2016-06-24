@@ -62,7 +62,12 @@ class Game {
       case State.putStartUSSR => nextStatePutStart(input, putStartUS)
       case State.putStartUS => nextStatePutStart(input, putStartUSExtra)
       case State.putStartUSExtra => nextStatePutUSExtra(input)
-      case State.selectHeadlineCard => nextStateMayWait(input, nextStateChooseHeadline)
+      case State.selectHeadlineCard =>
+        if (!flags.hasFlag(Flags.SpaceAwardHeadlineThen))
+          nextStateMayWait(input, nextStateSelectHeadline)
+        else
+          nextStateSelectHeadlineFirst(input)
+      case State.selectHeadlineCard2 => nextStateSelectHeadline(input)
       case State.solveHeadLineCard1 => nextStateSolveHeadline1()
       case State.solveHeadLineCard2 => nextStateSolveHeadline2()
       case State.selectCardAndAction => nextStateSelectCardAndAction(input)
@@ -72,11 +77,13 @@ class Game {
       case State.cardOperationRealignment => nextStateOperationRealignment(input)
       case State.cardOperationCoup => nextStateOperationCoup(input)
       case State.cardOperation => nextStateCardOperation()
+      case State.discardHeldCard => nextStateDiscardHeldCard(input)
+      case State.selectTake8Rounds => nextStateSelectTake8Rounds(input)
     }
-    if (stateStack.top == State.cardEventEnd) {
+    if (stateStack.top == cardEventEnd) {
       stateStack.pop()
       nextState(null, stateStack.top)
-    } else if (stateStack.top == State.cardOperation) {
+    } else if (stateStack.top == cardOperation) {
       nextState(null, stateStack.top)
     }
   }
@@ -180,6 +187,8 @@ class Game {
       worldMap.countries("South Africa") -> 1,
       worldMap.countries("UK") -> 5
     ))
+
+    increaseSpace(US, 8) // TODO Test
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -230,7 +239,15 @@ class Game {
     }
   }
 
-  def nextStateChooseHeadline(input: Operation): Unit = {
+  def nextStateSelectHeadlineFirst(input: Operation): Unit = {
+    val op = input.asInstanceOf[OperationSelectCard]
+    pendingInput = input
+    history.push(new HistoryPlayHeadline(op.faction, op.card))
+    stateStack.pop()
+    stateStack.push(selectHeadlineCard2)
+  }
+
+  def nextStateSelectHeadline(input: Operation): Unit = {
     val input1 = input.asInstanceOf[OperationSelectCard]
     val input2 = pendingInput.asInstanceOf[OperationSelectCard]
 
@@ -244,8 +261,12 @@ class Game {
     discardCard(inputA.card, inputA.faction)
     discardCard(inputB.card, inputB.faction)
 
-    history.push(new HistoryPlayHeadline(inputA.faction, inputA.card))
-    history.push(new HistoryPlayHeadline(inputB.faction, inputB.card))
+    if (stateStack.top == selectHeadlineCard2) {
+      history.push(new HistoryPlayHeadline(input1.faction, input1.card))
+    } else {
+      history.push(new HistoryPlayHeadline(inputA.faction, inputA.card))
+      history.push(new HistoryPlayHeadline(inputB.faction, inputB.card))
+    }
 
     currentCard = inputA.card
     phasingPlayer = inputA.faction
@@ -343,12 +364,24 @@ class Game {
 
     val oppositeSpace = space(oppositeFaction)
     addVp(faction, if (oppositeSpace.level < selfSpace.level) selfSpace.firstVp else selfSpace.secondVp)
+    checkVp()
   }
 
   def addVp(faction: Faction, value: Int): Unit = {
     vp += Faction.getVpFactor(faction) * value
     if (value != 0) {
       history.push(new HistoryVp(faction, value, vp))
+    }
+  }
+
+  def checkVp(): Unit = {
+    if (vp >= 20) {
+      vp = 20
+      gameOver(US)
+    }
+    if (vp <= -20) {
+      vp = -20
+      gameOver(USSR)
     }
   }
 
@@ -359,11 +392,37 @@ class Game {
     history.push(new HistoryDefcon(oldVal, defcon))
   }
 
-  def nextTurn(): Unit = {
+  def nextTurn(dont8Rounds: Boolean = false, dontDiscardHeld: Boolean = false): Unit = {
+    if (flags.hasFlag(Flags.SpaceAwardTake8Rounds) && round == turnRoundCount + 1 && !dont8Rounds) {
+      stateStack.push(selectTake8Rounds)
+      return
+    }
+
+    val usFail = hand(US).exists(!_.canHeld(this))
+    val ussrFail = hand(USSR).exists(!_.canHeld(this))
+
+    if (usFail != ussrFail) {
+      if (usFail) gameOver(USSR) else gameOver(US)
+    } else {
+      gameOver(US)
+    }
+
+    if (flags.hasFlag(Flags.SpaceAwardMayDiscard) && !dontDiscardHeld) {
+      val faction = if (flags.hasFlag(US, Flags.SpaceAwardMayDiscard)) US else USSR
+      if (hand(faction).exists(_.canDiscard(this))) {
+        stateStack.push(discardHeldCard)
+        return
+      }
+    }
+
     turn += 1
     if (turn > 10) {
-      // TODO final scoring
-      // TODO gameover
+      finalScoring()
+      if (vp < 0) {
+        gameOver(USSR)
+      } else {
+        gameOver(US)
+      }
       return
     }
     round = 0
@@ -400,6 +459,8 @@ class Game {
       addVp(US, defcon - military(USSR))
     }
 
+    checkVp()
+
     setMilitary(US, 0)
     setMilitary(USSR, 0)
     setDefcon(defcon + 1)
@@ -408,7 +469,7 @@ class Game {
 
     history.push(new HistoryTurnRound(turn, round, Neutral))
 
-    stateStack.push(State.selectHeadlineCard)
+    stateStack.push(selectHeadlineCard)
   }
 
   def nextStateSelectCardAndAction(input: Operation): Unit = {
@@ -439,7 +500,7 @@ class Game {
         }
         stateStack.pop()
         if (nextRound()) {
-          stateStack.push(State.selectCardAndAction)
+          stateStack.push(selectCardAndAction)
         } else {
           nextTurn()
         }
@@ -447,24 +508,24 @@ class Game {
         discardCard(op.card, op.faction)
         stateStack.pop()
         if (!oppositeCard) {
-          stateStack.push(State.cardE)
+          stateStack.push(cardE)
         } else {
-          stateStack.push(State.cardEO)
+          stateStack.push(cardEO)
         }
-        stateStack.push(State.cardEvent)
-        stateStack.push(State.cardEventStart)
+        stateStack.push(cardEvent)
+        stateStack.push(cardEventStart)
         currentCard.nextState(this, null)
         history.push(new HistoryEvent(phasingPlayer, currentCard))
       case Action.Operation =>
         discardCard(op.card, op.faction, !alwaysTriggerEvent)
         stateStack.pop()
         if (!oppositeCard) {
-          stateStack.push(State.cardO)
+          stateStack.push(cardO)
         } else {
-          stateStack.push(State.cardOE)
+          stateStack.push(cardOE)
         }
-        stateStack.push(State.cardOperation)
-        stateStack.push(State.cardOperationSelect)
+        stateStack.push(cardOperation)
+        stateStack.push(cardOperationSelect)
     }
 
   }
@@ -479,11 +540,11 @@ class Game {
     card.id != 0 && canSpace(faction) && space(faction).nextLevel.op <= card.op
   }
 
-  def canCardEvent(card: Card, playerFaction: Faction): Boolean = {
+  def canCardEvent(card: Card, faction: Faction): Boolean = {
     card.id != 0 && card.canPlayAsEvent(this)
   }
 
-  def canCardOperation(card: Card, playerFaction: Faction): Boolean = {
+  def canCardOperation(card: Card, faction: Faction): Boolean = {
     card.id != 0 && card.op > 0
   }
 
@@ -491,13 +552,13 @@ class Game {
     stateStack.pop()
     stateStack.top match {
       case State.cardEO =>
-        stateStack.push(State.cardOperation)
-        stateStack.push(State.cardOperationSelect)
+        stateStack.push(cardOperation)
+        stateStack.push(cardOperationSelect)
       case State.cardOE | State.cardE =>
         currentCard = null
         stateStack.pop()
         if (nextRound()) {
-          stateStack.push(State.selectCardAndAction)
+          stateStack.push(selectCardAndAction)
         } else {
           nextTurn()
         }
@@ -512,12 +573,12 @@ class Game {
 
     op.action match {
       case Action.Influence =>
-        stateStack.push(State.cardOperationAddInfluence)
+        stateStack.push(cardOperationAddInfluence)
       case Action.Realignment =>
-        stateStack.push(State.cardOperationRealignment)
+        stateStack.push(cardOperationRealignment)
         currentUsedOp = 0
       case Action.Coup =>
-        stateStack.push(State.cardOperationCoup)
+        stateStack.push(cardOperationCoup)
     }
   }
 
@@ -528,6 +589,7 @@ class Game {
   }
 
   def canRealignment(faction: Faction, country: Country): Boolean = {
+    if (country.regions.contains(Region.Super)) return false
     if (country.regions.contains(Region.Europe) && flags.hasFlag(faction, Flags.Defcon4Penalty)) return false
     if (country.regions.contains(Region.Asia) && flags.hasFlag(faction, Flags.Defcon3Penalty)) return false
     if (country.regions.contains(Region.MidEast) && flags.hasFlag(faction, Flags.Defcon2Penalty)) return false
@@ -535,10 +597,15 @@ class Game {
   }
 
   def canCoup(faction: Faction, country: Country): Boolean = {
+    if (country.regions.contains(Region.Super)) return false
     if (country.regions.contains(Region.Europe) && flags.hasFlag(faction, Flags.Defcon4Penalty)) return false
     if (country.regions.contains(Region.Asia) && flags.hasFlag(faction, Flags.Defcon3Penalty)) return false
     if (country.regions.contains(Region.MidEast) && flags.hasFlag(faction, Flags.Defcon2Penalty)) return false
-    true
+    country.influence(Faction.getOpposite(faction)) > 0
+  }
+
+  def canCoup(faction: Faction): Boolean = {
+    worldMap.countries.exists(e => canCoup(faction, e._2))
   }
 
   def nextStateOperationRealignment(input: Operation) = {
@@ -578,7 +645,7 @@ class Game {
   def checkDefcon() = {
     if (defcon <= 1) {
       defcon = 1
-      // TODO gameover
+      gameOver(Faction.getOpposite(phasingPlayer))
     }
     if (defcon > 5) {
       defcon = 5
@@ -638,19 +705,53 @@ class Game {
     stateStack.pop()
     stateStack.top match {
       case State.cardOE =>
-        stateStack.push(State.cardEvent)
-        stateStack.push(State.cardEventStart)
+        stateStack.push(cardEvent)
+        stateStack.push(cardEventStart)
         currentCard.nextState(this, null)
         history.push(new HistoryEvent(phasingPlayer, currentCard))
       case State.cardEO | State.cardO =>
         currentCard = null
         stateStack.pop()
         if (nextRound()) {
-          stateStack.push(State.selectCardAndAction)
+          stateStack.push(selectCardAndAction)
         } else {
           nextTurn()
         }
     }
+  }
+
+  def nextStateDiscardHeldCard(input: Operation) = {
+    val op = input.asInstanceOf[OperationSelectCard]
+
+    if (op.card != null) {
+      hand(op.faction).remove(op.card)
+      history.push(new HistoryDiscardCard(op.faction, op.card))
+      discardCard(op.card, op.faction, true)
+    }
+
+    stateStack.pop()
+    nextTurn(true, true)
+  }
+
+  def nextStateSelectTake8Rounds(input: Operation) = {
+    val op = input.asInstanceOf[OperationYesNo]
+
+    stateStack.pop()
+    if (op.value) {
+      phasingPlayer = op.faction
+      stateStack.push(selectCardAndAction)
+      history.push(new HistoryTurnRound(turn, round, phasingPlayer))
+    } else {
+      nextTurn(true)
+    }
+  }
+
+  def finalScoring(): Unit = {
+    // TODO
+  }
+
+  def gameOver(faction: Faction): Unit = {
+    // TODO
   }
 
 }

@@ -103,6 +103,8 @@ class GameUI(playerId: Int) extends JFrame {
           controlUI.uiSelectCard.setCard(card)
         case controlUI.UIType.SelectCardAndAction =>
           controlUI.uiSelectCardAndAction.setCard(card)
+        case controlUI.UIType.DiscardHeldCard =>
+          controlUI.uiDiscardHeldCard.setCard(card)
         case _ =>
       }
     }

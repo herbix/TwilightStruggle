@@ -27,4 +27,4 @@ class HistoryMilitary(val faction: Faction, val oldValue: Int, val newValue: Int
 class HistoryPickCard(val faction: Faction, val count: Int) extends History
 class HistoryGetCard(val faction: Faction, val card: Card) extends History
 class HistoryLoseCard(val faction: Faction, val card: Card) extends History
-class HistoryDropCard(val faction: Faction, val card: Card) extends History
+class HistoryDiscardCard(val faction: Faction, val card: Card) extends History

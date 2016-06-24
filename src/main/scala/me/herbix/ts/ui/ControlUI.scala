@@ -27,6 +27,8 @@ class ControlUI(val game: Game) extends JPanel {
     val SelectCardAndAction = Value
     val SelectOperation = Value
     val SelectCountry = Value
+    val DiscardHeldCard = Value
+    val YesNo = Value
   }
 
   import UIType._
@@ -40,6 +42,8 @@ class ControlUI(val game: Game) extends JPanel {
   val uiSelectCardAndAction = new ControlSubUISelectCardAndAction(this)
   val uiSelectOperation = new ControlSubUISelectOperation(this)
   val uiSelectCountry = new ControlSubUISelectCountry(this)
+  val uiDiscardHeldCard = new ControlSubUIDiscardHeldCard(this)
+  val uiYesNo = new ControlSubUIYesNo(this)
 
   var operationListeners: List[Operation => Unit] = List()
 
@@ -51,6 +55,8 @@ class ControlUI(val game: Game) extends JPanel {
   add(uiSelectCardAndAction, SelectCardAndAction.toString)
   add(uiSelectOperation, SelectOperation.toString)
   add(uiSelectCountry, SelectCountry.toString)
+  add(uiDiscardHeldCard, DiscardHeldCard.toString)
+  add(uiYesNo, YesNo.toString)
 
   updateState()
 
@@ -81,7 +87,18 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
-      case State.selectHeadlineCard => selectCardUI(Lang.selectHeadline)
+      case State.selectHeadlineCard =>
+        if (!game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardHeadlineThen)) {
+          selectCardUI(Lang.selectHeadline)
+        } else {
+          waitOtherUI()
+        }
+      case State.selectHeadlineCard2 =>
+        if (game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardHeadlineThen)) {
+          selectCardUI(Lang.selectHeadline)
+        } else {
+          waitOtherUI()
+        }
       case State.selectCardAndAction =>
         if (game.playerFaction == game.phasingPlayer) {
           selectCardAndActionUI()
@@ -116,10 +133,19 @@ class ControlUI(val game: Game) extends JPanel {
       case State.cardOperationCoup =>
         if (game.playerFaction == game.phasingPlayer) {
           selectCountryUI(1, game.currentCard.op, Lang.operationCoup,
-            _.forall(country => {
-              country.influence(Faction.getOpposite(game.playerFaction)) > 0 &&
-                game.canCoup(game.playerFaction, country)
-            }))
+            _.forall(game.canCoup(game.playerFaction, _)))
+        } else {
+          waitOtherUI()
+        }
+      case State.discardHeldCard =>
+        if (game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardMayDiscard)) {
+          discardHeldCardUI()
+        } else {
+          waitOtherUI()
+        }
+      case State.selectTake8Rounds =>
+        if (game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardTake8Rounds)) {
+          yesNoUI(Lang.take8rounds)
         } else {
           waitOtherUI()
         }
@@ -156,6 +182,7 @@ class ControlUI(val game: Game) extends JPanel {
   def selectOperationUI(tip: String) = {
     showSubUI(SelectOperation)
     uiSelectOperation.text(1) = String.format(tip, game.currentCard.op.toString)
+    uiSelectOperation.coup.setEnabled(game.canCoup(game.playerFaction))
   }
 
   def selectCountryUI(point: Int, point2: Int, tip: String, valid: Set[Country] => Boolean): Unit = {
@@ -165,6 +192,16 @@ class ControlUI(val game: Game) extends JPanel {
     uiSelectCountry.point2 = point2
     uiSelectCountry.validCheck = valid
     uiSelectCountry.updatePendingCountrySelection()
+  }
+
+  def discardHeldCardUI() = {
+    showSubUI(DiscardHeldCard)
+    uiDiscardHeldCard.resetCard()
+  }
+
+  def yesNoUI(tip: String) = {
+    showSubUI(YesNo)
+    uiYesNo.text(2) = tip
   }
 
 }
@@ -504,5 +541,38 @@ class ControlSubUISelectCountry(parent: ControlUI) extends
         pendingCountrySelection.clear()
         parent.operationListeners.foreach(_(op))
     }
+  }
+}
+
+class ControlSubUIDiscardHeldCard(parent: ControlUI)
+  extends ControlSubUICard(parent, Array(Lang.discardHeldCard)) {
+
+  val buttonDone = addButton(Lang.done, 120, 70, 70, 30)
+  val buttonCancel = addButton(Lang.cancel, 120, 130, 70, 30)
+
+  override def updateCard(): Unit = {
+    buttonDone.setEnabled(card.id != 0)
+  }
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val card = e.getSource match {
+      case this.buttonDone => this.card
+      case this.buttonCancel => null
+    }
+    val op = new OperationSelectCard(parent.game.playerId, parent.game.playerFaction, card)
+    parent.operationListeners.foreach(_(op))
+  }
+}
+
+class ControlSubUIYesNo(parent: ControlUI) extends
+  ControlSubUIText(parent, Array("", "", "")) {
+
+  val buttonYes = addButton(Lang.yes, 20, 120, 70, 30)
+  val buttonNo  = addButton(Lang.no, 110, 120, 70, 30)
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val result = e.getSource == buttonYes
+    val op = new OperationYesNo(parent.game.playerId, parent.game.playerFaction, result)
+    parent.operationListeners.foreach(_(op))
   }
 }
