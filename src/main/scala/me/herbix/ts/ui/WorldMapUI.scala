@@ -111,12 +111,14 @@ class WorldMapUI(val game: Game) extends JPanel {
       }
     }
     override def mouseDragged(e: MouseEvent): Unit = {
-      val x = e.getX - outerView.getHorizontalScrollBar.getValue
-      val y = e.getY - outerView.getVerticalScrollBar.getValue
-      outerView.getHorizontalScrollBar.setValue(outerView.getHorizontalScrollBar.getValue - x + oldx)
-      outerView.getVerticalScrollBar.setValue(outerView.getVerticalScrollBar.getValue - y + oldy)
-      oldx = x
-      oldy = y
+      if (dragging) {
+        val x = e.getX - outerView.getHorizontalScrollBar.getValue
+        val y = e.getY - outerView.getVerticalScrollBar.getValue
+        outerView.getHorizontalScrollBar.setValue(outerView.getHorizontalScrollBar.getValue - x + oldx)
+        outerView.getVerticalScrollBar.setValue(outerView.getVerticalScrollBar.getValue - y + oldy)
+        oldx = x
+        oldy = y
+      }
     }
     def findCountry(x: Int, y: Int): Country =
       MapValue.countryPosMap.find(e => {

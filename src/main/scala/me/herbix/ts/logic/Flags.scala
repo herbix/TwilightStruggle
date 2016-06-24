@@ -16,8 +16,14 @@ object FlagType extends Enumeration {
 
 import FlagType._
 
-class Flag private(val flagType: FlagType, val isGoodFlag: Boolean) {
+class Flag (val flagType: FlagType, val isGoodFlag: Boolean, val priority: Int = 100) extends Ordered[Flag] {
   val id = Flag.newFlagId()
+  def canRealignmentOrCoup(country: Country): Option[Boolean] = None
+  def canRealignment(country: Country) = canRealignmentOrCoup(country)
+  def canCoup(country: Country) = canRealignmentOrCoup(country)
+  override def compare(that: Flag): Int =
+    if (priority > that.priority) -1 else 1
+  override def toString = f"Flag($id)"
 }
 
 object Flag {
@@ -30,16 +36,30 @@ object Flag {
 }
 
 class Flags {
-  val flagSets = mutable.Map[Faction, mutable.Set[Flag]](
+  val flagSets = Map[Faction, mutable.Set[Flag]](
     US -> mutable.Set(),
     USSR -> mutable.Set(),
     Neutral -> mutable.Set()
   )
+  val flagSets2 = Map[Faction, mutable.Set[Flag]](
+    US -> mutable.TreeSet(),
+    USSR -> mutable.TreeSet()
+  )
   def addFlag(faction: Faction, flag: Flag): Unit = {
     flagSets(faction) += flag
+    if (faction == Neutral) {
+      flagSets2.foreach(_._2 += flag)
+    } else {
+      flagSets2(faction) += flag
+    }
   }
   def removeFlag(faction: Faction, flag: Flag): Unit = {
     flagSets(faction) -= flag
+    if (faction == Neutral) {
+      flagSets2.foreach(_._2 -= flag)
+    } else {
+      flagSets2(faction) -= flag
+    }
   }
   def hasFlag(faction: Faction, flag: Flag): Boolean = {
     flagSets(faction).contains(flag) || flagSets(Neutral).contains(flag)
@@ -49,6 +69,7 @@ class Flags {
   }
   def turnEnds(): Unit = {
     flagSets.foreach(_._2.retain(_.flagType == Always))
+    flagSets2.foreach(_._2.retain(_.flagType == Always))
   }
 }
 
@@ -60,7 +81,23 @@ object Flags {
   val SpaceAwardMayDiscard = Flag(Always, true)
   val SpaceAwardTake8Rounds = Flag(Always, true)
   val cantPlayChinaCard = Flag(ThisTurn, false)
-  val Defcon4Penalty = Flag(Always, false)
-  val Defcon3Penalty = Flag(Always, false)
-  val Defcon2Penalty = Flag(Always, false)
+  val Defcon4Penalty = new Flag(Always, false) {
+    override def canRealignmentOrCoup(country: Country) = if (country.regions.contains(Region.Europe)) Some(false) else None
+  }
+  val Defcon3Penalty = new Flag(Always, false) {
+    override def canRealignmentOrCoup(country: Country) = if (country.regions.contains(Region.Asia)) Some(false) else None
+  }
+  val Defcon2Penalty = new Flag(Always, false) {
+    override def canRealignmentOrCoup(country: Country) = if (country.regions.contains(Region.MidEast)) Some(false) else None
+  }
+  val VietnamRevolts = Flag(ThisTurn, true)
+  val DeGaulle = new Flag(Always, true, 80) {
+    override def canRealignmentOrCoup(country: Country) = if (country.name == "France") Some(true) else None
+  }
+  val Containment = Flag(ThisTurn, true)
+  val USJapanPact = new Flag(Always, false, 60) {
+    override def canRealignmentOrCoup(country: Country) = if (country.name == "Japan") Some(false) else None
+  }
+
+  def init(): Unit = {}
 }

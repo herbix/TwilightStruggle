@@ -1,11 +1,11 @@
 package me.herbix.ts.ui
 
 import java.awt.event._
-import java.awt.{Graphics, Graphics2D, RenderingHints}
+import java.awt.{Color, Graphics, Graphics2D, RenderingHints}
 import javax.swing.{JButton, JPanel}
 
 import me.herbix.ts.logic.Faction._
-import me.herbix.ts.logic.{Cards, Card, CardSet, Game}
+import me.herbix.ts.logic._
 import me.herbix.ts.util.{Lang, Resource}
 
 /**
@@ -17,6 +17,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
 
   val cardpos = new Array[Int](120)
   val cards = new Array[Card](120)
+  val cardsEnabled = new Array[Boolean](120)
   var hoverCardId = -1
 
   val cardWidth = 150
@@ -71,7 +72,12 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       val img = if (otherHand.isSelected) Resource.card(0) else Resource.card(card.id)
       val t = if (n == hoverCardId) 0 else 10
       g.drawImage(img, l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, null)
+      g.setColor(Resource.textColor)
       g.drawRoundRect(l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, 5, 5)
+      if (!cardsEnabled(n)) {
+        g.setColor(new Color(90, 90, 90, 90))
+        g.fillRoundRect(l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, 5, 5)
+      }
       n += 1
     }
   }
@@ -107,7 +113,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       repaint()
     }
     override def mouseClicked(e: MouseEvent): Unit = {
-      if (hoverCardId != -1) {
+      if (hoverCardId != -1 && cardsEnabled(hoverCardId)) {
         cardClickListeners.foreach(_(cards(hoverCardId)))
       }
     }
@@ -122,6 +128,19 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       repaint()
     }
   })
+
+  def getCardEnabled(card: Card): Boolean = {
+    if (selfHand.isSelected || eventCards.isSelected) {
+      game.stateStack.top match {
+        case State.selectHeadlineCard | State.selectHeadlineCard2 => card.canHeadline(game, game.playerFaction)
+        case State.selectCardAndAction => card.canPlay(game, game.playerFaction)
+        case State.discardHeldCard => card.canDiscard(game)
+        case _ => true
+      }
+    } else {
+      true
+    }
+  }
 
   def updateCardPos(): Unit = {
 
@@ -149,6 +168,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       else
         100 + (w - cardWidth) * (n - 1) / (c - 1) + cardWidth
       cards(n) = if (otherHand.isSelected) Cards.fromId(0) else card
+      cardsEnabled(n) = getCardEnabled(card)
       n += 1
     }
 

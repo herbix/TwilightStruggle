@@ -3,6 +3,7 @@ package me.herbix.ts.logic
 import java.util.Random
 
 import me.herbix.ts.logic.Faction._
+import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.State._
 
 import scala.annotation.tailrec
@@ -33,7 +34,7 @@ class Game {
   var defcon = 5
 
   var currentCard: Card = null
-  var currentUsedOp = 0
+  var currentRealignments = List[Country]()
 
   val hand = Map(US -> new CardSet, USSR -> new CardSet)
   val deck = new CardSet
@@ -187,8 +188,6 @@ class Game {
       worldMap.countries("South Africa") -> 1,
       worldMap.countries("UK") -> 5
     ))
-
-    increaseSpace(US, 8) // TODO Test
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -222,13 +221,19 @@ class Game {
     var detail2 = Set[(Country, Int, Int)]()
     for ((country, value) <- detail) {
       val oldInfluence = worldMap.countries(country.name).influence(faction)
-      worldMap.countries(country.name).influence(faction) += (if (isAdd) value else -value)
-      detail2 += ((country, oldInfluence, worldMap.countries(country.name).influence(faction)))
+      val newInfluence = Math.max(0, oldInfluence + (if (isAdd) value else -value))
+      worldMap.countries(country.name).influence(faction) = newInfluence
+      if (oldInfluence != newInfluence) {
+        detail2 += ((country, oldInfluence, newInfluence))
+      }
     }
     history.push(new HistoryModifyInfluence(faction, isAdd, detail2))
   }
 
-  def discardCard(card: Card, from: Faction, force: Boolean = false): Unit = {
+  def discardCard(card: Card, from: Faction, force: Boolean = false, showInHistory: Boolean = false): Unit = {
+    if (showInHistory) {
+      history.push(new HistoryDiscardCard(from, card))
+    }
     if (card == Cards.chinaCard) {
       val opposite = Faction.getOpposite(from)
       hand(opposite).add(card)
@@ -278,10 +283,10 @@ class Game {
 
     history.push(new HistoryTurnRound(turn, round, phasingPlayer))
 
+    history.push(new HistoryEvent(phasingPlayer, currentCard))
+
     stateStack.push(cardEventStart)
     currentCard.nextState(this, null)
-
-    history.push(new HistoryEvent(phasingPlayer, currentCard))
   }
 
   def nextStateSolveHeadline1() = {
@@ -297,10 +302,11 @@ class Game {
     stateStack.pop()
     stateStack.push(solveHeadLineCard2)
 
+    history.push(new HistoryEvent(phasingPlayer, currentCard))
+
     stateStack.push(cardEventStart)
     currentCard.nextState(this, null)
 
-    history.push(new HistoryEvent(phasingPlayer, currentCard))
   }
 
   def nextStateSolveHeadline2() = {
@@ -440,10 +446,10 @@ class Game {
 
     val handCount = turnRoundCount + 2
     for (i <- 0 until handCount) {
-      if (hand(US).cardCount < handCount || (hand(US).cardCount == handCount && hand(US).has(Cards.chinaCard))) {
+      if (hand(US).cardCountExcludingChinaCard < handCount) {
         hand(US).add(pickCardFromDeck())
       }
-      if (hand(USSR).cardCount < handCount || (hand(USSR).cardCount == handCount && hand(USSR).has(Cards.chinaCard))) {
+      if (hand(USSR).cardCountExcludingChinaCard < handCount) {
         hand(USSR).add(pickCardFromDeck())
       }
     }
@@ -475,7 +481,7 @@ class Game {
   def nextStateSelectCardAndAction(input: Operation): Unit = {
     val op = input.asInstanceOf[OperationSelectCardAndAction]
     val oppositeCard = op.card.faction == Faction.getOpposite(op.faction)
-    val alwaysTriggerEvent = oppositeCard && op.card.canPlayAsEvent(this)
+    val alwaysTriggerEvent = oppositeCard && op.card.canEvent(this, op.faction)
 
     hand(op.faction).remove(op.card)
 
@@ -512,10 +518,10 @@ class Game {
         } else {
           stateStack.push(cardEO)
         }
+        history.push(new HistoryEvent(phasingPlayer, currentCard))
         stateStack.push(cardEvent)
         stateStack.push(cardEventStart)
         currentCard.nextState(this, null)
-        history.push(new HistoryEvent(phasingPlayer, currentCard))
       case Action.Operation =>
         discardCard(op.card, op.faction, !alwaysTriggerEvent)
         stateStack.pop()
@@ -537,11 +543,11 @@ class Game {
   }
 
   def canCardSpace(card: Card, faction: Faction): Boolean = {
-    card.id != 0 && canSpace(faction) && space(faction).nextLevel.op <= card.op
+    card.id != 0 && canSpace(faction) && space(faction).nextLevel.op <= modifyOp(faction, card.op)
   }
 
   def canCardEvent(card: Card, faction: Faction): Boolean = {
-    card.id != 0 && card.canPlayAsEvent(this)
+    card.id != 0 && card.canEvent(this, faction)
   }
 
   def canCardOperation(card: Card, faction: Faction): Boolean = {
@@ -576,7 +582,7 @@ class Game {
         stateStack.push(cardOperationAddInfluence)
       case Action.Realignment =>
         stateStack.push(cardOperationRealignment)
-        currentUsedOp = 0
+        currentRealignments = List.empty
       case Action.Coup =>
         stateStack.push(cardOperationCoup)
     }
@@ -590,23 +596,32 @@ class Game {
 
   def canRealignment(faction: Faction, country: Country): Boolean = {
     if (country.regions.contains(Region.Super)) return false
-    if (country.regions.contains(Region.Europe) && flags.hasFlag(faction, Flags.Defcon4Penalty)) return false
-    if (country.regions.contains(Region.Asia) && flags.hasFlag(faction, Flags.Defcon3Penalty)) return false
-    if (country.regions.contains(Region.MidEast) && flags.hasFlag(faction, Flags.Defcon2Penalty)) return false
+    if (modifyOp(faction, currentCard.op, currentRealignments :+ country) - currentRealignments.size - 1 < 0) {
+      return false
+    }
+    for (Some(can) <- flags.flagSets2(faction).toStream.map(_.canRealignment(country)).find(_.isDefined)) {
+      return can
+    }
     true
   }
 
   def canCoup(faction: Faction, country: Country): Boolean = {
     if (country.regions.contains(Region.Super)) return false
-    if (country.regions.contains(Region.Europe) && flags.hasFlag(faction, Flags.Defcon4Penalty)) return false
-    if (country.regions.contains(Region.Asia) && flags.hasFlag(faction, Flags.Defcon3Penalty)) return false
-    if (country.regions.contains(Region.MidEast) && flags.hasFlag(faction, Flags.Defcon2Penalty)) return false
-    country.influence(Faction.getOpposite(faction)) > 0
+    if (country.influence(Faction.getOpposite(faction)) <= 0) {
+      return false
+    }
+    for (Some(can) <- flags.flagSets2(faction).toStream.map(_.canRealignment(country)).find(_.isDefined)) {
+      return can
+    }
+    true
   }
 
   def canCoup(faction: Faction): Boolean = {
     worldMap.countries.exists(e => canCoup(faction, e._2))
   }
+
+  def getCurrentRealignmentRest(faction: Faction): Int =
+    modifyOp(faction, currentCard.op, currentRealignments) - currentRealignments.size
 
   def nextStateOperationRealignment(input: Operation) = {
     val op = input.asInstanceOf[OperationSelectCountry]
@@ -620,14 +635,8 @@ class Game {
     } else if (country.influence(US) < country.influence(USSR)) {
       rollUSSR += 1
     }
-    rollUS += worldMap.links(country.name).count(name => {
-      val country = worldMap.countries(name)
-      country.influence(US) - country.influence(USSR) >= country.stability
-    })
-    rollUSSR += worldMap.links(country.name).count(name => {
-      val country = worldMap.countries(name)
-      country.influence(USSR) - country.influence(US) >= country.stability
-    })
+    rollUS += worldMap.links(country.name).count(worldMap.countries(_).getController == US)
+    rollUSSR += worldMap.links(country.name).count(worldMap.countries(_).getController == USSR)
     history.push(new HistoryOperationRealignment(country, rollUSOriginal, rollUSSROriginal, rollUS, rollUSSR))
     if (rollUS > rollUSSR) {
       val decreaseValue = Math.min(rollUS - rollUSSR, country.influence(USSR))
@@ -636,8 +645,8 @@ class Game {
       val decreaseValue = Math.min(rollUSSR - rollUS, country.influence(US))
       if (decreaseValue > 0) modifyInfluence(US, false, Map(country -> decreaseValue))
     }
-    currentUsedOp += 1
-    if (currentUsedOp >= currentCard.op) {
+    currentRealignments = currentRealignments :+ country
+    if (getCurrentRealignmentRest(op.faction) <= 0) {
       stateStack.pop()
     }
   }
@@ -658,7 +667,7 @@ class Game {
   def addMilitary(faction: Faction, op: Int) = setMilitary(faction, military(faction) + op)
 
   def setMilitary(faction: Faction, value: Int) = {
-    val oldval = military(faction)
+    val oldValue = military(faction)
     military(faction) = value
     if (military(faction) > 5) {
       military(faction) = 5
@@ -666,8 +675,8 @@ class Game {
     if (military(faction) < 0) {
       military(faction) = 0
     }
-    if (oldval != military(faction)) {
-      history.push(new HistoryMilitary(faction, oldval, military(faction)))
+    if (oldValue != military(faction)) {
+      history.push(new HistoryMilitary(faction, oldValue, military(faction)))
     }
   }
 
@@ -675,9 +684,10 @@ class Game {
     val op = input.asInstanceOf[OperationSelectCountry]
     val country = worldMap.countries(op.detail.head.name)
     val rollResult = rollDice()
-    val coupFactor = Math.max(0, rollResult + currentCard.op - 2 * country.stability)
+    val modifiedOp = modifyOp(op.faction, currentCard.op, List(country))
+    val coupFactor = Math.max(0, rollResult + modifiedOp - 2 * country.stability)
 
-    history.push(new HistoryOperationCoup(op.faction, country, rollResult, currentCard.op, coupFactor))
+    history.push(new HistoryOperationCoup(op.faction, country, rollResult, modifiedOp, coupFactor))
 
     val factionSelf = op.faction
     val factionOpposite = Faction.getOpposite(factionSelf)
@@ -692,11 +702,11 @@ class Game {
       modifyInfluence(factionSelf, true, Map(country -> selfUp))
     }
 
-    if (country.critical) {
+    if (country.isBattlefield) {
       setDefcon(defcon - 1)
     }
 
-    addMilitary(factionSelf, currentCard.op)
+    addMilitary(factionSelf, modifiedOp)
 
     stateStack.pop()
   }
@@ -705,10 +715,10 @@ class Game {
     stateStack.pop()
     stateStack.top match {
       case State.cardOE =>
+        history.push(new HistoryEvent(phasingPlayer, currentCard))
         stateStack.push(cardEvent)
         stateStack.push(cardEventStart)
         currentCard.nextState(this, null)
-        history.push(new HistoryEvent(phasingPlayer, currentCard))
       case State.cardEO | State.cardO =>
         currentCard = null
         stateStack.pop()
@@ -725,8 +735,7 @@ class Game {
 
     if (op.card != null) {
       hand(op.faction).remove(op.card)
-      history.push(new HistoryDiscardCard(op.faction, op.card))
-      discardCard(op.card, op.faction, true)
+      discardCard(op.card, op.faction, true, true)
     }
 
     stateStack.pop()
@@ -746,8 +755,78 @@ class Game {
     }
   }
 
+  def modifyOp(faction: Faction, originalOp: Int, targets: Iterable[Country]): Int = {
+    var modifiedOp = modifyOp(faction, originalOp)
+    if (currentCard != null) {
+      modifiedOp = currentCard.modifyOp(faction, originalOp, targets)
+    }
+    if (flags.hasFlag(faction, Flags.VietnamRevolts) && targets.forall(_.regions.contains(Region.Asia))) {
+      modifiedOp += 1
+    }
+    modifiedOp
+  }
+
+  def modifyOp(faction: Faction, originalOp: Int): Int = {
+    var modifiedOp = originalOp
+    if (currentCard != null) {
+      if (flags.hasFlag(faction, Flags.Containment)) {
+        modifiedOp += 1
+      }
+      if (modifiedOp > 4) modifiedOp = 4
+      if (modifiedOp < 1) modifiedOp = 1
+      modifiedOp = currentCard.modifyOp(faction, originalOp)
+    }
+    modifiedOp
+  }
+
+  def war(faction: Faction, country: Country, modifier: Int, minRoll: Int, military: Int, vp: Int) = {
+    val dice = rollDice()
+    val modified = dice - minRoll
+    addMilitary(faction, military)
+    history.push(new HistoryWar(faction, country, dice, modified))
+    if (modified >= minRoll) {
+      addVp(faction, vp)
+      val influence = country.influence(Faction.getOpposite(faction))
+      modifyInfluence(Faction.getOpposite(faction), false, Map(country -> influence))
+      modifyInfluence(faction, true, Map(country -> influence))
+      checkVp()
+    }
+  }
+
+  def scoring(region: Region, presence: Int, domination: Int, control: Int): Unit = {
+    val targetCountries = worldMap.countries.values.filter(_.regions.contains(region))
+    val battlefieldCount = targetCountries.count(_.isBattlefield)
+    val usBattlefield = targetCountries.count(country => country.isBattlefield && country.getController == US)
+    val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController == US)
+    val ussrBattlefield = targetCountries.count(country => country.isBattlefield && country.getController == USSR)
+    val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController == USSR)
+    val usAll = usBattlefield + usNonBattlefield
+    val ussrAll = ussrBattlefield + ussrNonBattlefield
+
+    val usPresence = usBattlefield > 0 || usNonBattlefield > 0
+    val ussrPresence = ussrBattlefield > 0 || ussrNonBattlefield > 0
+    val usDomination = usBattlefield > ussrBattlefield && usAll > ussrAll && usNonBattlefield > 0
+    val ussrDomination = ussrBattlefield > usBattlefield && ussrAll > usAll && ussrNonBattlefield > 0
+    val usControl = usBattlefield == battlefieldCount && usAll > ussrAll
+    val ussrControl = ussrBattlefield == battlefieldCount && ussrAll > usAll
+
+    var usVp = if (usControl) control else if (usDomination) domination else if (usPresence) presence else 0
+    var ussrVp = if (ussrControl) control else if (ussrDomination) domination else if (ussrPresence) presence else 0
+
+    usVp += usBattlefield
+    ussrVp += ussrBattlefield
+
+    usVp += targetCountries.count(country => country.getController == US && worldMap.links(country.name).contains("USSR"))
+    ussrVp += targetCountries.count(country => country.getController == USSR && worldMap.links(country.name).contains("US"))
+
+    history.push(new HistoryScoring(region, usBattlefield, ussrBattlefield, usAll, ussrAll))
+
+    addVp(US, usVp)
+    addVp(USSR, ussrVp)
+  }
+
   def finalScoring(): Unit = {
-    // TODO
+
   }
 
   def gameOver(faction: Faction): Unit = {

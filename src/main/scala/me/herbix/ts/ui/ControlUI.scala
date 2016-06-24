@@ -125,7 +125,7 @@ class ControlUI(val game: Game) extends JPanel {
         }
       case State.cardOperationRealignment =>
         if (game.playerFaction == game.phasingPlayer) {
-          selectCountryUI(1, game.currentCard.op - game.currentUsedOp, Lang.operationRealignment,
+          selectCountryUI(1, game.getCurrentRealignmentRest(game.playerFaction), Lang.operationRealignment,
             _.forall(game.canRealignment(game.playerFaction, _)))
         } else {
           waitOtherUI()
@@ -333,7 +333,8 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
       val influence = country.influence(parent.game.playerFaction)
       tableModel.addRow(Array[Object](new CountryDelegate(country), f"$influence -> ${influence + modifyValue}"))
     }
-    val rest = point - parent.game.calculateInfluenceCost(pendingInfluenceChange, parent.game.playerFaction, ignoreControl)
+    val rest = parent.game.modifyOp(parent.game.playerFaction, point, pendingInfluenceChange.keys) -
+      parent.game.calculateInfluenceCost(pendingInfluenceChange, parent.game.playerFaction, ignoreControl)
     text(0) = String.format(tip, rest.toString)
     buttonDone.setEnabled(rest == 0)
     if (tableModel.getRowCount > 0) {
@@ -344,7 +345,8 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
   }
 
   def checkInfluence(): Boolean = {
-    parent.game.calculateInfluenceCost(pendingInfluenceChange, parent.game.playerFaction, ignoreControl) <= point &&
+    parent.game.calculateInfluenceCost(pendingInfluenceChange, parent.game.playerFaction, ignoreControl) <=
+      parent.game.modifyOp(parent.game.playerFaction, point, pendingInfluenceChange.keys) &&
       validCheck(pendingInfluenceChange.toMap) &&
       (isAdd || pendingInfluenceChange.forall(e => e._1.influence(targetFaction) >= e._2))
   }

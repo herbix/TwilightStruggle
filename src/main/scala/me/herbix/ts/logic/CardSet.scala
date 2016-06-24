@@ -9,19 +9,25 @@ import scala.collection.mutable
   */
 class CardSet extends mutable.Iterable[Card] {
   private val cards = mutable.Set[Card]()
+  private var hasChinaCard = false
 
-  def cardCount = cards.size
-  override def isEmpty = cards.isEmpty
-  override def iterator: Iterator[Card] = cards.iterator
+  def cardCount = cards.size + (if (hasChinaCard) 1 else 0)
+  def cardCountExcludingChinaCard = cards.size
   def has(card: Card): Boolean = cards.contains(card)
   def clear() = cards.clear()
+  def isEmptyExcludingChinaCard = cards.isEmpty
+  override def iterator: Iterator[Card] =
+    if (hasChinaCard)
+      (cards + Cards.chinaCard).iterator
+    else
+      cards.iterator
 
   def join(iterable: Iterable[Card]): Unit = {
-    cards ++= iterable
+    iterable.foreach(add)
   }
 
   def pick(random: Random): Card = {
-    val id = random.nextInt(cardCount)
+    val id = random.nextInt(cardCountExcludingChinaCard)
     cards.toStream.slice(id, id + 1).head
   }
 
@@ -32,11 +38,19 @@ class CardSet extends mutable.Iterable[Card] {
   }
 
   def remove(card: Card): Unit = {
-    cards.remove(card)
+    if (card == Cards.chinaCard) {
+      hasChinaCard = false
+    } else {
+      cards.remove(card)
+    }
   }
 
   def add(card: Card): Unit = {
-    cards.add(card)
+    if (card == Cards.chinaCard) {
+      hasChinaCard = true
+    } else {
+      cards.add(card)
+    }
   }
 
 }

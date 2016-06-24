@@ -9,12 +9,23 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/13.
   */
-class Country(val name: String, val stability: Int, val critical: Boolean, val regions: Set[Region]) {
+class Country(val name: String, val stability: Int, val isBattlefield: Boolean, val regions: Set[Region]) {
 
-  def this(name: String, stability: Int, critical: Boolean, region: Region) =
-    this(name, stability, critical, Set(region))
+  def this(name: String, stability: Int, isBattlefield: Boolean, region: Region) =
+    this(name, stability, isBattlefield, Set(region))
 
   val influence = mutable.Map(US -> 0, USSR -> 0)
+
+  def getController = {
+    val influenceUS = influence(US)
+    val influenceUSSR = influence(USSR)
+    if (influenceUS - influenceUSSR >= stability)
+      US
+    else if (influenceUSSR - influenceUS >= stability)
+      USSR
+    else
+      Neutral
+  }
 
   override def toString = name
 }

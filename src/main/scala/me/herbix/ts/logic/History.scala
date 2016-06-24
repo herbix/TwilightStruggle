@@ -2,11 +2,12 @@ package me.herbix.ts.logic
 
 import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic.Region.Region
 
 /**
   * Created by Chaofan on 2016/6/23.
   */
-abstract class History
+trait History
 
 class HistoryStartGame extends History
 class HistoryTurnRound(val turn: Int, val round: Int, val faction: Faction) extends History
@@ -28,3 +29,5 @@ class HistoryPickCard(val faction: Faction, val count: Int) extends History
 class HistoryGetCard(val faction: Faction, val card: Card) extends History
 class HistoryLoseCard(val faction: Faction, val card: Card) extends History
 class HistoryDiscardCard(val faction: Faction, val card: Card) extends History
+class HistoryScoring(val region: Region, val usBattle: Int, val ussrBattle: Int, val usAll: Int, val ussrAll: Int) extends History
+class HistoryWar(val faction: Faction, val country: Country, val dice: Int, val result: Int) extends History

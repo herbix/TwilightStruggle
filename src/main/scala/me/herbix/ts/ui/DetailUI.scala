@@ -71,9 +71,9 @@ class DetailUI extends JPanel {
   val countryTriangleY = Array(120, 30, 120)
 
   def paintCountry(g: Graphics2D): Unit = {
-    val colorTitle = if (country.critical) Resource.countryCriticalTitleColor else Resource.countryTitleColor
-    val colorStability = if (country.critical) Resource.countryCriticalStabilityColor else Resource.countryStabilityColor
-    val colorText = if (country.critical) Resource.countryCriticalTextColor else Resource.countryTextColor
+    val colorTitle = if (country.isBattlefield) Resource.countryCriticalTitleColor else Resource.countryTitleColor
+    val colorStability = if (country.isBattlefield) Resource.countryCriticalStabilityColor else Resource.countryStabilityColor
+    val colorText = if (country.isBattlefield) Resource.countryCriticalTextColor else Resource.countryTextColor
     val (color1, color2) = {
       val colorRegions = country.regions.filter(Resource.regionColor.contains)
       if (colorRegions.size == 1) {
