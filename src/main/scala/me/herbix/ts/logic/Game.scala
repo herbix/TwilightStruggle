@@ -82,6 +82,8 @@ class Game {
       case State.cardOperation => nextStateCardOperation()
       case State.discardHeldCard => nextStateDiscardHeldCard(input)
       case State.selectTake8Rounds => nextStateSelectTake8Rounds(input)
+      case State.quagmireDiscard => nextStateQuagmireDiscard(input)
+      case State.quagmirePlayScoringCard => nextStateQuagmireScoringCard(input)
     }
     if (stateStack.top == cardEventEnd) {
       stateStack.pop()
@@ -205,6 +207,8 @@ class Game {
       worldMap.countries("South Africa") -> 1,
       worldMap.countries("UK") -> 5
     ))
+
+    hand(US).add(Cards.fromId(42))
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -257,9 +261,23 @@ class Game {
       val opposite = Faction.getOpposite(from)
       hand(opposite).add(card)
       recordHistory(new HistoryGetCard(opposite, card))
-      addFlag(opposite, Flags.cantPlayChinaCard)
+      addFlag(opposite, Flags.CantPlayChinaCard)
     } else if (force || !card.isRemovedAfterEvent) {
       discards.add(card)
+    }
+  }
+
+  def nextActionState: State = {
+    if (flags.hasFlag(phasingPlayer, Flags.QuagmireBearTrap)) {
+      val scoringCardCount = hand(phasingPlayer).count(!_.canHeld(this))
+      if (hand(phasingPlayer).exists(card => card.canHeld(this) && card.canPlay(this, phasingPlayer)) &&
+        scoringCardCount < turnRoundCount + 1 - round) {
+        quagmireDiscard
+      } else {
+        quagmirePlayScoringCard
+      }
+    } else {
+      selectCardAndAction
     }
   }
 
@@ -337,7 +355,7 @@ class Game {
     phasingPlayer = USSR
 
     stateStack.pop()
-    stateStack.push(selectCardAndAction)
+    stateStack.push(nextActionState)
 
     recordHistory(new HistoryTurnRound(turn, round, phasingPlayer))
   }
@@ -424,10 +442,21 @@ class Game {
     recordHistory(new HistoryDefcon(oldVal, defcon))
   }
 
-  def nextTurn(dont8Rounds: Boolean = false, dontDiscardHeld: Boolean = false): Unit = {
-    if (flags.hasFlag(Flags.SpaceAwardTake8Rounds) && round == turnRoundCount + 1 && !dont8Rounds) {
-      stateStack.push(selectTake8Rounds)
-      return
+  def mayTake8Rounds(faction: Faction) =
+    (flags.hasFlag(faction, Flags.SpaceAwardTake8Rounds) || flags.hasFlag(faction, Flags.NorthSeaOil8Rounds)) &&
+    hand(faction).canPlayCardCount(this, faction) > 0
+
+  def nextTurn(dontTake8Rounds: Boolean = false, dontDiscardHeld: Boolean = false): Unit = {
+    if (round == turnRoundCount + 1 && !dontTake8Rounds) {
+      if (mayTake8Rounds(phasingPlayer)) {
+        stateStack.push(selectTake8Rounds)
+        return
+      }
+      nextRound()
+      if (round == turnRoundCount + 1 && mayTake8Rounds(phasingPlayer)) {
+        stateStack.push(selectTake8Rounds)
+        return
+      }
     }
 
     val usFail = hand(US).exists(!_.canHeld(this))
@@ -441,7 +470,11 @@ class Game {
 
     if (flags.hasFlag(Flags.SpaceAwardMayDiscard) && !dontDiscardHeld) {
       val faction = if (flags.hasFlag(US, Flags.SpaceAwardMayDiscard)) US else USSR
-      if (hand(faction).exists(_.canDiscard(this))) {
+      if (hand(faction).exists(_.canDiscard(this, faction))) {
+        if (round > 8) {
+          round = 8
+          phasingPlayer = US
+        }
         stateStack.push(discardHeldCard)
         return
       }
@@ -535,7 +568,7 @@ class Game {
         op.card.afterPlay(this, op.faction)
         stateStack.pop()
         if (nextRound()) {
-          stateStack.push(selectCardAndAction)
+          stateStack.push(nextActionState)
         } else {
           nextTurn()
         }
@@ -594,7 +627,7 @@ class Game {
         currentCard = null
         stateStack.pop()
         if (nextRound()) {
-          stateStack.push(selectCardAndAction)
+          stateStack.push(nextActionState)
         } else {
           nextTurn()
         }
@@ -761,7 +794,7 @@ class Game {
         currentCard = null
         stateStack.pop()
         if (nextRound()) {
-          stateStack.push(selectCardAndAction)
+          stateStack.push(nextActionState)
         } else {
           nextTurn()
         }
@@ -785,11 +818,11 @@ class Game {
 
     stateStack.pop()
     if (op.value) {
-      phasingPlayer = op.faction
-      stateStack.push(selectCardAndAction)
+      stateStack.push(nextActionState)
       recordHistory(new HistoryTurnRound(turn, round, phasingPlayer))
     } else {
-      nextTurn(true)
+      nextRound()
+      nextTurn()
     }
   }
 
@@ -798,7 +831,7 @@ class Game {
     val state2 = if (stateStack.size <= 1) null else stateStack.elems(1)
     ((state == cardOperationAddInfluence || state == cardOperationRealignment ||
       state == cardOperationCoup || state == cardOperationSelect) &&
-      state2 == cardOperation) || state == selectCardAndAction
+      state2 == cardOperation) || state == selectCardAndAction || state == quagmireDiscard || state == null
   }
 
   def modifyOp(faction: Faction, originalOp: Int, targets: Iterable[Country]): Int = {
@@ -899,6 +932,45 @@ class Game {
     } else {
       gameOver(US)
     }
+  }
+
+  def nextStateQuagmireDiscard(input: Operation) = {
+    val op = input.asInstanceOf[OperationSelectCard]
+
+    hand(op.faction).remove(op.card)
+    discardCard(op.card, op.faction, true, true)
+
+    val dice = rollDice()
+    if (dice <= 4) {
+      removeFlag(op.faction, Flags.QuagmireBearTrap)
+    }
+    recordHistory(new HistoryRollDice(op.faction, dice))
+
+    stateStack.pop()
+    if (nextRound()) {
+      stateStack.push(nextActionState)
+    } else {
+      nextTurn()
+    }
+  }
+
+  def nextStateQuagmireScoringCard(input: Operation) = {
+    val op = input.asInstanceOf[OperationSelectCard]
+
+    hand(op.faction).remove(op.card)
+    discardCard(op.card, op.faction)
+
+    recordHistory(new HistoryCardAction(op.faction, op.card, Action.Event, false))
+
+    currentCard = op.card
+
+    stateStack.pop()
+    stateStack.push(cardE)
+
+    recordHistory(new HistoryEvent(phasingPlayer, currentCard))
+    stateStack.push(cardEvent)
+    stateStack.push(cardEventStart)
+    currentCard.nextState(this, phasingPlayer, null)
   }
 
 }

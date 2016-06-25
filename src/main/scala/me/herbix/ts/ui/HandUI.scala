@@ -132,10 +132,42 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
   def getCardEnabled(card: Card): Boolean = {
     if (selfHand.isSelected || eventCards.isSelected) {
       game.stateStack.top match {
-        case State.selectHeadlineCard | State.selectHeadlineCard2 => card.canHeadline(game, game.playerFaction)
-        case State.selectCardAndAction => card.canPlay(game, game.playerFaction)
-        case State.discardHeldCard => card.canDiscard(game)
-        case _ => card.canPlay(game, game.playerFaction)
+        case State.selectHeadlineCard =>
+          if (!game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardHeadlineThen)) {
+            card.canHeadline(game, game.playerFaction)
+          } else {
+            true
+          }
+        case State.selectHeadlineCard2 =>
+          if (game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardHeadlineThen)) {
+            card.canHeadline(game, game.playerFaction)
+          } else {
+            true
+          }
+        case State.selectCardAndAction | State.quagmirePlayScoringCard =>
+          if (game.phasingPlayer == game.playerFaction) {
+            card.canPlay(game, game.playerFaction)
+          } else {
+            true
+          }
+        case State.quagmireDiscard =>
+          if (game.phasingPlayer == game.playerFaction) {
+            card.canPlay(game, game.playerFaction) && card.canDiscard(game, game.playerFaction)
+          } else {
+            true
+          }
+        case State.discardHeldCard =>
+          if (game.phasingPlayer == game.playerFaction) {
+            card.canDiscard(game, game.playerFaction)
+          } else {
+            true
+          }
+        case _ =>
+          if (game.phasingPlayer == game.playerFaction) {
+            card.canPlay(game, game.playerFaction)
+          } else {
+            true
+          }
       }
     } else {
       true

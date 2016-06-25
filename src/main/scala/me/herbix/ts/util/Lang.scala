@@ -108,6 +108,9 @@ object Lang {
 
   val take8rounds = "是否要进行8个行动轮"
 
+  val selectQuagmireDiscard = "请弃一张2以上行动力的牌"
+  val selectQuagmireScoringCard = "请打出一张计分牌"
+
   val thisTurnFlag = "回合结束时标记失效。"
 
   val historyStartGame = "开始游戏"
@@ -136,6 +139,7 @@ object Lang {
   val historyMilitaryReset = "重置%s的军事行动数"
   val historyScoring = "%s计分\n美国：控制国家%s个，战场国%s个\n苏联：控制国家%s个，战场国%s个"
   val historyWar = "%s操纵，入侵%s，掷点得%s，调整为%s"
+  val historyRollDice = "%s掷出了%s"
 
   val countryNames = mutable.Map[String, String]()
 
@@ -323,7 +327,7 @@ object Lang {
   addCardInfo("苏伊士运河危机*", "从法国，英国和以色列移除4点美国影响力，每个国家最多2点。")
   addCardInfo("东欧剧变", "冷战早中期：从东欧的3个国家各移除1点影响力。\n冷战后期：从东欧的3个国家各移除2点影响力。")
   addCardInfo("反殖民化", "在任意4个非洲或东南亚国家各增加1点苏联影响力。")
-  addCardInfo("红色恐怖/清洗", "对手本回合打出的所有行动牌行动力-1（下限是1）。")
+  addCardInfo("红色恐慌/党内清洗", "对手本回合打出的所有行动牌行动力-1（下限是1）。")
   addCardInfo("联合国干预",
     "将此牌和一张对手相关的牌同时打出，那张牌不发动事件并进入弃牌堆，你可以使用那张牌的行动力进行行动。\n" +
     "此牌不能在头条打出。"
@@ -571,7 +575,7 @@ object Lang {
   addFlagInfo("戴高乐领导法国", "取消“北大西洋公约组织”对法国的效果，苏联可在法国调整阵营或发动政变。")
   addFlagInfo("遏制政策", "勃列日涅夫主义", "遏制政策/勃列日涅夫主义", "本回合%s打出的所有行动牌行动力+1（上限为4）。")
   addFlagInfo("美日共同防卫协定", "苏联不能在日本进行政变或调整阵营。")
-  addFlagInfo("清洗", "红色恐怖", "红色恐怖/清洗", "%s本回合打出的所有行动牌行动力-1（下限是1）。")
+  addFlagInfo("红色恐慌", "党内清洗", "红色恐慌/党内清洗", "%s本回合打出的所有行动牌行动力-1（下限是1）。")
   addFlagInfo("台湾决议", "在亚洲计分或终局计分时，若美国控制台湾，则台湾被视作战场国，其他时刻和情况下不被视为战场国。")
   addFlagInfo("古巴导弹危机",
     "本回合%s的任何政变将引发核战，使其输掉游戏。\n" +

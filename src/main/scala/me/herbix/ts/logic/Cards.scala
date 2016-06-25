@@ -10,9 +10,19 @@ import scala.collection.mutable
   */
 abstract class Card(val id: Int, val op: Int, val faction: Faction, val isRemovedAfterEvent: Boolean) {
   def canHeadline(game: Game, faction: Faction) = canEvent(game, faction)
-  def canDiscard(game: Game) = true
+  def canDiscard(game: Game, faction: Faction): Boolean = {
+    if (game.flags.hasFlag(faction, Flags.QuagmireBearTrap)) {
+      return canHeld(game)
+    }
+    true
+  }
   def canEvent(game: Game, faction: Faction) = true
-  def canPlay(game: Game, faction: Faction) = true
+  def canPlay(game: Game, faction: Faction): Boolean = {
+    if (game.flags.hasFlag(faction, Flags.QuagmireBearTrap)) {
+      return !canHeld(game) || (game.modifyOp(faction, op) >= 2 && canDiscard(game, faction))
+    }
+    true
+  }
   def canHeld(game: Game) = true
   def afterPlay(game: Game, faction: Faction): Unit = {}
   def instantEvent(game: Game, faction: Faction): Boolean = true
@@ -32,7 +42,7 @@ private object CardUnknown extends Card(0, 0, Neutral, false)
 
 private class CardScoring(id: Int, val region: Region, val presence: Int, val domination: Int, val control: Int)
   extends Card(id, 0, Neutral, false) {
-  override def canHeld(game: Game) = true
+  override def canHeld(game: Game) = false
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.scoring(region, presence, domination, control)
     game.checkVp()
@@ -70,8 +80,9 @@ private object Card005FiveYearPlan extends Card(5, 3, US, false) {
 
 private object Card006ChinaCard extends Card(6, 4, Neutral, false) {
   override def canEvent(game: Game, faction: Faction) = false
-  override def canPlay(game: Game, faction: Faction) = !game.flags.hasFlag(faction, Flags.cantPlayChinaCard)
-  override def canDiscard(game: Game) = false
+  override def canPlay(game: Game, faction: Faction) =
+    super.canPlay(game, faction) && !game.flags.hasFlag(faction, Flags.CantPlayChinaCard)
+  override def canDiscard(game: Game, faction: Faction) = false
   override def modifyOp(faction: Faction, originalOp: Int, targets: Iterable[Country]): Int =
     if (targets.forall(_.regions.contains(Region.Asia))) {
       originalOp + 1
@@ -206,6 +217,7 @@ private object Card035Taiwan extends Card(35, 2, US, true) {
 }
 
 private object Card038SEAsiaScoring extends Card(38, 0, Neutral, true) {
+  override def canHeld(game: Game) = false
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val targetCountries = game.worldMap.countries.values.filter(_.regions.contains(Region.SouthEastAsia))
     val thailand = game.worldMap.countries("Thailand")
@@ -248,7 +260,7 @@ private object Card041NuclearSubs extends Card(41, 2, US, true) {
   }
 }
 
-private object Card042Quagmire extends Card(42, 3, USSR, true) { // TODO effect not finished
+private object Card042Quagmire extends Card(42, 3, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addFlag(US, Flags.QuagmireBearTrap)
     true
@@ -314,8 +326,8 @@ private object Card058CulturalRevolution extends Card(58, 3, USSR, true) {
     if (game.hand(US).has(chinaCard)) {
       game.hand(US).remove(chinaCard)
       game.discardCard(chinaCard, US, true, true)
-      game.flags.removeFlag(US, Flags.cantPlayChinaCard)
-      game.flags.removeFlag(USSR, Flags.cantPlayChinaCard)
+      game.flags.removeFlag(US, Flags.CantPlayChinaCard)
+      game.flags.removeFlag(USSR, Flags.CantPlayChinaCard)
     } else {
       game.addVpAndCheck(USSR, 1)
     }
@@ -329,7 +341,7 @@ private object Card059FlowerPower extends Card(59, 4, USSR, true) {
     game.addFlag(US, Flags.FlowerPower)
     true
   }
-  def triggerFlowerPowerEffect(game: Game, faction: Faction): Unit = {  // TODO not finished
+  def triggerFlowerPowerEffect(game: Game, faction: Faction): Unit = {  // TODO not finished To war cards
     if (game.stateStack.top == State.selectCardAndAction) { // Except space
       return
     }
@@ -340,7 +352,7 @@ private object Card059FlowerPower extends Card(59, 4, USSR, true) {
 }
 
 private object Card060U2Incident extends Card(60, 3, USSR, true) {
-  override def instantEvent(game: Game, faction: Faction): Boolean = { // TODO not finished
+  override def instantEvent(game: Game, faction: Faction): Boolean = { // TODO not finished To #32 UN
     game.addVpAndCheck(USSR, 1)
     game.addFlag(USSR, Flags.U2Incident)
     true
@@ -472,7 +484,7 @@ private object Card084ReaganBombsLibya extends Card(84, 2, US, true) {
 private object Card086NorthSeaOil extends Card(86, 3, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addFlag(US, Flags.NorthSeaOil)
-    game.addFlag(US, Flags.NorthSeaOil8Rounds)  // TODO 8 rounds not finish
+    game.addFlag(US, Flags.NorthSeaOil8Rounds)
     true
   }
 }

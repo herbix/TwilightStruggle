@@ -144,8 +144,20 @@ class ControlUI(val game: Game) extends JPanel {
           waitOtherUI()
         }
       case State.selectTake8Rounds =>
-        if (game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardTake8Rounds)) {
+        if (game.playerFaction == game.phasingPlayer) {
           yesNoUI(Lang.take8rounds)
+        } else {
+          waitOtherUI()
+        }
+      case State.quagmireDiscard =>
+        if (game.playerFaction == game.phasingPlayer) {
+          selectCardUI(Lang.selectQuagmireDiscard)
+        } else {
+          waitOtherUI()
+        }
+      case State.quagmirePlayScoringCard =>
+        if (game.playerFaction == game.phasingPlayer) {
+          selectCardUI(Lang.selectQuagmireScoringCard)
         } else {
           waitOtherUI()
         }

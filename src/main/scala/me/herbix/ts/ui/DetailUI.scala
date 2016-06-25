@@ -277,12 +277,12 @@ class DetailUI extends JPanel {
         val c = toDraw.charAt(i)
         val cw = fm.charWidth(c)
         if (currentCol + cw > 180 && c != '，' && c != '。') {
-          currentRow += 20
+          currentRow += 19
           currentCol = 0
         }
         ca(0) = c
         if (c == '~') {
-          g.drawChars(ca, 0, 1, currentCol, currentRow + fm.getHeight / 2)
+          g.drawChars(ca, 0, 1, currentCol, currentRow + fm.getHeight / 2 - 2)
         } else {
           g.drawChars(ca, 0, 1, currentCol, currentRow)
         }

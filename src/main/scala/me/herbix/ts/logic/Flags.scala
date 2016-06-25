@@ -81,7 +81,7 @@ object Flags {
   val SpaceAwardHeadlineThen = Flag(Always, true)
   val SpaceAwardMayDiscard = Flag(Always, true)
   val SpaceAwardTake8Rounds = Flag(Always, true)
-  val cantPlayChinaCard = Flag(ThisTurn, false)
+  val CantPlayChinaCard = Flag(ThisTurn, false)
   val Defcon4Penalty = new Flag(Always, false) {
     override def canRealignmentOrCoup(country: Country) = if (country.regions.contains(Region.Europe)) Some(false) else None
   }
