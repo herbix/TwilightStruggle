@@ -2,6 +2,8 @@ package me.herbix.ts.logic
 
 import java.util.Random
 
+import me.herbix.ts.logic.Faction.Faction
+
 import scala.collection.mutable
 
 /**
@@ -12,8 +14,9 @@ class CardSet extends mutable.Iterable[Card] {
   private var hasChinaCard = false
 
   def cardCount = cards.size + (if (hasChinaCard) 1 else 0)
+  def canPlayCardCount(game: Game, faction: Faction) = count(_.canPlay(game, faction))
   def cardCountExcludingChinaCard = cards.size
-  def has(card: Card): Boolean = cards.contains(card)
+  def has(card: Card): Boolean = cards.contains(card) || (card == Cards.chinaCard && hasChinaCard)
   def clear() = cards.clear()
   def isEmptyExcludingChinaCard = cards.isEmpty
   override def iterator: Iterator[Card] =

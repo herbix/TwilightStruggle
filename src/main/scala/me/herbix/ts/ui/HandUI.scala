@@ -135,7 +135,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
         case State.selectHeadlineCard | State.selectHeadlineCard2 => card.canHeadline(game, game.playerFaction)
         case State.selectCardAndAction => card.canPlay(game, game.playerFaction)
         case State.discardHeldCard => card.canDiscard(game)
-        case _ => true
+        case _ => card.canPlay(game, game.playerFaction)
       }
     } else {
       true

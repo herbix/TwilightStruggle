@@ -302,10 +302,14 @@ class DetailUI extends JPanel {
     paintTitle(g, titleColor, titleText, flagFaction, 0)
 
     val name = Lang.flagInfo(flag.id)._1(flagFaction)
-    val desc = if (flagFaction == Neutral)
-      Lang.flagInfo(flag.id)._2
-    else
-      String.format(Lang.flagInfo(flag.id)._2, Lang.getFactionName(flagFaction))
+    val desc =
+      (if (flagFaction == Neutral)
+        Lang.flagInfo(flag.id)._2
+      else
+        String.format(Lang.flagInfo(flag.id)._2, Lang.getFactionName(flagFaction))
+      ) +
+        (if (flag.flagType == FlagType.ThisTurn) "\n" + Lang.thisTurnFlag else "")
+
 
     paintName(g, name)
     paintDesc(g, desc)

@@ -31,7 +31,7 @@ class WorldMapUI(val game: Game) extends JPanel {
   }
 
   var minscale = 0.3
-  var scale = 0.7
+  var scale = minscale
 
   val bg = worldMap
 

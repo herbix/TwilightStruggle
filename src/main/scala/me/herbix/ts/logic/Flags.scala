@@ -22,7 +22,8 @@ class Flag (val flagType: FlagType, val isGoodFlag: Boolean, val priority: Int =
   def canRealignment(country: Country) = canRealignmentOrCoup(country)
   def canCoup(country: Country) = canRealignmentOrCoup(country)
   override def compare(that: Flag): Int =
-    if (priority > that.priority) -1 else 1
+    if (priority > that.priority) -1 else if (priority < that.priority) 1 else
+      if (## > that.##) 1 else if (## < that.##) -1 else 0
   override def toString = f"Flag($id)"
 }
 
@@ -42,8 +43,8 @@ class Flags {
     Neutral -> mutable.Set()
   )
   val flagSets2 = Map[Faction, mutable.Set[Flag]](
-    US -> mutable.TreeSet(),
-    USSR -> mutable.TreeSet()
+    US -> mutable.SortedSet(),
+    USSR -> mutable.SortedSet()
   )
   def addFlag(faction: Faction, flag: Flag): Unit = {
     flagSets(faction) += flag
@@ -62,7 +63,7 @@ class Flags {
     }
   }
   def hasFlag(faction: Faction, flag: Flag): Boolean = {
-    flagSets(faction).contains(flag) || flagSets(Neutral).contains(flag)
+    flagSets2(faction).contains(flag)
   }
   def hasFlag(flag: Flag): Boolean = {
     flagSets.exists(_._2.contains(flag))
@@ -98,6 +99,26 @@ object Flags {
   val USJapanPact = new Flag(Always, false, 60) {
     override def canRealignmentOrCoup(country: Country) = if (country.name == "Japan") Some(false) else None
   }
+  val RedScarePurge = Flag(ThisTurn, false)
+  val Taiwan = Flag(Always, true)
+  val CubaMissile = Flag(ThisTurn, false)
+  val NuclearSubs = Flag(ThisTurn, true)
+  val QuagmireBearTrap = Flag(Always, false)
+  val WeWillBuryYou = Flag(Always, false)
+  val WillyBrandt = new Flag(Always, true, 80) {
+    override def canRealignmentOrCoup(country: Country) = if (country.name == "W.Germany") Some(true) else None
+  }
+  val FlowerPower = Flag(Always, false)
+  val U2Incident = Flag(ThisTurn, true)
+  val CampDavid = Flag(Always, true)
+  val JohnPaulII = Flag(Always, true)
+  val ShuttleDiplomacy = Flag(Always, true)
+  val IranianHostage = Flag(Always, false)
+  val IronLady = Flag(Always, true)
+  val NorthSeaOil = Flag(Always, true)
+  val NorthSeaOil8Rounds = Flag(ThisTurn, true)
+  val IranContra = Flag(ThisTurn, false)
+  val EvilEmpire = Flag(Always, true)
 
   def init(): Unit = {}
 }

@@ -181,7 +181,7 @@ class ControlUI(val game: Game) extends JPanel {
 
   def selectOperationUI(tip: String) = {
     showSubUI(SelectOperation)
-    uiSelectOperation.text(1) = String.format(tip, game.currentCard.op.toString)
+    uiSelectOperation.text(1) = String.format(tip, game.modifyOp(game.playerFaction, game.currentCard.op).toString)
     uiSelectOperation.coup.setEnabled(game.canCoup(game.playerFaction))
   }
 

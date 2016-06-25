@@ -2,7 +2,9 @@ package me.herbix.ts.util
 
 import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
-import me.herbix.ts.logic.{Action, Faction}
+import me.herbix.ts.logic.Region.Region
+import me.herbix.ts.logic.Region.Region
+import me.herbix.ts.logic.{Region, Action, Faction}
 
 import scala.collection.mutable
 
@@ -87,12 +89,26 @@ object Lang {
     case Action.Coup => coup
   }
 
+  def getRegionName(region: Region) = region match {
+    case Region.Europe => "欧洲"
+    case Region.Asia => "亚洲"
+    case Region.MidEast => "中东"
+    case Region.Africa => "非洲"
+    case Region.MidAmerica => "中美洲"
+    case Region.SouthAmerica => "南美洲"
+    case Region.EastEurope => "东欧"
+    case Region.WestEurope => "西欧"
+    case Region.SouthEastAsia => "东南亚"
+  }
+
   val discardHeldCard = "可以弃掉一张持牌"
 
   val yes = "是"
   val no = "否"
 
   val take8rounds = "是否要进行8个行动轮"
+
+  val thisTurnFlag = "回合结束时标记失效。"
 
   val historyStartGame = "开始游戏"
   val historyTurnStart = "第%s回合开始"
@@ -118,6 +134,8 @@ object Lang {
   val historyDefconStay = "核战等级保持%s级不变"
   val historyMilitary = "%s的军事行动数从%s增加到%s"
   val historyMilitaryReset = "重置%s的军事行动数"
+  val historyScoring = "%s计分\n美国：控制国家%s个，战场国%s个\n苏联：控制国家%s个，战场国%s个"
+  val historyWar = "%s操纵，入侵%s，掷点得%s，调整为%s"
 
   val countryNames = mutable.Map[String, String]()
 
@@ -300,7 +318,7 @@ object Lang {
     "胜利奖励：当前玩家得2VP，对手在被入侵国的影响力全部替换成当前玩家影响力。"
   )
   addCardInfo("遏制政策*", "本回合美国打出的所有行动牌行动力+1（上限为4）。")
-  addCardInfo("建立中情局*", "本回合苏联公开手牌。\n然后美国视作打出一张1行动力的牌进行行动。")
+  addCardInfo("建立中情局*", "苏联公开手牌。\n然后美国视作打出一张1行动力的牌进行行动。")
   addCardInfo("美日共同防卫协定*", "美国获得足以控制日本的影响力。\n苏联不能在日本进行政变或调整阵营。")
   addCardInfo("苏伊士运河危机*", "从法国，英国和以色列移除4点美国影响力，每个国家最多2点。")
   addCardInfo("东欧剧变", "冷战早中期：从东欧的3个国家各移除1点影响力。\n冷战后期：从东欧的3个国家各移除2点影响力。")
@@ -389,12 +407,12 @@ object Lang {
   )
   addCardInfo("反弹道导弹条约", "核战等级改善1级。\n然后当前玩家视作打出一张4行动力的牌进行行动。")
   addCardInfo("文化大革命*", "若美国持有中国牌，则苏联获得之并正面朝上，为可使用的状态。\n若苏联持有中国牌，则苏联得1VP。")
-  addCardInfo("花朵力量*",
-    "美国作为事件或行动打出一张战争牌（太空竞赛不算），苏联得2VP。\n" +
+  addCardInfo("花的力量*",
+    "美国作为事件或行动打出一张战争牌时（太空竞赛不算），苏联得2VP。\n" +
     "战争牌有：朝鲜战争，阿以战争，印巴战争，局部战争，两伊战争。\n" +
     "若是已打出“‘邪恶帝国’”，则此牌不可作事件打出。打出“‘邪恶帝国’”时，已打出的此牌效果无效。"
   )
-  addCardInfo("U2击坠事件*", "苏联得1VP。\n若本回合剩余行动轮内打出“联合国干预”，则苏联再得1VP。")
+  addCardInfo("U2击坠事件*", "苏联得1VP。\n若本回合剩余行动轮内某方作为事件打出“联合国干预”，则苏联再得1VP。")
   addCardInfo("石油输出国组织",
     "苏联每控制一个以下国家得1VP：埃及，伊朗，利比亚，沙特阿拉伯，伊拉克，海湾国家，委内瑞拉。\n" +
     "若是已打出“北海石油”，则此牌不可作事件打出。"
@@ -411,11 +429,11 @@ object Lang {
   )
   addCardInfo("拉丁美洲敢死队", "本回合内，当前玩家在中南美的政变+1行动力，对方玩家的-1行动力。")
   addCardInfo("美洲国家组织成立*", "在中南美增加2点美国影响力。")
-  addCardInfo("尼克松打出中国牌*", "若美国持有中国牌，则得2VP。\n若苏联持有中国牌，则美国获得之并正面朝上，为可使用的状态。")
+  addCardInfo("尼克松打出中国牌*", "若美国持有中国牌，则得2VP。\n若苏联持有中国牌，则美国获得之并正面朝下，不可在本回合使用。")
   addCardInfo("萨达特驱逐苏维埃*", "在埃及移除所有苏联影响力，增加1点美国影响力。")
   addCardInfo("穿梭外交",
     "打出在美国玩家面前。\n" +
-    "在下个中东计分或亚洲计分时，苏联少计算1个战场国，然后将此牌放入弃牌堆。\n" +
+    "在下个中东计分或亚洲计分时，苏联少计算1个战场国（由美国选择），然后将此牌放入弃牌堆。\n" +
     "此牌不影响终局计分。"
   )
   addCardInfo("美国之音", "从非欧洲国家移除4点苏联影响力，每个国家最多2点。")
@@ -485,9 +503,9 @@ object Lang {
     "然后美国可以使用本牌的行动力在欧洲进行免费政变或调整阵营。\n" +
     "不能作为事件打出“维利·勃兰特”，取消已打出“维利·勃兰特”的效果。"
   )
-  addCardInfo("“花朵力量”*",
+  addCardInfo("“邪恶帝国”*",
     "美国得1VP。\n" +
-    "不能作为事件打出“维利·勃兰特”，取消已打出“维利·勃兰特”的效果。"
+    "不能作为事件打出“花的力量”，取消已打出“花的力量”的效果。"
   )
   addCardInfo("奥德里奇·艾姆斯泄密*", "本回合美国公开手牌。\n苏联从美国手中选一张牌弃掉。")
   addCardInfo("部署潘兴II导弹*", "苏联得1VP。\n从西欧的最多3个国家各移除1点美国影响力。")
@@ -539,8 +557,8 @@ object Lang {
     flagInfoCount += 1
   }
 
-  addFlagInfo("太空竞赛限制", "%1$s本回合已尝试过1次太空竞赛，除非%1$s有“送动物上太空”标记，否则不能再次进行太空竞赛尝试。")
-  addFlagInfo("太空竞赛限制", "%1$s本回合已尝试过2次太空竞赛，不能再次进行太空竞赛尝试。")
+  addFlagInfo("太空竞赛限制", "%1$s本回合已尝试过1次太空竞赛，除非%1$s有“送动物上太空”标记，否则不能进行太空竞赛尝试。")
+  addFlagInfo("太空竞赛限制", "%1$s本回合已尝试过2次太空竞赛，不能进行太空竞赛尝试。")
   addFlagInfo("送动物上太空", "%1$s每回合可以进行2次太空竞赛尝试。")
   addFlagInfo("常驻地球轨道的人", "%1$s的对手须先选择和展示头条牌。")
   addFlagInfo("鹰落在月亮上", "熊落在月亮上", "有人落在月亮上", "%1$s可以弃掉1张持牌。")
@@ -551,8 +569,37 @@ object Lang {
   addFlagInfo("核战等级限制", "双方不能在中东调整阵营或发动政变。")
   addFlagInfo("越南起义", "在本回合内，苏联如果将行动力全和在东南亚，则可以行动力+1。")
   addFlagInfo("戴高乐领导法国", "取消“北大西洋公约组织”对法国的效果，苏联可在法国调整阵营或发动政变。")
-  addFlagInfo("遏制政策", "本回合美国打出的所有行动牌行动力+1（上限为4）。")
+  addFlagInfo("遏制政策", "勃列日涅夫主义", "遏制政策/勃列日涅夫主义", "本回合%s打出的所有行动牌行动力+1（上限为4）。")
   addFlagInfo("美日共同防卫协定", "苏联不能在日本进行政变或调整阵营。")
-
+  addFlagInfo("清洗", "红色恐怖", "红色恐怖/清洗", "%s本回合打出的所有行动牌行动力-1（下限是1）。")
+  addFlagInfo("台湾决议", "在亚洲计分或终局计分时，若美国控制台湾，则台湾被视作战场国，其他时刻和情况下不被视为战场国。")
+  addFlagInfo("古巴导弹危机",
+    "本回合%s的任何政变将引发核战，使其输掉游戏。\n" +
+    "在任何时候，作为苏联移除古巴的2点影响力，或作为美国移除西德和土耳其之一的2点影响力，就可以使此标记失效。")
+  addFlagInfo("核潜艇", "本回合美国在战场国的政变将不会降低核战等级（不影响古巴导弹危机的效果）。")
+  addFlagInfo("困境", "捕熊陷阱", "困境/捕熊陷阱",
+    "在下个行动轮，%1$s玩家不能进行通常行动，而是必须弃一张2或以上行动力的牌，然后掷骰，" +
+    "若是1~4则取消此牌效果，否则以后的行动轮也须重复以上行动。" +
+    "如果此轮因无符合条件的牌可弃而没有弃牌，则%1$s玩家不能掷骰，在这轮只能打出计分牌。")
+  addFlagInfo("“我们要埋葬你们”", "除非下个行动轮美国作为事件打出“联合国干预”，否则苏联在美国打出牌生效前得3VP。")
+  addFlagInfo("维利·勃兰特",
+    "取消“北大西洋公约组织”对西德的效果，苏联可在西德调整阵营或发动政变。\n" +
+    "打出“推倒柏林墙”时，此标记失效。")
+  addFlagInfo("花的力量",
+    "美国作为事件或行动打出一张战争牌时（太空竞赛不算），苏联得2VP。\n" +
+    "战争牌有：朝鲜战争，阿以战争，印巴战争，局部战争，两伊战争。\n" +
+    "打出“‘邪恶帝国’”时，此标记失效。")
+  addFlagInfo("U2击坠事件", "若某方作为事件打出“联合国干预”，则苏联得1VP，然后此标记失效。")
+  addFlagInfo("戴维营协定", "不可作为事件打出“阿以战争”。")
+  addFlagInfo("约翰·保罗二世当选教皇", "可作为事件打出“团结工会”。")
+  addFlagInfo("穿梭外交",
+      "在下个中东计分或亚洲计分时，苏联少计算1个战场国（由美国选择），然后此标记失效，“穿梭外交”牌进入弃牌堆。\n" +
+      "此标记不影响终局计分。")
+  addFlagInfo("伊朗人质危机", "“恐怖主义”对美国的效果加倍。")
+  addFlagInfo("铁娘子", "不可作为事件打出“社会主义政府”。")
+  addFlagInfo("北海石油", "“石油输出国组织”不再可作为事件打出。")
+  addFlagInfo("北海石油", "美国本回合可以进行8个行动轮。")
+  addFlagInfo("伊朗门丑闻", "本回合美国调整阵营掷骰点数-1。")
+  addFlagInfo("“邪恶帝国”", "不可作为事件打出“花的力量”。")
 
 }

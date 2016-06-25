@@ -18,6 +18,10 @@ class HistoryUI(game: Game) extends JPanel {
   var historyText: mutable.Stack[HistoryMeta] = mutable.Stack()
 
   def updateContent(): Unit = {
+    if (historyText.nonEmpty) historyText.pop()
+    while (historyText.nonEmpty && !historyText.top.history.isInstanceOf[HistoryTurnRound]) {
+      historyText.pop()
+    }
     if (historyText.isEmpty) {
       historyText.pushAll(game.history.toStream.reverse.map(getHistoryMeta))
     } else {
@@ -108,6 +112,12 @@ class HistoryUI(game: Game) extends JPanel {
         } else {
           String.format(Lang.historyMilitary, Lang.getFactionName(h.faction), h.oldValue.toString, h.newValue.toString)
         }
+      case h: HistoryScoring =>
+        String.format(Lang.historyScoring, Lang.getRegionName(h.region),
+          h.usAll.toString, h.usBattle.toString, h.ussrAll.toString, h.ussrBattle.toString)
+      case h: HistoryWar =>
+        String.format(Lang.historyWar, Lang.getFactionName(h.faction), Lang.countryNames(h.country.name),
+          h.dice.toString, h.result.toString)
       case h => h.toString
     }
     var height = 25
