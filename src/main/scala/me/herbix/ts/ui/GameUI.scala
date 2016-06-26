@@ -139,6 +139,14 @@ class GameUI(playerId: Int) extends JFrame {
     worldMapUI.repaint()
   })
 
+  historyUI.historyHoverListeners :+= ((history: History) => {
+    history match {
+      case h: HistoryCard =>
+        detailUI.setCard(h.card)
+      case _ =>
+    }
+  })
+
 
 }
 

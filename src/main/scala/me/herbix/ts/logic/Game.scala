@@ -36,33 +36,62 @@ class Game {
   val discards = new CardSet
 
   val flags = new Flags
-  // game table ends
+  // game table end
 
+  // game states
   var randomSeed = 0l
   val random = new Random
 
   var pendingInput: Operation = null
   var stateStack = mutable.Stack(start)
 
-  var currentCard: Card = null
+  var operationPlayerStack = mutable.Stack(Neutral)
+  def operationPlayer = operationPlayerStack.top
+  def operationPlayer_=(faction: Faction) = {
+    operationPlayerStack.pop()
+    operationPlayerStack.push(faction)
+  }
+
+  var currentCardStack = mutable.Stack[Card]()
+  def currentCard = if (currentCardStack.isEmpty) null else currentCardStack.top
+  def currentCard_=(card: Card) = {
+    if (currentCardStack.nonEmpty) {
+      currentCardStack.pop()
+    }
+    if (card != null) {
+      currentCardStack.push(card)
+    }
+  }
+
   var currentRealignments = List[Country]()
   var skipHeadlineCard2 = false
+  // game states end
 
+  // other
   var currentHistory = List.empty[History]
   var oldHistory = List.empty[History]
   def history = currentHistory ++ oldHistory
 
+  val pendingOperation = mutable.Queue.empty[Operation]
+  var toSendPendingOperations = true
+
   var stateUpdateListeners: List[() => Unit] = List()
 
   def sendNextState(input: Operation): Unit = {
+    pendingOperation.enqueue(input)
     nextState(input)
+  }
+
+  def sendPendingOperations(): Unit = {
     if (anotherGame != null) {
-      anotherGame.nextState(input)
+      pendingOperation.foreach(anotherGame.nextState)
+      pendingOperation.clear()
     }
   }
 
   @tailrec
   private def nextState(input: Operation, currentState: State): Unit = {
+    toSendPendingOperations = true
     currentState match {
       case State.start => nextStateMayWait(input, nextStateStart)
       case State.putStartUSSR => nextStatePutStart(input, putStartUS)
@@ -87,6 +116,9 @@ class Game {
       case State.selectTake8Rounds => nextStateSelectTake8Rounds(input)
       case State.quagmireDiscard => nextStateQuagmireDiscard(input)
       case State.quagmirePlayScoringCard => nextStateQuagmireScoringCard(input)
+    }
+    if (toSendPendingOperations) {
+      sendPendingOperations()
     }
     if (stateStack.top == cardEventEnd) {
       stateStack.pop()
@@ -320,6 +352,7 @@ class Game {
 
     currentCard = inputA.card
     phasingPlayer = inputA.faction
+    operationPlayer = inputA.faction
 
     pendingInput = inputB
 
@@ -329,14 +362,14 @@ class Game {
     skipHeadlineCard2 = false
 
     recordHistory(new HistoryTurnRound(turn, round, phasingPlayer))
-    recordHistory(new HistoryEvent(phasingPlayer, currentCard))
+    recordHistory(new HistoryEvent(operationPlayer, currentCard))
 
     stateStack.push(cardEventStart)
-    currentCard.nextState(this, phasingPlayer, null)
+    currentCard.nextState(this, operationPlayer, null)
   }
 
   def nextStateSolveHeadline1(): Unit = {
-    currentCard.afterPlay(this, phasingPlayer)
+    currentCard.afterPlay(this, operationPlayer)
 
     val input = pendingInput.asInstanceOf[OperationSelectCard]
 
@@ -352,6 +385,7 @@ class Game {
 
     currentCard = input.card
     phasingPlayer = input.faction
+    operationPlayer = input.faction
 
     pendingInput = null
 
@@ -360,15 +394,15 @@ class Game {
     stateStack.pop()
     stateStack.push(solveHeadLineCard2)
 
-    recordHistory(new HistoryEvent(phasingPlayer, currentCard))
+    recordHistory(new HistoryEvent(operationPlayer, currentCard))
 
     stateStack.push(cardEventStart)
-    currentCard.nextState(this, phasingPlayer, null)
+    currentCard.nextState(this, operationPlayer, null)
 
   }
 
   def nextStateSolveHeadline2() = {
-    currentCard.afterPlay(this, phasingPlayer)
+    currentCard.afterPlay(this, operationPlayer)
     currentCard = null
 
     stateStack.pop()
@@ -378,6 +412,7 @@ class Game {
   def beginFirstRound(): Unit = {
     round = 1
     phasingPlayer = USSR
+    operationPlayer = phasingPlayer
 
     stateStack.push(nextActionState)
 
@@ -392,6 +427,7 @@ class Game {
       phasingPlayer = USSR
       round += 1
     }
+    operationPlayer = phasingPlayer
     if (hand(phasingPlayer).canPlayCardCount(this, phasingPlayer) == 0 && !isAfterFinalRound) {
       nextRound()
     } else {
@@ -604,10 +640,10 @@ class Game {
         } else {
           stateStack.push(cardEO)
         }
-        recordHistory(new HistoryEvent(phasingPlayer, currentCard))
+        recordHistory(new HistoryEvent(operationPlayer, currentCard))
         stateStack.push(cardEvent)
         stateStack.push(cardEventStart)
-        currentCard.nextState(this, phasingPlayer, null)
+        currentCard.nextState(this, operationPlayer, null)
       case Action.Operation =>
         discardCard(op.card, op.faction, !alwaysTriggerEvent)
         stateStack.pop()
@@ -647,7 +683,7 @@ class Game {
         stateStack.push(cardOperation)
         stateStack.push(cardOperationSelect)
       case State.cardOE | State.cardE =>
-        currentCard.afterPlay(this, phasingPlayer)
+        currentCard.afterPlay(this, operationPlayer)
         currentCard = null
         stateStack.pop()
         if (nextRound()) {
@@ -673,6 +709,8 @@ class Game {
       case Action.Coup =>
         stateStack.push(cardOperationCoup)
     }
+
+    toSendPendingOperations = false
   }
 
   def nextStateOperationInfluence(input: Operation) = {
@@ -809,12 +847,12 @@ class Game {
     stateStack.pop()
     stateStack.top match {
       case State.cardOE =>
-        recordHistory(new HistoryEvent(phasingPlayer, currentCard))
+        recordHistory(new HistoryEvent(operationPlayer, currentCard))
         stateStack.push(cardEvent)
         stateStack.push(cardEventStart)
-        currentCard.nextState(this, phasingPlayer, null)
+        currentCard.nextState(this, operationPlayer, null)
       case State.cardEO | State.cardO =>
-        currentCard.afterPlay(this, phasingPlayer)
+        currentCard.afterPlay(this, operationPlayer)
         currentCard = null
         stateStack.pop()
         if (nextRound()) {
@@ -991,10 +1029,10 @@ class Game {
     stateStack.pop()
     stateStack.push(cardE)
 
-    recordHistory(new HistoryEvent(phasingPlayer, currentCard))
+    recordHistory(new HistoryEvent(operationPlayer, currentCard))
     stateStack.push(cardEvent)
     stateStack.push(cardEventStart)
-    currentCard.nextState(this, phasingPlayer, null)
+    currentCard.nextState(this, operationPlayer, null)
   }
 
 }

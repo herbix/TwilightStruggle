@@ -100,19 +100,19 @@ class ControlUI(val game: Game) extends JPanel {
           waitOtherUI()
         }
       case State.selectCardAndAction =>
-        if (game.playerFaction == game.phasingPlayer) {
+        if (game.playerFaction == game.operationPlayer) {
           selectCardAndActionUI()
         } else {
           waitOtherUI()
         }
       case State.cardOperationSelect =>
-        if (game.playerFaction == game.phasingPlayer) {
+        if (game.playerFaction == game.operationPlayer) {
           selectOperationUI(Lang.operationSelect)
         } else {
           waitOtherUI()
         }
       case State.cardOperationAddInfluence =>
-        if (game.playerFaction == game.phasingPlayer) {
+        if (game.playerFaction == game.operationPlayer) {
           addInfluenceUI(game.currentCard.op, Lang.operationAddInfluence, true, false, game.playerFaction,
             _.forall(e => {
               val country = e._1
@@ -124,14 +124,14 @@ class ControlUI(val game: Game) extends JPanel {
           waitOtherUI()
         }
       case State.cardOperationRealignment =>
-        if (game.playerFaction == game.phasingPlayer) {
+        if (game.playerFaction == game.operationPlayer) {
           selectCountryUI(1, game.getCurrentRealignmentRest(game.playerFaction), Lang.operationRealignment,
             _.forall(game.canRealignment(game.playerFaction, _)))
         } else {
           waitOtherUI()
         }
       case State.cardOperationCoup =>
-        if (game.playerFaction == game.phasingPlayer) {
+        if (game.playerFaction == game.operationPlayer) {
           selectCountryUI(1, game.currentCard.op, Lang.operationCoup,
             _.forall(game.canCoup(game.playerFaction, _)))
         } else {

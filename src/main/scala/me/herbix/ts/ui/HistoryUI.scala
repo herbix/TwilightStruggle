@@ -1,10 +1,13 @@
 package me.herbix.ts.ui
 
 import java.awt._
+import java.awt.event.{MouseListener, MouseMotionAdapter, MouseEvent, MouseMotionListener}
 import javax.swing.JPanel
 
 import me.herbix.ts.logic._
 import me.herbix.ts.util.{Resource, Lang}
+
+import scala.collection.immutable.List
 
 import scala.StringBuilder
 import scala.collection.mutable
@@ -16,6 +19,11 @@ class HistoryUI(game: Game) extends JPanel {
   game.stateUpdateListeners :+= (() => updateContent())
 
   var historyText: mutable.Stack[HistoryMeta] = mutable.Stack()
+
+  var hoverHistory: History = null
+
+  var historyHoverListeners: List[(History) => Unit] = List.empty
+  var historyClickListeners: List[(History) => Unit] = List.empty
 
   def updateContent(): Unit = {
     if (historyText.nonEmpty) historyText.pop()
@@ -29,7 +37,7 @@ class HistoryUI(game: Game) extends JPanel {
       historyText.pushAll(game.history.toStream.slice(0, game.history.indexOf(myNewest)).reverse.map(getHistoryMeta))
     }
 
-    setPreferredSize(new Dimension(10, historyText.iterator.map(_.height).sum))
+    setPreferredSize(new Dimension(10, 1 + historyText.iterator.map(_.height).sum))
     getParent.revalidate()
 
     repaint()
@@ -146,6 +154,8 @@ class HistoryUI(game: Game) extends JPanel {
     new HistoryMeta(str, height, history)
   }
 
+  val hoverColor = new Color(255, 255, 255, 128)
+
   override def paint(graphics: Graphics): Unit = {
     super.paint(graphics)
 
@@ -164,23 +174,28 @@ class HistoryUI(game: Game) extends JPanel {
       historyMeta.history match {
         case h: HistoryStartGame =>
           g.setColor(Color.LIGHT_GRAY)
-          g.fillRect(0, top + 3, w, historyMeta.height)
+          g.fillRect(0, top, w, historyMeta.height)
         case h: HistoryTurnRound =>
           h.faction match {
             case Faction.Neutral => g.setColor(Color.LIGHT_GRAY)
             case Faction.US => g.setColor(Resource.usColorInfluenceChange)
             case Faction.USSR => g.setColor(Resource.ussrColorInfluenceChange)
           }
-          g.fillRect(0, top + 3, w, historyMeta.height)
+          g.fillRect(0, top, w, historyMeta.height)
         case _ =>
       }
 
+      if (hoverHistory == historyMeta.history) {
+        g.setColor(hoverColor)
+        g.fillRect(0, top, w, historyMeta.height)
+      }
+
       g.setColor(Color.GRAY)
-      g.drawLine(0, top + 3, w, top + 3)
+      g.drawLine(0, top, w, top)
 
       g.setColor(Color.BLACK)
 
-      var height = top + 20
+      var height = top + 17
       var cx = 0
 
       for (ch <- historyMeta.text) {
@@ -201,7 +216,41 @@ class HistoryUI(game: Game) extends JPanel {
 
       top += historyMeta.height
     }
+
+    g.setColor(Color.GRAY)
+    g.drawLine(0, top, w, top)
   }
+
+  addMouseMotionListener(new MouseMotionAdapter {
+    override def mouseMoved(e: MouseEvent): Unit = {
+      val y = e.getY
+      var top = 0
+      val meta = historyText.find(meta => {
+        val r = y >= top && y < top + meta.height
+        top += meta.height
+        r
+      }).orNull
+      val history = if (meta == null) null else meta.history
+      if (hoverHistory != history) {
+        hoverHistory = history
+        if (hoverHistory != null) {
+          historyHoverListeners.foreach(_(hoverHistory))
+        }
+        repaint()
+      }
+    }
+  })
+
+  addMouseListener(new MouseListener {
+    override def mouseExited(e: MouseEvent): Unit = {
+      hoverHistory = null
+      repaint()
+    }
+    override def mouseClicked(e: MouseEvent): Unit = {}
+    override def mouseEntered(e: MouseEvent): Unit = {}
+    override def mousePressed(e: MouseEvent): Unit = {}
+    override def mouseReleased(e: MouseEvent): Unit = {}
+  })
 
   class HistoryMeta(val text: String, val height: Int, val history: History)
 

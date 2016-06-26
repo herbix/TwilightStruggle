@@ -145,7 +145,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
             true
           }
         case State.selectCardAndAction | State.quagmirePlayScoringCard =>
-          if (game.phasingPlayer == game.playerFaction) {
+          if (game.operationPlayer == game.playerFaction) {
             card.canPlay(game, game.playerFaction)
           } else {
             true
@@ -163,7 +163,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
             true
           }
         case _ =>
-          if (game.phasingPlayer == game.playerFaction) {
+          if (game.operationPlayer == game.playerFaction) {
             card.canPlay(game, game.playerFaction)
           } else {
             true
