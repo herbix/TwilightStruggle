@@ -183,7 +183,6 @@ class ControlUI(val game: Game) extends JPanel {
   def selectCardUI(tip: String) = {
     showSubUI(SelectCard)
     uiSelectCard.text(0) = tip
-    uiSelectCard.resetCard()
   }
 
   def selectCardAndActionUI() = {
@@ -426,6 +425,7 @@ class ControlSubUISelectCard(parent: ControlUI) extends ControlSubUICard(parent,
   override def actionPerformed(e: ActionEvent): Unit = {
     val op = new OperationSelectCard(parent.game.playerId, parent.game.playerFaction, card)
     parent.operationListeners.foreach(_(op))
+    resetCard()
   }
 
 }

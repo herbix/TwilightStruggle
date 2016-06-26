@@ -541,9 +541,19 @@ private object Card101Solidarity extends Card(101, 2, US, true) {
 private object Card103Defectors extends Card(103, 2, US, false) {
   override def canHeadline(game: Game, faction: Faction) = true
   override def canEvent(game: Game, faction: Faction) = false
-  override def afterPlay(game: Game, faction: Faction): Unit = {   // TODO Cancel headline effect
+  override def instantEvent(game: Game, faction: Faction): Boolean = {
+    if (faction == US) {
+      game.skipHeadlineCard2 = true
+    }
+    true
+  }
+  override def afterPlay(game: Game, faction: Faction): Unit = {
     if (faction == USSR) {
-      if (game.stateStack.top == State.selectCardAndAction) { // Except space
+      val currentState = game.stateStack.top
+      if (currentState == State.solveHeadLineCard1 || currentState == State.solveHeadLineCard2) {
+        return
+      }
+      if (currentState == State.selectCardAndAction) { // Except space
         return
       }
       game.addVpAndCheck(US, 1)

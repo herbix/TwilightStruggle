@@ -19,10 +19,8 @@ class Game {
   var playerId = 0
   var playerFaction = Neutral
 
+  // game table
   val worldMap = new WorldMap
-
-  var pendingInput: Operation = null
-  var stateStack = mutable.Stack(start)
 
   var turn = 1
   var round = 0
@@ -33,17 +31,22 @@ class Game {
   var vp = 0
   var defcon = 5
 
-  var currentCard: Card = null
-  var currentRealignments = List[Country]()
-
   val hand = Map(US -> new CardSet, USSR -> new CardSet)
   val deck = new CardSet
   val discards = new CardSet
 
   val flags = new Flags
+  // game table ends
 
   var randomSeed = 0l
   val random = new Random
+
+  var pendingInput: Operation = null
+  var stateStack = mutable.Stack(start)
+
+  var currentCard: Card = null
+  var currentRealignments = List[Country]()
+  var skipHeadlineCard2 = false
 
   var currentHistory = List.empty[History]
   var oldHistory = List.empty[History]
@@ -208,7 +211,8 @@ class Game {
       worldMap.countries("UK") -> 5
     ))
 
-    hand(US).add(Cards.fromId(42))
+    // TODO test
+    hand(US).add(Cards.fromId(103))
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -293,8 +297,12 @@ class Game {
     val input1 = input.asInstanceOf[OperationSelectCard]
     val input2 = pendingInput.asInstanceOf[OperationSelectCard]
 
-    val inputA = if (input1.card.op > input2.card.op || (input1.card.op == input2.card.op && input1.faction == US))
-      input1 else input2
+    val inputA = if (
+      (
+        (input1.card.op > input2.card.op || (input1.card.op == input2.card.op && input1.faction == US)) &&
+        !(input2.faction == US && input2.card.id == 103)
+      ) || (input1.faction == US && input1.card.id == 103)
+    ) input1 else input2
     val inputB = if (input1 == inputA) input2 else input1
 
     hand(inputA.faction).remove(inputA.card)
@@ -318,6 +326,8 @@ class Game {
     stateStack.pop()
     stateStack.push(solveHeadLineCard1)
 
+    skipHeadlineCard2 = false
+
     recordHistory(new HistoryTurnRound(turn, round, phasingPlayer))
     recordHistory(new HistoryEvent(phasingPlayer, currentCard))
 
@@ -325,10 +335,20 @@ class Game {
     currentCard.nextState(this, phasingPlayer, null)
   }
 
-  def nextStateSolveHeadline1() = {
+  def nextStateSolveHeadline1(): Unit = {
+    currentCard.afterPlay(this, phasingPlayer)
+
     val input = pendingInput.asInstanceOf[OperationSelectCard]
 
-    currentCard.afterPlay(this, phasingPlayer)
+    if (skipHeadlineCard2) {
+      discardCard(input.card, input.faction, true)
+      pendingInput = null
+      currentCard = null
+
+      stateStack.pop()
+      beginFirstRound()
+      return
+    }
 
     currentCard = input.card
     phasingPlayer = input.faction
@@ -351,10 +371,14 @@ class Game {
     currentCard.afterPlay(this, phasingPlayer)
     currentCard = null
 
+    stateStack.pop()
+    beginFirstRound()
+  }
+
+  def beginFirstRound(): Unit = {
     round = 1
     phasingPlayer = USSR
 
-    stateStack.pop()
     stateStack.push(nextActionState)
 
     recordHistory(new HistoryTurnRound(turn, round, phasingPlayer))
@@ -545,7 +569,7 @@ class Game {
     recordHistory(new HistoryCardAction(op.faction, op.card, op.action, oppositeCard))
 
     if (flags.hasFlag(op.faction, Flags.WeWillBuryYou)) {
-      if (op.action != Action.Event || op.card.id != 32) {
+      if (op.action != Action.Event || op.card.id != 32) {  // #32 - UN
         addVp(Faction.getOpposite(op.faction), 3)
         checkVp()
       }
@@ -587,7 +611,7 @@ class Game {
       case Action.Operation =>
         discardCard(op.card, op.faction, !alwaysTriggerEvent)
         stateStack.pop()
-        if (!oppositeCard) {
+        if (!alwaysTriggerEvent) {
           stateStack.push(cardO)
         } else {
           stateStack.push(cardOE)
