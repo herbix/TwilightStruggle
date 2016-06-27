@@ -23,7 +23,7 @@ class Flag (val flagType: FlagType, val isGoodFlag: Boolean, val priority: Int =
   def canCoup(country: Country) = canRealignmentOrCoup(country)
   override def compare(that: Flag): Int =
     if (priority > that.priority) -1 else if (priority < that.priority) 1 else
-      if (## > that.##) 1 else if (## < that.##) -1 else 0
+      if (id > that.id) 1 else if (id < that.id) -1 else 0
   override def toString = f"Flag($id)"
 }
 
@@ -63,10 +63,10 @@ class Flags {
     }
   }
   def hasFlag(faction: Faction, flag: Flag): Boolean = {
-    flagSets2(faction).contains(flag)
+    flagSets2(faction)(flag)
   }
   def hasFlag(flag: Flag): Boolean = {
-    flagSets.exists(_._2.contains(flag))
+    flagSets.exists(_._2(flag))
   }
   def turnEnds(): Unit = {
     flagSets.foreach(_._2.retain(_.flagType == Always))
@@ -83,13 +83,13 @@ object Flags {
   val SpaceAwardTake8Rounds = Flag(Always, true)
   val CantPlayChinaCard = Flag(ThisTurn, false)
   val Defcon4Penalty = new Flag(Always, false) {
-    override def canRealignmentOrCoup(country: Country) = if (country.regions.contains(Region.Europe)) Some(false) else None
+    override def canRealignmentOrCoup(country: Country) = if (country.regions(Region.Europe)) Some(false) else None
   }
   val Defcon3Penalty = new Flag(Always, false) {
-    override def canRealignmentOrCoup(country: Country) = if (country.regions.contains(Region.Asia)) Some(false) else None
+    override def canRealignmentOrCoup(country: Country) = if (country.regions(Region.Asia)) Some(false) else None
   }
   val Defcon2Penalty = new Flag(Always, false) {
-    override def canRealignmentOrCoup(country: Country) = if (country.regions.contains(Region.MidEast)) Some(false) else None
+    override def canRealignmentOrCoup(country: Country) = if (country.regions(Region.MidEast)) Some(false) else None
   }
   val VietnamRevolts = Flag(ThisTurn, true)
   val DeGaulle = new Flag(Always, true, 80) {

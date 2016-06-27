@@ -78,9 +78,9 @@ class DetailUI extends JPanel {
       val colorRegions = country.regions.filter(Resource.regionColor.contains)
       if (colorRegions.size == 1) {
         (Resource.regionColor(colorRegions.head), null)
-      } else if (colorRegions.contains(Region.Asia)){
+      } else if (colorRegions(Region.Asia)){
         (Resource.regionColor(Region.Asia), Resource.regionColor(Region.SouthEastAsia))
-      } else if (colorRegions.contains(Region.WestEurope)) {
+      } else if (colorRegions(Region.WestEurope)) {
         (Resource.regionColor(Region.WestEurope), Resource.regionColor(Region.EastEurope))
       } else {
         (null, null)

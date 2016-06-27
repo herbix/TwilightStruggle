@@ -91,7 +91,7 @@ class GameUI(playerId: Int) extends JFrame {
     if (button == MouseEvent.BUTTON1) {
       controlUI.uiType match {
         case controlUI.UIType.Influence => controlUI.uiInfluence.addInfluence(country, 1)
-        case controlUI.UIType.SelectCountry => controlUI.uiSelectCountry.addCountry(country)
+        case controlUI.UIType.SelectCountry => controlUI.uiSelectCountry.toggleCountry(country)
         case _ =>
       }
     }
@@ -103,8 +103,8 @@ class GameUI(playerId: Int) extends JFrame {
           controlUI.uiSelectCard.setCard(card)
         case controlUI.UIType.SelectCardAndAction =>
           controlUI.uiSelectCardAndAction.setCard(card)
-        case controlUI.UIType.DiscardHeldCard =>
-          controlUI.uiDiscardHeldCard.setCard(card)
+        case controlUI.UIType.SelectCardOrCancel =>
+          controlUI.uiSelectCardOrCancel.setCard(card)
         case _ =>
       }
     }

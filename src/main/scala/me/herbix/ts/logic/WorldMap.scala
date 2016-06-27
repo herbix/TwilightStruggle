@@ -139,6 +139,6 @@ class WorldMap {
   modifyInfluence("US", Faction.US, 100)
   modifyInfluence("USSR", Faction.USSR, 100)
 
-  val normalCountries = countries.filter(e => !e._2.regions.contains(Super))
+  val normalCountries = countries.filter(e => !e._2.regions(Super))
 
 }

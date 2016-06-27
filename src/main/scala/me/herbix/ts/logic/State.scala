@@ -14,9 +14,26 @@ object State extends Enumeration {
   val cardE, cardO, cardOE, cardEO = Value
   val cardEvent, cardOperation = Value
   val cardOperationSelect, cardOperationAddInfluence, cardOperationRealignment, cardOperationCoup = Value
-  val cardEventStart, cardEvent1, cardEvent2, cardEvent3, cardEvent4, cardEvent5, cardEventEnd = Value
   val discardHeldCard = Value
   val selectTake8Rounds = Value
   val quagmireDiscard, quagmirePlayScoringCard = Value
+
+  object cardEventStep {
+    val cardEventStepImpl = (0 to 10).map(i => Value).toArray
+    val cardEventStepInverse = cardEventStepImpl.indices.map(i => (cardEventStepImpl(i), i)).toMap
+    def apply(i: Int): State = cardEventStepImpl(i)
+    def unapply(state: State): Option[Int] = cardEventStepInverse.get(state)
+  }
+  val cardEventStart = cardEventStep(0)
+  val cardEventEnd = Value
+
+  val cardEventInfluence, cardEventSelectCardOrCancel = Value
+
+  object EventStates {
+    val cardEventStates = Set(cardEventInfluence, cardEventSelectCardOrCancel)
+    def unapply(state: State): Option[Boolean] = {
+      if (cardEventStates(state)) Some(true) else None
+    }
+  }
 
 }

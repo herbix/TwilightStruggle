@@ -83,6 +83,6 @@ object Resource {
   val cardNameFont = new Font(Lang.lishu, 0, 24)
   val cardDescFont = new Font(Lang.heiti, 0, 13)
 
-  val selectedCountry = new Color(255, 255, 255, 156)
+  val selectedCountry = new Color(255, 255, 255, 192)
 
 }

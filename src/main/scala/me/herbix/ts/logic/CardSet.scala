@@ -16,7 +16,7 @@ class CardSet extends mutable.Iterable[Card] {
   def cardCount = cards.size + (if (hasChinaCard) 1 else 0)
   def canPlayCardCount(game: Game, faction: Faction) = count(_.canPlay(game, faction))
   def cardCountExcludingChinaCard = cards.size
-  def has(card: Card): Boolean = cards.contains(card) || (card == Cards.chinaCard && hasChinaCard)
+  def has(card: Card): Boolean = cards(card) || (card == Cards.chinaCard && hasChinaCard)
   def clear() = cards.clear()
   def isEmptyExcludingChinaCard = cards.isEmpty
   override def iterator: Iterator[Card] =

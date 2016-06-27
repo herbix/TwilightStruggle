@@ -145,7 +145,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
             true
           }
         case State.selectCardAndAction | State.quagmirePlayScoringCard =>
-          if (game.operationPlayer == game.playerFaction) {
+          if (game.operatingPlayer == game.playerFaction) {
             card.canPlay(game, game.playerFaction)
           } else {
             true
@@ -162,8 +162,17 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
           } else {
             true
           }
+        case State.cardEventSelectCardOrCancel =>
+          if (game.operatingPlayer == game.playerFaction) {
+            val currentCard = game.currentCard.asInstanceOf[CardNeedsSelection]
+            val step = currentCard.getStep(game)
+            val stepMeta = currentCard.getStepMeta(game).asInstanceOf[(Game, Card) => Boolean]
+            stepMeta(game, card)
+          } else {
+            true
+          }
         case _ =>
-          if (game.operationPlayer == game.playerFaction) {
+          if (game.operatingPlayer == game.playerFaction) {
             card.canPlay(game, game.playerFaction)
           } else {
             true

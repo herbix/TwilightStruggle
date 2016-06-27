@@ -226,7 +226,7 @@ class WorldMapUI(val game: Game) extends JPanel {
         }
       }
 
-      if (pendingCountrySelection.contains(country)) {
+      if (pendingCountrySelection(country)) {
         g.setColor(selectedCountry)
         g.fillRect(x, y, MapValue.countrySize._1, MapValue.countrySize._2)
       }

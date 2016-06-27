@@ -45,11 +45,17 @@ class Game {
   var pendingInput: Operation = null
   var stateStack = mutable.Stack(start)
 
-  var operationPlayerStack = mutable.Stack(Neutral)
-  def operationPlayer = operationPlayerStack.top
-  def operationPlayer_=(faction: Faction) = {
-    operationPlayerStack.pop()
-    operationPlayerStack.push(faction)
+  var operatingPlayerStack = mutable.Stack(Neutral)
+  def operatingPlayer: Faction = operatingPlayerStack.top
+  def operatingPlayer_=(faction: Faction): Unit = {
+    operatingPlayerStack.pop()
+    operatingPlayerStack.push(faction)
+  }
+  def operatingPlayerChange(faction: Faction): Unit = {
+    operatingPlayerStack.push(faction)
+  }
+  def operatingPlayerRollBack(): Unit = {
+    operatingPlayerStack.pop()
   }
 
   var currentCardStack = mutable.Stack[Card]()
@@ -61,6 +67,12 @@ class Game {
     if (card != null) {
       currentCardStack.push(card)
     }
+  }
+  def currentCardChange(card: Card): Unit = {
+    currentCardStack.push(card)
+  }
+  def currentCardRollBack(): Unit = {
+    currentCardStack.pop()
   }
 
   var currentRealignments = List[Country]()
@@ -116,6 +128,7 @@ class Game {
       case State.selectTake8Rounds => nextStateSelectTake8Rounds(input)
       case State.quagmireDiscard => nextStateQuagmireDiscard(input)
       case State.quagmirePlayScoringCard => nextStateQuagmireScoringCard(input)
+      case State.EventStates(n) => nextStateCardEvent(input)
     }
     if (toSendPendingOperations) {
       sendPendingOperations()
@@ -244,7 +257,7 @@ class Game {
     ))
 
     // TODO test
-    hand(US).add(Cards.fromId(103))
+    hand(US).add(Card010Blockade)
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -352,7 +365,7 @@ class Game {
 
     currentCard = inputA.card
     phasingPlayer = inputA.faction
-    operationPlayer = inputA.faction
+    operatingPlayer = inputA.card.getOperatingPlayer(inputA.faction)
 
     pendingInput = inputB
 
@@ -362,14 +375,14 @@ class Game {
     skipHeadlineCard2 = false
 
     recordHistory(new HistoryTurnRound(turn, round, phasingPlayer))
-    recordHistory(new HistoryEvent(operationPlayer, currentCard))
+    recordHistory(new HistoryEvent(operatingPlayer, currentCard))
 
     stateStack.push(cardEventStart)
-    currentCard.nextState(this, operationPlayer, null)
+    currentCard.nextState(this, operatingPlayer, null)
   }
 
   def nextStateSolveHeadline1(): Unit = {
-    currentCard.afterPlay(this, operationPlayer)
+    currentCard.afterPlay(this, operatingPlayer)
 
     val input = pendingInput.asInstanceOf[OperationSelectCard]
 
@@ -385,7 +398,7 @@ class Game {
 
     currentCard = input.card
     phasingPlayer = input.faction
-    operationPlayer = input.faction
+    operatingPlayer = input.card.getOperatingPlayer(input.faction)
 
     pendingInput = null
 
@@ -394,15 +407,15 @@ class Game {
     stateStack.pop()
     stateStack.push(solveHeadLineCard2)
 
-    recordHistory(new HistoryEvent(operationPlayer, currentCard))
+    recordHistory(new HistoryEvent(operatingPlayer, currentCard))
 
     stateStack.push(cardEventStart)
-    currentCard.nextState(this, operationPlayer, null)
+    currentCard.nextState(this, operatingPlayer, null)
 
   }
 
   def nextStateSolveHeadline2() = {
-    currentCard.afterPlay(this, operationPlayer)
+    currentCard.afterPlay(this, operatingPlayer)
     currentCard = null
 
     stateStack.pop()
@@ -412,7 +425,7 @@ class Game {
   def beginFirstRound(): Unit = {
     round = 1
     phasingPlayer = USSR
-    operationPlayer = phasingPlayer
+    operatingPlayer = phasingPlayer
 
     stateStack.push(nextActionState)
 
@@ -427,7 +440,7 @@ class Game {
       phasingPlayer = USSR
       round += 1
     }
-    operationPlayer = phasingPlayer
+    operatingPlayer = phasingPlayer
     if (hand(phasingPlayer).canPlayCardCount(this, phasingPlayer) == 0 && !isAfterFinalRound) {
       nextRound()
     } else {
@@ -640,10 +653,12 @@ class Game {
         } else {
           stateStack.push(cardEO)
         }
-        recordHistory(new HistoryEvent(operationPlayer, currentCard))
+        operatingPlayerChange(currentCard.getOperatingPlayer(operatingPlayer))
+        currentCardChange(currentCard)
+        recordHistory(new HistoryEvent(operatingPlayer, currentCard))
         stateStack.push(cardEvent)
         stateStack.push(cardEventStart)
-        currentCard.nextState(this, operationPlayer, null)
+        currentCard.nextState(this, operatingPlayer, null)
       case Action.Operation =>
         discardCard(op.card, op.faction, !alwaysTriggerEvent)
         stateStack.pop()
@@ -677,13 +692,15 @@ class Game {
   }
 
   def nextStateCardEvent() = {
+    operatingPlayerRollBack()
+    currentCardRollBack()
     stateStack.pop()
     stateStack.top match {
       case State.cardEO =>
         stateStack.push(cardOperation)
         stateStack.push(cardOperationSelect)
       case State.cardOE | State.cardE =>
-        currentCard.afterPlay(this, operationPlayer)
+        currentCard.afterPlay(this, operatingPlayer)
         currentCard = null
         stateStack.pop()
         if (nextRound()) {
@@ -692,6 +709,11 @@ class Game {
           nextTurn()
         }
     }
+  }
+
+  def nextStateCardEvent(input: Operation) = {
+    stateStack.pop()
+    currentCard.nextState(this, operatingPlayer, input)
   }
 
   def nextStateOperationSelect(input: Operation) = {
@@ -720,7 +742,7 @@ class Game {
   }
 
   def canRealignment(faction: Faction, country: Country): Boolean = {
-    if (country.regions.contains(Region.Super)) return false
+    if (country.regions(Region.Super)) return false
     if (modifyOp(faction, currentCard.op, currentRealignments :+ country) - currentRealignments.size - 1 < 0) {
       return false
     }
@@ -731,7 +753,7 @@ class Game {
   }
 
   def canCoup(faction: Faction, country: Country): Boolean = {
-    if (country.regions.contains(Region.Super)) return false
+    if (country.regions(Region.Super)) return false
     if (country.influence(Faction.getOpposite(faction)) <= 0) {
       return false
     }
@@ -847,12 +869,14 @@ class Game {
     stateStack.pop()
     stateStack.top match {
       case State.cardOE =>
-        recordHistory(new HistoryEvent(operationPlayer, currentCard))
+        operatingPlayerChange(currentCard.getOperatingPlayer(operatingPlayer))
+        currentCardChange(currentCard)
+        recordHistory(new HistoryEvent(operatingPlayer, currentCard))
         stateStack.push(cardEvent)
         stateStack.push(cardEventStart)
-        currentCard.nextState(this, operationPlayer, null)
+        currentCard.nextState(this, operatingPlayer, null)
       case State.cardEO | State.cardO =>
-        currentCard.afterPlay(this, operationPlayer)
+        currentCard.afterPlay(this, operatingPlayer)
         currentCard = null
         stateStack.pop()
         if (nextRound()) {
@@ -888,28 +912,18 @@ class Game {
     }
   }
 
-  def needModifyOp: Boolean = {
-    val state = if (stateStack.isEmpty) null else stateStack.top
-    val state2 = if (stateStack.size <= 1) null else stateStack.elems(1)
-    ((state == cardOperationAddInfluence || state == cardOperationRealignment ||
-      state == cardOperationCoup || state == cardOperationSelect) &&
-      state2 == cardOperation) || state == selectCardAndAction || state == quagmireDiscard || state == null
-  }
-
   def modifyOp(faction: Faction, originalOp: Int, targets: Iterable[Country]): Int = {
-    if (!needModifyOp) return originalOp
     var modifiedOp = modifyOp(faction, originalOp)
     if (currentCard != null) {
       modifiedOp = currentCard.modifyOp(faction, modifiedOp, targets)
     }
-    if (flags.hasFlag(faction, Flags.VietnamRevolts) && targets.forall(_.regions.contains(Region.SouthEastAsia))) {
+    if (flags.hasFlag(faction, Flags.VietnamRevolts) && targets.forall(_.regions(Region.SouthEastAsia))) {
       modifiedOp += 1
     }
     modifiedOp
   }
 
   def modifyOp(faction: Faction, originalOp: Int): Int = {
-    if (!needModifyOp) return originalOp
     var modifiedOp = originalOp
     if (flags.hasFlag(faction, Flags.Containment)) {
       modifiedOp += 1
@@ -940,7 +954,7 @@ class Game {
   }
 
   def scoring(region: Region, presence: Int, domination: Int, control: Int): Unit = {
-    val targetCountries = worldMap.countries.values.filter(_.regions.contains(region))
+    val targetCountries = worldMap.countries.values.filter(_.regions(region))
     val battlefieldCount = targetCountries.count(_.isBattlefield)
     var usBattlefield = targetCountries.count(country => country.isBattlefield && country.getController == US)
     val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController == US)
@@ -950,7 +964,7 @@ class Game {
     val ussrAll = ussrBattlefield + ussrNonBattlefield
 
     val taiwan = worldMap.countries("Taiwan")
-    if (taiwan.regions.contains(region) && taiwan.getController == US && flags.hasFlag(US, Flags.Taiwan)) {
+    if (taiwan.regions(region) && taiwan.getController == US && flags.hasFlag(US, Flags.Taiwan)) {
       usBattlefield += 1
     }
 
@@ -967,8 +981,8 @@ class Game {
     usVp += usBattlefield
     ussrVp += ussrBattlefield
 
-    usVp += targetCountries.count(country => country.getController == US && worldMap.links(country.name).contains("USSR"))
-    ussrVp += targetCountries.count(country => country.getController == USSR && worldMap.links(country.name).contains("US"))
+    usVp += targetCountries.count(country => country.getController == US && worldMap.links(country.name)("USSR"))
+    ussrVp += targetCountries.count(country => country.getController == USSR && worldMap.links(country.name)("US"))
 
     recordHistory(new HistoryScoring(region, usBattlefield, ussrBattlefield, usAll, ussrAll))
 
@@ -1029,10 +1043,10 @@ class Game {
     stateStack.pop()
     stateStack.push(cardE)
 
-    recordHistory(new HistoryEvent(operationPlayer, currentCard))
+    recordHistory(new HistoryEvent(operatingPlayer, currentCard))
     stateStack.push(cardEvent)
     stateStack.push(cardEventStart)
-    currentCard.nextState(this, operationPlayer, null)
+    currentCard.nextState(this, operatingPlayer, null)
   }
 
 }

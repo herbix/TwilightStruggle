@@ -4,7 +4,7 @@ import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.Region.Region
-import me.herbix.ts.logic.{Region, Action, Faction}
+import me.herbix.ts.logic._
 
 import scala.collection.mutable
 
@@ -605,5 +605,9 @@ object Lang {
   addFlagInfo("北海石油", "美国本回合可以进行8个行动轮。")
   addFlagInfo("伊朗门丑闻", "本回合美国调整阵营掷骰点数-1。")
   addFlagInfo("“邪恶帝国”", "不可作为事件打出“花的力量”。")
+
+  val cardTips = mutable.Map.empty[Card, Array[String]]
+  cardTips += Card007SocialistGovernments -> Array("请从西欧移除%s美国影响力")
+  cardTips += Card010Blockade -> Array("请弃一张3以上行动力的牌")
 
 }
