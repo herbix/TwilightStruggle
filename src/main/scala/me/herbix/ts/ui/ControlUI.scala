@@ -178,6 +178,23 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
+      case State.cardEventYesNo =>
+        if (game.playerFaction == game.operatingPlayer) {
+          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
+          val step = card.getStep(game)
+          yesNoUI(Lang.cardTips(card)(step-1))
+        } else {
+          waitOtherUI()
+        }
+      case State.cardEventSelectCountry =>
+        if (game.playerFaction == game.operatingPlayer) {
+          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
+          val step = card.getStep(game)
+          val stepMeta = card.getStepMeta(game).asInstanceOf[(Int, Set[Country] => Boolean)]
+          selectCountryUI(stepMeta._1, 0, Lang.cardTips(card)(step-1), stepMeta._2)
+        } else {
+          waitOtherUI()
+        }
       case _ => waitOtherUI()
     }
     repaint()

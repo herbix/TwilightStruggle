@@ -601,13 +601,15 @@ object Lang {
       "此标记不影响终局计分。")
   addFlagInfo("伊朗人质危机", "“恐怖主义”对美国的效果加倍。")
   addFlagInfo("铁娘子", "不可作为事件打出“社会主义政府”。")
-  addFlagInfo("北海石油", "“石油输出国组织”不再可作为事件打出。")
+  addFlagInfo("北海石油", "不可作为事件打出“石油输出国组织”。")
   addFlagInfo("北海石油", "美国本回合可以进行8个行动轮。")
   addFlagInfo("伊朗门丑闻", "本回合美国调整阵营掷骰点数-1。")
   addFlagInfo("“邪恶帝国”", "不可作为事件打出“花的力量”。")
+  addFlagInfo("华沙条约组织成立", "可作为事件打出“北大西洋公约组织”。")
 
   val cardTips = mutable.Map.empty[Card, Array[String]]
   cardTips += Card007SocialistGovernments -> Array("请从西欧移除%s美国影响力")
   cardTips += Card010Blockade -> Array("请弃一张3以上行动力的牌")
+  cardTips += Card016WarsawPact -> Array("是否要移除美国的影响力", "请选择%s个东欧国家", "请在东欧增加%s影响力")
 
 }

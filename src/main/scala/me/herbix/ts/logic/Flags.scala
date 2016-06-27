@@ -119,6 +119,7 @@ object Flags {
   val NorthSeaOil8Rounds = Flag(ThisTurn, true)
   val IranContra = Flag(ThisTurn, false)
   val EvilEmpire = Flag(Always, true)
+  val WarsawPact = Flag(Always, true)
 
   def init(): Unit = {}
 }

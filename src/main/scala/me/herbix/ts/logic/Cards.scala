@@ -218,8 +218,7 @@ object Card013ArabIsraeliWar extends CardInstant(13, 2, USSR, false) {
   }
 }
 
-object Card014COMECON extends
-  CardNeedsSelection(14, 3, USSR, true, cardEventInfluence) {
+object Card014COMECON extends CardNeedsSelection(14, 3, USSR, true, cardEventInfluence) {
   val checkValidFunc: Map[Country, Int] => Boolean =
     _.forall(e => e._2 <= 1 && e._1.regions(Region.EastEurope) && e._1.getController != US)
   stepMeta(0) = (4, true, false, USSR, checkValidFunc)
@@ -240,6 +239,33 @@ object Card015Nasser extends CardInstant(15, 1, USSR, true) {
   }
 }
 
+object Card016WarsawPact extends CardNeedsSelection(16, 3, USSR, true, cardEventYesNo, cardEventSelectCountry, cardEventInfluence) {
+  val checkValidFunc1: Set[Country] => Boolean = _.forall(_.regions(Region.EastEurope))
+  val checkValidFunc2: Map[Country, Int] => Boolean = _.forall(e => e._2 <= 2 && e._1.regions(Region.EastEurope))
+  stepMeta(1) = (4, checkValidFunc1)
+  stepMeta(2) = (5, true, true, USSR, checkValidFunc2)
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    val r = step match {
+      case 0 => 1
+      case 1 =>
+        if (input.asInstanceOf[OperationYesNo].value) 2 else 3
+      case 2 =>
+        game.modifyInfluence(US, false, input.asInstanceOf[OperationSelectCountry].detail.map(c => {
+          val country = game.worldMap.countries(c.name)
+          country -> country.influence(US)
+        }).toMap)
+        4
+      case 3 =>
+        game.modifyInfluence(USSR, true, input.asInstanceOf[OperationModifyInfluence].detail)
+        4
+    }
+    if (step >= 3) {
+      game.addFlag(US, Flags.WarsawPact)
+    }
+    r
+  }
+}
+
 object Card017DeGaulle extends CardInstant(17, 3, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val france = game.worldMap.countries("France")
@@ -254,6 +280,12 @@ object Card018CaptureNazi extends CardInstant(18, 1, Neutral, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.increaseSpace(faction, 1)
     true
+  }
+}
+
+object Card019TrumanDoctrine extends CardNeedsSelection(19, 1, US, true, cardEventSelectCountry) {
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    step + 1
   }
 }
 
@@ -667,10 +699,10 @@ object Cards {
   addCard(Card013ArabIsraeliWar)
   addCard(Card014COMECON)
   addCard(Card015Nasser)
-  addCard(16, 3, USSR)
+  addCard(Card016WarsawPact)
   addCard(Card017DeGaulle)
   addCard(Card018CaptureNazi)
-  addCard(19, 1, US)
+  addCard(Card019TrumanDoctrine)
   addCard(20, 2, Neutral)
   addCard(21, 4, US)
   addCard(22, 2, US)

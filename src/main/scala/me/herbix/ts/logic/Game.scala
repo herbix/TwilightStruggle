@@ -257,7 +257,7 @@ class Game {
     ))
 
     // TODO test
-    hand(US).add(Card010Blockade)
+    //hand(US).add(Card010Blockade)
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {

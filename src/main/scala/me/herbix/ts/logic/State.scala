@@ -27,10 +27,10 @@ object State extends Enumeration {
   val cardEventStart = cardEventStep(0)
   val cardEventEnd = Value
 
-  val cardEventInfluence, cardEventSelectCardOrCancel = Value
+  val cardEventInfluence, cardEventSelectCardOrCancel, cardEventYesNo, cardEventSelectCountry = Value
 
   object EventStates {
-    val cardEventStates = Set(cardEventInfluence, cardEventSelectCardOrCancel)
+    val cardEventStates = Set(cardEventInfluence, cardEventSelectCardOrCancel, cardEventYesNo)
     def unapply(state: State): Option[Boolean] = {
       if (cardEventStates(state)) Some(true) else None
     }
