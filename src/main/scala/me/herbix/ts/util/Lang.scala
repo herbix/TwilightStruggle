@@ -623,5 +623,6 @@ object Lang {
   cardTips += Card026CIACreated -> Array("请确认对方手牌")
   cardTips += Card028SuezCrisis -> Array("请移除%s美国影响力")
   cardTips += Card029EastEuropeanUnrest -> Array("请选择%s个东欧国家")
+  cardTips += Card030Decolonization -> Array("请选择非洲或东南亚%s国")
 
 }

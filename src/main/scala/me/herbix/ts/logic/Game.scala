@@ -630,7 +630,7 @@ class Game {
     recordHistory(new HistoryCardAction(op.faction, op.card, op.action, oppositeCard))
 
     if (flags.hasFlag(op.faction, Flags.WeWillBuryYou)) {
-      if (op.action != Action.Event || op.card.id != 32) {  // #32 - UN
+      if (op.action != Action.Event || op.card != Card032UNIntervention) {
         addVp(Faction.getOpposite(op.faction), 3)
         checkVp()
       }

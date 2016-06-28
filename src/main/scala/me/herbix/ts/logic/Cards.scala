@@ -452,10 +452,38 @@ object Card029EastEuropeanUnrest extends CardNeedsSelection(29, 3, US, false, ca
   }
 }
 
+object Card030Decolonization extends CardNeedsSelection(30, 2, USSR, false, cardEventInfluence) {
+  val checkValidFunc: Map[Country, Int] => Boolean =
+    _.forall(e => (e._1.regions(Region.Africa) || e._1.regions(Region.SouthEastAsia)) && e._2 <= 1)
+  stepMeta(0) = (4, true, true, USSR, checkValidFunc)
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 1) {
+      game.modifyInfluence(USSR, true, input.asInstanceOf[OperationModifyInfluence].detail)
+    }
+    step + 1
+  }
+}
+
 object Card031RedScarePurge extends CardInstant(31, 4, Neutral, false) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addFlag(Faction.getOpposite(faction), Flags.RedScarePurge)
     true
+  }
+}
+
+object Card032UNIntervention extends CardNeedsSelection(32, 1, Neutral, false,
+  cardEventSelectCard, cardEventOperation) {
+  override def canHeadline(game: Game, faction: Faction) = false
+  override def canEvent(game: Game, faction: Faction) =
+    game.hand(faction).exists(_.faction == Faction.getOpposite(faction))
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    step + 1
+  }
+  override def afterPlay(game: Game, faction: Faction): Unit = {
+    if (game.flags.hasFlag(USSR, Flags.U2Incident)) {
+      game.addVp(USSR, 1)
+      game.removeFlag(USSR, Flags.U2Incident)
+    }
   }
 }
 
@@ -610,7 +638,7 @@ object Card059FlowerPower extends CardInstant(59, 4, USSR, true) {
 }
 
 object Card060U2Incident extends CardInstant(60, 3, USSR, true) {
-  override def instantEvent(game: Game, faction: Faction): Boolean = { // TODO not finished To #32 UN
+  override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addVpAndCheck(USSR, 1)
     game.addFlag(USSR, Flags.U2Incident)
     true
@@ -857,9 +885,9 @@ object Cards {
   addCard(Card027USJapanPact)
   addCard(Card028SuezCrisis)
   addCard(Card029EastEuropeanUnrest)
-  addCard(30, 2, USSR)
+  addCard(Card030Decolonization)
   addCard(Card031RedScarePurge)
-  addCard(32, 1, Neutral)
+  addCard(Card032UNIntervention)
   addCard(33, 3, USSR)
   addCard(Card034NuclearTestBan)
   addCard(Card035Taiwan)
