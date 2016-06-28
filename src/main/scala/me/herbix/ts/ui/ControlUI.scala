@@ -125,14 +125,14 @@ class ControlUI(val game: Game) extends JPanel {
         }
       case State.cardOperationRealignment =>
         if (game.playerFaction == game.operatingPlayer) {
-          selectCountryUI(1, game.getCurrentRealignmentRest(game.playerFaction), Lang.operationRealignment,
+          selectCountryUI(1, game.getCurrentRealignmentRest(game.playerFaction), Lang.operationRealignment, true,
             _.forall(game.canRealignment(game.playerFaction, _)))
         } else {
           waitOtherUI()
         }
       case State.cardOperationCoup =>
         if (game.playerFaction == game.operatingPlayer) {
-          selectCountryUI(1, game.currentCard.op, Lang.operationCoup,
+          selectCountryUI(1, game.currentCard.op, Lang.operationCoup, true,
             _.forall(game.canCoup(game.playerFaction, _)))
         } else {
           waitOtherUI()
@@ -190,8 +190,8 @@ class ControlUI(val game: Game) extends JPanel {
         if (game.playerFaction == game.operatingPlayer) {
           val card = game.currentCard.asInstanceOf[CardNeedsSelection]
           val step = card.getStep(game)
-          val stepMeta = card.getStepMeta(game).asInstanceOf[(Int, Set[Country] => Boolean)]
-          selectCountryUI(stepMeta._1, 0, Lang.cardTips(card)(step-1), stepMeta._2)
+          val stepMeta = card.getStepMeta(game).asInstanceOf[(Int, Boolean, Set[Country] => Boolean)]
+          selectCountryUI(stepMeta._1, 0, Lang.cardTips(card)(step-1), stepMeta._2, stepMeta._3)
         } else {
           waitOtherUI()
         }
@@ -234,11 +234,12 @@ class ControlUI(val game: Game) extends JPanel {
     uiSelectOperation.coup.setEnabled(game.canCoup(game.playerFaction))
   }
 
-  def selectCountryUI(point: Int, point2: Int, tip: String, valid: Set[Country] => Boolean): Unit = {
+  def selectCountryUI(point: Int, point2: Int, tip: String, mustAllPoints: Boolean, valid: Set[Country] => Boolean): Unit = {
     showSubUI(SelectCountry)
     uiSelectCountry.tip = tip
     uiSelectCountry.point = point
     uiSelectCountry.point2 = point2
+    uiSelectCountry.mustAllPoints = mustAllPoints
     uiSelectCountry.validCheck = valid
     uiSelectCountry.updatePendingCountrySelection()
   }
@@ -540,6 +541,7 @@ class ControlSubUISelectCountry(parent: ControlUI) extends
   var tip = "%s(%s)"
   var point = 0
   var point2 = 0
+  var mustAllPoints = true
   var validCheck: Set[Country] => Boolean = null
 
   var pendingCountrySelection: mutable.Set[Country] = null
@@ -593,7 +595,7 @@ class ControlSubUISelectCountry(parent: ControlUI) extends
     }
     val rest = point - pendingCountrySelection.size
     text(0) = String.format(tip, rest.toString, point2.toString)
-    buttonDone.setEnabled(rest == 0)
+    buttonDone.setEnabled(!mustAllPoints || rest == 0)
     if (tableModel.getRowCount > 0) {
       table.setRowSelectionInterval(0, 0)
     }

@@ -132,8 +132,7 @@ object Card006ChinaCard extends CardInstant(6, 4, Neutral, false) {
   }
 }
 
-object Card007SocialistGovernments extends
-  CardNeedsSelection(7, 3, USSR, false, cardEventInfluence) {
+object Card007SocialistGovernments extends CardNeedsSelection(7, 3, USSR, false, cardEventInfluence) {
   val checkValidFunc: Map[Country, Int] => Boolean = _.forall(e => e._1.regions(Region.WestEurope) && e._2 <= 2)
   stepMeta(0) = (3, false, false, US, checkValidFunc)
   override def canEvent(game: Game, faction: Faction) = !game.flags.hasFlag(Flags.IronLady)
@@ -242,7 +241,7 @@ object Card015Nasser extends CardInstant(15, 1, USSR, true) {
 object Card016WarsawPact extends CardNeedsSelection(16, 3, USSR, true, cardEventYesNo, cardEventSelectCountry, cardEventInfluence) {
   val checkValidFunc1: Set[Country] => Boolean = _.forall(_.regions(Region.EastEurope))
   val checkValidFunc2: Map[Country, Int] => Boolean = _.forall(e => e._2 <= 2 && e._1.regions(Region.EastEurope))
-  stepMeta(1) = (4, checkValidFunc1)
+  stepMeta(1) = (4, false, checkValidFunc1)
   stepMeta(2) = (5, true, true, USSR, checkValidFunc2)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     val r = step match {
@@ -284,7 +283,14 @@ object Card018CaptureNazi extends CardInstant(18, 1, Neutral, true) {
 }
 
 object Card019TrumanDoctrine extends CardNeedsSelection(19, 1, US, true, cardEventSelectCountry) {
+  val checkValidFunc: Set[Country] => Boolean =
+    _.forall(country => country.regions(Region.Europe) && country.getController == Neutral)
+  stepMeta(0) = (1, false, checkValidFunc)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 1) {
+      val country = game.worldMap.countries(input.asInstanceOf[OperationSelectCountry].detail.head.name)
+      game.modifyInfluence(USSR, false, Map(country -> country.influence(USSR)))
+    }
     step + 1
   }
 }

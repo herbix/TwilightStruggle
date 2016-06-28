@@ -610,6 +610,8 @@ object Lang {
   val cardTips = mutable.Map.empty[Card, Array[String]]
   cardTips += Card007SocialistGovernments -> Array("请从西欧移除%s美国影响力")
   cardTips += Card010Blockade -> Array("请弃一张3以上行动力的牌")
+  cardTips += Card014COMECON -> Array("请在东欧%s国各加1影响力")
   cardTips += Card016WarsawPact -> Array("是否要移除美国的影响力", "请选择%s个东欧国家", "请在东欧增加%s影响力")
+  cardTips += Card019TrumanDoctrine -> Array("请选择欧洲%s国")
 
 }
