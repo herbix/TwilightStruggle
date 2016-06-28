@@ -13,7 +13,17 @@ import me.herbix.ts.util.{Lang, Resource}
   */
 class HandUI(val game: Game) extends JPanel with ActionListener {
 
-  game.stateUpdateListeners :+= (() => updateState())
+  game.stateUpdateListeners :+= (() => {
+    val data = game.currentCardData
+    if (data != null && data.isInstanceOf[CardSet] && game.operatingPlayer == game.playerFaction) {
+      if (!eventCards.isSelected) {
+        switchToButton(eventCards)
+      }
+    } else if (eventCards.isSelected) {
+      switchToButton(selfHand)
+    }
+    updateState()
+  })
 
   val cardpos = new Array[Int](120)
   val cards = new Array[Card](120)
@@ -32,24 +42,28 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
   selfHand.setLocation(0, 5)
   selfHand.setSize(90, 35)
   selfHand.addActionListener(this)
+  selfHand.setFocusable(false)
   add(selfHand)
 
   val otherHand = new JButton(Lang.oppositeHand)
   otherHand.setLocation(0, 40)
   otherHand.setSize(90, 35)
   otherHand.addActionListener(this)
+  otherHand.setFocusable(false)
   add(otherHand)
 
   val discarded = new JButton(Lang.discardedCards)
   discarded.setLocation(0, 75)
   discarded.setSize(90, 35)
   discarded.addActionListener(this)
+  discarded.setFocusable(false)
   add(discarded)
 
   val eventCards = new JButton(Lang.eventCards)
   eventCards.setLocation(0, 110)
   eventCards.setSize(90, 35)
   eventCards.addActionListener(this)
+  eventCards.setFocusable(false)
   add(eventCards)
 
 
@@ -228,8 +242,13 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       game.hand(getOpposite(game.playerFaction))
     } else if (discarded.isSelected) {
       game.discards
-    } else if (eventCards.isSelected) {
-      null
+    } else if (eventCards.isSelected && game.operatingPlayer == game.playerFaction) {
+      val data = game.currentCardData
+      if (data != null && data.isInstanceOf[CardSet]) {
+        data.asInstanceOf[CardSet]
+      } else {
+        null
+      }
     } else {
       null
     }

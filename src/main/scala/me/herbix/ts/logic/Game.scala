@@ -43,9 +43,9 @@ class Game {
   val random = new Random
 
   var pendingInput: Operation = null
-  var stateStack = mutable.Stack(start)
+  val stateStack = mutable.Stack(start)
 
-  var operatingPlayerStack = mutable.Stack(Neutral)
+  val operatingPlayerStack = mutable.Stack(Neutral)
   def operatingPlayer: Faction = operatingPlayerStack.top
   def operatingPlayer_=(faction: Faction): Unit = {
     operatingPlayerStack.pop()
@@ -58,21 +58,33 @@ class Game {
     operatingPlayerStack.pop()
   }
 
-  var currentCardStack = mutable.Stack[Card]()
+  val currentCardStack = mutable.Stack[Card]()
+  val currentCardDataStack = mutable.Stack[Any]()
   def currentCard = if (currentCardStack.isEmpty) null else currentCardStack.top
   def currentCard_=(card: Card) = {
     if (currentCardStack.nonEmpty) {
       currentCardStack.pop()
+      currentCardDataStack.pop()
     }
     if (card != null) {
       currentCardStack.push(card)
+      currentCardDataStack.push(null)
+    }
+  }
+  def currentCardData = if (currentCardDataStack.isEmpty) null else currentCardDataStack.top
+  def currentCardData_=(data: Any) = {
+    if (currentCardDataStack.nonEmpty) {
+      currentCardDataStack.pop()
+      currentCardDataStack.push(data)
     }
   }
   def currentCardChange(card: Card): Unit = {
     currentCardStack.push(card)
+    currentCardDataStack.push(null)
   }
   def currentCardRollBack(): Unit = {
     currentCardStack.pop()
+    currentCardDataStack.pop()
   }
 
   var currentRealignments = List[Country]()
@@ -136,7 +148,7 @@ class Game {
     if (stateStack.top == cardEventEnd) {
       stateStack.pop()
       nextState(null, stateStack.top)
-    } else if (stateStack.top == cardOperation) {
+    } else if (stateStack.top == cardOperation || stateStack.top == cardEventOperation) {
       nextState(null, stateStack.top)
     }
   }
@@ -257,7 +269,7 @@ class Game {
     ))
 
     // TODO test
-    //hand(US).add(Card010Blockade)
+    //hand(USSR).add(Card026CIACreated)
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -345,8 +357,8 @@ class Game {
     val inputA = if (
       (
         (input1.card.op > input2.card.op || (input1.card.op == input2.card.op && input1.faction == US)) &&
-        !(input2.faction == US && input2.card.id == 103)
-      ) || (input1.faction == US && input1.card.id == 103)
+        !(input2.faction == US && input2.card == Card103Defectors)
+      ) || (input1.faction == US && input1.card == Card103Defectors)
     ) input1 else input2
     val inputB = if (input1 == inputA) input2 else input1
 

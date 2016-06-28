@@ -97,7 +97,7 @@ class GameUI(playerId: Int) extends JFrame {
     }
   })
   handUI.cardClickListeners :+= ((card: Card) => {
-    if (handUI.selfHand.isSelected || handUI.eventCards.isSelected) {
+    if (handUI.selfHand.isSelected) {
       controlUI.uiType match {
         case controlUI.UIType.SelectCard =>
           controlUI.uiSelectCard.setCard(card)

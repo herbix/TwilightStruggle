@@ -127,7 +127,11 @@ class HistoryUI(game: Game) extends JPanel {
         String.format(Lang.historyWar, Lang.getFactionName(h.faction), Lang.countryNames(h.country.name),
           h.dice.toString, h.result.toString)
       case h: HistoryRollDice =>
-        String.format(Lang.historyRollDice, Lang.getFactionName(h.faction), h.dice.toString)
+        if (h.modifier == 0) {
+          String.format(Lang.historyRollDice, Lang.getFactionName(h.faction), h.dice.toString)
+        } else {
+          String.format(Lang.historyRollDiceModified, Lang.getFactionName(h.faction), h.dice.toString, (h.dice + h.modifier).toString)
+        }
       case h => h.toString
     }
     var height = 25

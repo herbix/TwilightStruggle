@@ -120,6 +120,11 @@ object Flags {
   val IranContra = Flag(ThisTurn, false)
   val EvilEmpire = Flag(Always, true)
   val WarsawPact = Flag(Always, true)
+  val NATO = new Flag(Always, false, 60) {
+    override def canRealignmentOrCoup(country: Country) =
+      if (country.regions(Region.Europe) && country.getController == US) Some(false) else None
+  }
+  val MarshallPlan = Flag(Always, true)
 
   def init(): Unit = {}
 }

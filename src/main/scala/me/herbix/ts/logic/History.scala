@@ -34,4 +34,4 @@ class HistoryDiscardCard(val faction: Faction, card: Card) extends HistoryCard(c
 class HistoryScoring(val region: Region, val usBattle: Int, val ussrBattle: Int, val usAll: Int, val ussrAll: Int) extends History
 class HistoryWar(val faction: Faction, val country: Country, val dice: Int, val result: Int) extends History
 class HistoryPokeChest(val faction: Faction) extends History
-class HistoryRollDice(val faction: Faction, val dice: Int) extends History
+class HistoryRollDice(val faction: Faction, val dice: Int, val modifier: Int = 0) extends History

@@ -29,6 +29,7 @@ class ControlUI(val game: Game) extends JPanel {
     val SelectCountry = Value
     val SelectCardOrCancel = Value
     val YesNo = Value
+    val Confirm = Value
   }
 
   import UIType._
@@ -44,6 +45,7 @@ class ControlUI(val game: Game) extends JPanel {
   val uiSelectCountry = new ControlSubUISelectCountry(this)
   val uiSelectCardOrCancel = new ControlSubUISelectCardOrCancel(this)
   val uiYesNo = new ControlSubUIYesNo(this)
+  val uiConfirm = new ControlSubUIConfirm(this)
 
   var operationListeners: List[Operation => Unit] = List()
 
@@ -57,6 +59,7 @@ class ControlUI(val game: Game) extends JPanel {
   add(uiSelectCountry, SelectCountry.toString)
   add(uiSelectCardOrCancel, SelectCardOrCancel.toString)
   add(uiYesNo, YesNo.toString)
+  add(uiConfirm, Confirm.toString)
 
   updateState()
 
@@ -195,6 +198,14 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
+      case State.cardEventConfirm =>
+        if (game.playerFaction == game.operatingPlayer) {
+          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
+          val step = card.getStep(game)
+          confirmUI(Lang.cardTips(card)(step-1))
+        } else {
+          waitOtherUI()
+        }
       case _ => waitOtherUI()
     }
     repaint()
@@ -253,6 +264,11 @@ class ControlUI(val game: Game) extends JPanel {
   def yesNoUI(tip: String) = {
     showSubUI(YesNo)
     uiYesNo.text(2) = tip
+  }
+
+  def confirmUI(tip: String) = {
+    showSubUI(Confirm)
+    uiConfirm.text(2) = tip
   }
 
 }
@@ -655,6 +671,17 @@ class ControlSubUIYesNo(parent: ControlUI) extends
   override def actionPerformed(e: ActionEvent): Unit = {
     val result = e.getSource == buttonYes
     val op = new OperationYesNo(parent.game.playerId, parent.game.playerFaction, result)
+    parent.operationListeners.foreach(_(op))
+  }
+}
+
+class ControlSubUIConfirm(parent: ControlUI) extends
+  ControlSubUIText(parent, Array("", "", "")) {
+
+  val buttonConfirm = addButton(Lang.done, 65, 120, 70, 30)
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val op = new OperationYesNo(parent.game.playerId, parent.game.playerFaction, true)
     parent.operationListeners.foreach(_(op))
   }
 }

@@ -140,6 +140,7 @@ object Lang {
   val historyScoring = "%s计分\n美国：控制国家%s个，战场国%s个\n苏联：控制国家%s个，战场国%s个"
   val historyWar = "%s操纵，入侵%s，掷点得%s，调整为%s"
   val historyRollDice = "%s掷出了%s"
+  val historyRollDiceModified = "%s掷出了%s，调整为%s"
 
   val countryNames = mutable.Map[String, String]()
 
@@ -606,12 +607,21 @@ object Lang {
   addFlagInfo("伊朗门丑闻", "本回合美国调整阵营掷骰点数-1。")
   addFlagInfo("“邪恶帝国”", "不可作为事件打出“花的力量”。")
   addFlagInfo("华沙条约组织成立", "可作为事件打出“北大西洋公约组织”。")
+  addFlagInfo("北大西洋公约组织", "苏联不能对美国在欧洲控制的国家进行政变，调整阵营或作为局部战争的目标。")
+  addFlagInfo("马歇尔计划", "可作为事件打出“北大西洋公约组织”。")
 
   val cardTips = mutable.Map.empty[Card, Array[String]]
   cardTips += Card007SocialistGovernments -> Array("请从西欧移除%s美国影响力")
   cardTips += Card010Blockade -> Array("请弃一张3以上行动力的牌")
   cardTips += Card014COMECON -> Array("请在东欧%s国各加1影响力")
   cardTips += Card016WarsawPact -> Array("是否要移除美国的影响力", "请选择%s个东欧国家", "请在东欧增加%s影响力")
-  cardTips += Card019TrumanDoctrine -> Array("请选择欧洲%s国")
+  cardTips += Card019TrumanDoctrine -> Array("请移除欧洲%s国苏联影响力")
+  cardTips += Card020OlympicGames -> Array("是否要参加奥运会")
+  cardTips += Card022IndependentReds -> Array("请选择%s个独立的红色国家")
+  cardTips += Card023MarshallPlan -> Array("请在西欧%s国各加1影响力")
+  cardTips += Card024IndoPakistaniWar -> Array("请选择印巴战争被入侵国")
+  cardTips += Card026CIACreated -> Array("请确认对方手牌")
+  cardTips += Card028SuezCrisis -> Array("请移除%s美国影响力")
+  cardTips += Card029EastEuropeanUnrest -> Array("请选择%s个东欧国家")
 
 }
