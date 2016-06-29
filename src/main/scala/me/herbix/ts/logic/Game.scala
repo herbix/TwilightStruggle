@@ -269,7 +269,7 @@ class Game {
     ))
 
     // TODO test
-    //hand(USSR).add(Card026CIACreated)
+    hand(US).add(Card036BrushWar)
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -927,7 +927,7 @@ class Game {
   def modifyOp(faction: Faction, originalOp: Int, targets: Iterable[Country]): Int = {
     var modifiedOp = modifyOp(faction, originalOp)
     if (currentCard != null) {
-      modifiedOp = currentCard.modifyOp(faction, modifiedOp, targets)
+      modifiedOp = currentCard.modifyOp(this, faction, modifiedOp, targets)
     }
     if (flags.hasFlag(faction, Flags.VietnamRevolts) && targets.forall(_.regions(Region.SouthEastAsia))) {
       modifiedOp += 1
@@ -946,7 +946,7 @@ class Game {
     if (modifiedOp > 4) modifiedOp = 4
     if (modifiedOp < 1) modifiedOp = 1
     if (currentCard != null) {
-      modifiedOp = currentCard.modifyOp(faction, modifiedOp)
+      modifiedOp = currentCard.modifyOp(this, faction, modifiedOp)
     }
     modifiedOp
   }

@@ -624,5 +624,8 @@ object Lang {
   cardTips += Card028SuezCrisis -> Array("请移除%s美国影响力")
   cardTips += Card029EastEuropeanUnrest -> Array("请选择%s个东欧国家")
   cardTips += Card030Decolonization -> Array("请选择非洲或东南亚%s国")
+  cardTips += Card032UNIntervention -> Array("请选择要打出的牌")
+  cardTips += Card033DeStalinization -> Array("请先移除%s苏联影响力", "请放置%s苏联影响力")
+  cardTips += Card036BrushWar -> Array("请选择被入侵国")
 
 }
