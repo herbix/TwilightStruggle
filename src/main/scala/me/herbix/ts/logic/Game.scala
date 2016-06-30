@@ -115,7 +115,6 @@ class Game {
 
   @tailrec
   private def nextState(input: Operation, currentState: State): Unit = {
-    toSendPendingOperations = true
     currentState match {
       case State.start => nextStateMayWait(input, nextStateStart)
       case State.putStartUSSR => nextStatePutStart(input, putStartUS)
@@ -142,9 +141,7 @@ class Game {
       case State.quagmirePlayScoringCard => nextStateQuagmireScoringCard(input)
       case State.EventStates(n) => nextStateCardEvent(input)
     }
-    if (toSendPendingOperations) {
-      sendPendingOperations()
-    }
+    checkFlags()
     if (stateStack.top == cardEventEnd) {
       stateStack.pop()
       nextState(null, stateStack.top)
@@ -154,11 +151,15 @@ class Game {
   }
 
   private def nextState(input: Operation): Unit = {
+    toSendPendingOperations = true
     stateStack.top match {
       case State.waitOther =>
         val top2 = stateStack(1)
         nextState(input, top2)
       case other => nextState(input, other)
+    }
+    if (toSendPendingOperations) {
+      sendPendingOperations()
     }
     stateUpdateListeners.foreach(_())
   }
@@ -269,7 +270,9 @@ class Game {
     ))
 
     // TODO test
-    hand(US).add(Card036BrushWar)
+    // hand(US).add(Card049MissileEnvy)
+    // hand(US).add(Card044BearTrap)
+    // hand(US).add(Card031RedScarePurge)
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -686,7 +689,7 @@ class Game {
   }
 
   def canSpace(faction: Faction): Boolean = {
-    space(faction) != SpaceLevel.Station &&
+    space(faction) != SpaceLevel.Station && !flags.hasFlag(faction, Flags.MissileEnvy) &&
       (!flags.hasFlag(faction, Flags.Space1) ||
         (!flags.hasFlag(faction, Flags.Space2) && flags.hasFlag(faction, Flags.SpaceAwardTwoSpace)))
   }
@@ -785,6 +788,14 @@ class Game {
   def nextStateOperationRealignment(input: Operation) = {
     val op = input.asInstanceOf[OperationSelectCountry]
     val country = worldMap.countries(op.detail.head.name)
+    realignment(country)
+    currentRealignments = currentRealignments :+ country
+    if (getCurrentRealignmentRest(op.faction) <= 0) {
+      stateStack.pop()
+    }
+  }
+
+  def realignment(country: Country): Unit = {
     val rollUSOriginal = rollDice()
     val rollUSSROriginal = rollDice()
     var rollUS = rollUSOriginal
@@ -807,10 +818,6 @@ class Game {
       val decreaseValue = Math.min(rollUSSR - rollUS, country.influence(US))
       if (decreaseValue > 0) modifyInfluence(US, false, Map(country -> decreaseValue))
     }
-    currentRealignments = currentRealignments :+ country
-    if (getCurrentRealignmentRest(op.faction) <= 0) {
-      stateStack.pop()
-    }
   }
 
   def checkDefcon() = {
@@ -826,7 +833,7 @@ class Game {
     if (defcon <= 2) addFlag(Neutral, Flags.Defcon2Penalty) else removeFlag(Neutral, Flags.Defcon2Penalty)
   }
 
-  def addMilitary(faction: Faction, op: Int) = setMilitary(faction, military(faction) + op)
+  def addMilitary(faction: Faction, value: Int) = setMilitary(faction, military(faction) + value)
 
   def setMilitary(faction: Faction, value: Int) = {
     val oldValue = military(faction)
@@ -845,13 +852,23 @@ class Game {
   def nextStateOperationCoup(input: Operation) = {
     val op = input.asInstanceOf[OperationSelectCountry]
     val country = worldMap.countries(op.detail.head.name)
+    val faction = op.faction
+    val modifiedOp = modifyOp(faction, currentCard.op, Set(country))
+
+    coup(country, faction, modifiedOp)
+    addMilitary(faction, modifiedOp)
+
+    stateStack.pop()
+  }
+
+  def coup(country: Country, faction: Faction, op: Int): Unit = {
     val rollResult = rollDice()
-    val modifiedOp = modifyOp(op.faction, currentCard.op, List(country))
-    val coupFactor = Math.max(0, rollResult + modifiedOp - 2 * country.stability)
+    val modifierSalt = if (flags.hasFlag(Flags.SALT)) 1 else 0
+    val coupFactor = Math.max(0, rollResult + op - 2 * country.stability - modifierSalt)
 
-    recordHistory(new HistoryOperationCoup(op.faction, country, rollResult, modifiedOp, coupFactor))
+    recordHistory(new HistoryOperationCoup(faction, country, rollResult, op, coupFactor))
 
-    val factionSelf = op.faction
+    val factionSelf = faction
     val factionOpposite = Faction.getOpposite(factionSelf)
 
     val oppositeDown = Math.min(coupFactor, country.influence(factionOpposite))
@@ -864,17 +881,13 @@ class Game {
       modifyInfluence(factionSelf, true, Map(country -> selfUp))
     }
 
-    if (country.isBattlefield && !flags.hasFlag(op.faction, Flags.NuclearSubs)) {
+    if (country.isBattlefield && !flags.hasFlag(faction, Flags.NuclearSubs)) {
       setDefcon(defcon - 1)
     }
 
-    addMilitary(factionSelf, modifiedOp)
-
-    if (flags.hasFlag(op.faction, Flags.CubaMissile)) {
-      gameOver(Faction.getOpposite(op.faction))
+    if (flags.hasFlag(faction, Flags.CubaMissile)) {
+      gameOver(Faction.getOpposite(faction))
     }
-
-    stateStack.pop()
   }
 
   def nextStateCardOperation() = {
@@ -1059,6 +1072,16 @@ class Game {
     stateStack.push(cardEvent)
     stateStack.push(cardEventStart)
     currentCard.nextState(this, operatingPlayer, null)
+  }
+
+  def checkFlags(): Unit = {
+    for ((faction, set) <- flags.flagSets) {
+      for (flag <- set) {
+        if (!flag.canKeep(this, faction)) {
+          removeFlag(faction, flag)
+        }
+      }
+    }
   }
 
 }

@@ -23,3 +23,5 @@ class OperationSelectOperation(playerId: Int, val faction: Faction, val action: 
 class OperationSelectCountry(playerId: Int, val faction: Faction, val detail: Set[Country]) extends Operation(playerId)
 
 class OperationYesNo(playerId: Int, val faction: Faction, val value: Boolean) extends Operation(playerId)
+
+class OperationIntValue(playerId: Int, val faction: Faction, val value: Int) extends Operation(playerId)

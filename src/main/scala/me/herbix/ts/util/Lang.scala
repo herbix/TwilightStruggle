@@ -3,7 +3,6 @@ package me.herbix.ts.util
 import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
-import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic._
 
 import scala.collection.mutable
@@ -113,6 +112,10 @@ object Lang {
 
   val thisTurnFlag = "回合结束时标记失效。"
 
+  val improve = "改善"
+  val degrade = "恶化"
+  val keep = "不变"
+
   val historyStartGame = "开始游戏"
   val historyTurnStart = "第%s回合开始"
   val historyTurnHeadline = "第%s回合头条"
@@ -120,6 +123,7 @@ object Lang {
   val historyPickCard = "%s抽取了%s张牌"
   val historyGetCard = "%s获得了“%s”"
   val historyDiscardCard = "%s丢弃了“%s”"
+  val historyLoseCard = "%s失去了“%s”"
   val historyModifyInfluence = "%2$s了%1$s影响力："
   val historyModifyInfluenceDetail = "%1$s %2$s -> %3$s"
   val historyPlayHeadline = "%s打出“%s”作为头条"
@@ -390,7 +394,7 @@ object Lang {
   addCardInfo("导弹嫉妒",
     "将此牌与对手手牌里行动力最高的牌互换，若有多张，则由对手选择。\n" +
     "若这张牌是你的事件或双方事件，则立刻发生；若是对方事件，则不发生而使用其行动力进行行动。\n" +
-    "对方下回合必须以行动力方式使用掉“导弹嫉妒”。"
+    "对方下个行动轮必须以行动力方式使用掉“导弹嫉妒”。"
   )
   addCardInfo("“我们要埋葬你们”*",
     "除非下个行动轮美国作为事件打出“联合国干预”，否则苏联在美国打出牌生效前得3VP。\n" +
@@ -549,7 +553,7 @@ object Lang {
     "选择其中任意张展示并弃入弃牌堆，不发动事件，剩余的牌放回牌堆，并洗牌。"
   )
   addCardInfo("尤里和萨曼莎*", "本回合的剩下的行动轮内，每当美国发动政变，苏联就得1VP。")
-  addCardInfo("出售预警机给沙特*", "美国在沙特阿拉伯增加两点行动力。\n不可作为事件打出“穆斯林革命”。")
+  addCardInfo("出售预警机给沙特*", "美国在沙特阿拉伯增加2点行动力。\n不可作为事件打出“穆斯林革命”。")
 
   val flagInfo = new Array[(Map[Faction, String], String)](120)
   var flagInfoCount = 0
@@ -609,6 +613,8 @@ object Lang {
   addFlagInfo("华沙条约组织成立", "可作为事件打出“北大西洋公约组织”。")
   addFlagInfo("北大西洋公约组织", "苏联不能对美国在欧洲控制的国家进行政变，调整阵营或作为局部战争的目标。")
   addFlagInfo("马歇尔计划", "可作为事件打出“北大西洋公约组织”。")
+  addFlagInfo("限制战略武器谈判", "双方政变的掷骰-1。")
+  addFlagInfo("导弹嫉妒", "%s下个行动轮必须以行动力方式使用掉“导弹嫉妒”。")
 
   val cardTips = mutable.Map.empty[Card, Array[String]]
   cardTips += Card007SocialistGovernments -> Array("请从西欧移除%s美国影响力")
@@ -627,5 +633,21 @@ object Lang {
   cardTips += Card032UNIntervention -> Array("请选择要打出的牌")
   cardTips += Card033DeStalinization -> Array("请先移除%s苏联影响力", "请放置%s苏联影响力")
   cardTips += Card036BrushWar -> Array("请选择被入侵国")
+  cardTips += Card043SALTNegotiations -> Array("请从弃牌中回收一张牌")
+  cardTips += Card045Summit -> Array("请改变核战等级")
+  cardTips += Card046HowILearnStopWorry -> Array("请改变核战等级")
+  cardTips += Card047Junta -> Array("请选择%s个中南美国家", "", "请调整%1$s个国家（剩余%2$s）", "请政变%1$s个国家（行动力%2$s）")
+  cardTips += Card049MissileEnvy -> Array("请选择一张交给对手的牌")
+  cardTips += Card053SouthAfricaUnrest -> Array("请选择增加影响力的国家")
+  cardTips += Card056MuslimRevolution -> Array("请选择%s个穆斯林革命国家")
+  cardTips += Card062LoneGunman -> Array("请确认对方手牌")
+  cardTips += Card063ColonialRearGuards -> Array("请选择非洲或东南亚%s国")
+  cardTips += Card066PuppetGovernments -> Array("请选择%s个无影响力国")
+  cardTips += Card070OASFounded -> Array("请在中南美放置%s影响力")
+  cardTips += Card074VoiceOfAmerica -> Array("请移除非欧洲%s苏联影响力")
+  cardTips += Card075LiberationTheology -> Array("请在中美洲放置%s影响力")
+  cardTips += Card076UssuriRiverSkirmish -> Array("请在亚洲放置%s影响力")
+
+  cardTips += Card102IranIraqWar -> Array("请选择两伊战争被入侵国")
 
 }

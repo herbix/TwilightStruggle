@@ -30,6 +30,8 @@ class ControlUI(val game: Game) extends JPanel {
     val SelectCardOrCancel = Value
     val YesNo = Value
     val Confirm = Value
+    val Summit = Value
+    val StopWorry = Value
   }
 
   import UIType._
@@ -46,6 +48,8 @@ class ControlUI(val game: Game) extends JPanel {
   val uiSelectCardOrCancel = new ControlSubUISelectCardOrCancel(this)
   val uiYesNo = new ControlSubUIYesNo(this)
   val uiConfirm = new ControlSubUIConfirm(this)
+  val uiSummit = new ControlSubUISummit(this)
+  val uiStopWorry = new ControlSubUIHowILearnStopWorry(this)
 
   var operationListeners: List[Operation => Unit] = List()
 
@@ -60,6 +64,8 @@ class ControlUI(val game: Game) extends JPanel {
   add(uiSelectCardOrCancel, SelectCardOrCancel.toString)
   add(uiYesNo, YesNo.toString)
   add(uiConfirm, Confirm.toString)
+  add(uiSummit, Summit.toString)
+  add(uiStopWorry, StopWorry.toString)
 
   updateState()
 
@@ -194,7 +200,11 @@ class ControlUI(val game: Game) extends JPanel {
           val card = game.currentCard.asInstanceOf[CardNeedsSelection]
           val step = card.getStep(game)
           val stepMeta = card.getStepMeta(game).asInstanceOf[(Int, Boolean, Set[Country] => Boolean)]
-          selectCountryUI(stepMeta._1, 0, Lang.cardTips(card)(step-1), stepMeta._2, stepMeta._3)
+          val rest = if (game.currentCardData != null && game.currentCardData.isInstanceOf[Int])
+            game.currentCardData.asInstanceOf[Int]
+          else
+            0
+          selectCountryUI(stepMeta._1, rest, Lang.cardTips(card)(step-1), stepMeta._2, stepMeta._3)
         } else {
           waitOtherUI()
         }
@@ -211,6 +221,18 @@ class ControlUI(val game: Game) extends JPanel {
           val card = game.currentCard.asInstanceOf[CardNeedsSelection]
           val step = card.getStep(game)
           selectCardUI(Lang.cardTips(card)(step-1))
+        } else {
+          waitOtherUI()
+        }
+      case State.cardEventSpecial =>
+        if (game.playerFaction == game.operatingPlayer) {
+          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
+          val step = card.getStep(game)
+          card match {
+            case Card045Summit => showSubUI(Summit)
+            case Card046HowILearnStopWorry => showSubUI(StopWorry)
+            case Card047Junta => selectOperationUI(Lang.operationSelect)
+          }
         } else {
           waitOtherUI()
         }
@@ -250,6 +272,7 @@ class ControlUI(val game: Game) extends JPanel {
   def selectOperationUI(tip: String) = {
     showSubUI(SelectOperation)
     uiSelectOperation.text(1) = String.format(tip, game.modifyOp(game.playerFaction, game.currentCard.op).toString)
+    uiSelectOperation.influence.setEnabled(game.stateStack.top != State.cardEventSpecial)
     uiSelectOperation.coup.setEnabled(game.canCoup(game.playerFaction))
   }
 
@@ -690,6 +713,35 @@ class ControlSubUIConfirm(parent: ControlUI) extends
 
   override def actionPerformed(e: ActionEvent): Unit = {
     val op = new OperationYesNo(parent.game.playerId, parent.game.playerFaction, true)
+    parent.operationListeners.foreach(_(op))
+  }
+}
+
+class ControlSubUISummit(parent: ControlUI) extends ControlSubUIText(parent, Array("", "", Lang.cardTips(Card045Summit)(0))) {
+
+  val buttonImprove = addButton(Lang.improve, 10, 120, 60, 30)
+  val buttonKeep = addButton(Lang.keep, 70, 120, 60, 30)
+  val buttonDegrade = addButton(Lang.degrade, 130, 120, 60, 30)
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val v = e.getSource match {
+      case this.buttonImprove => 1
+      case this.buttonKeep => 0
+      case this.buttonDegrade => -1
+    }
+    val op = new OperationIntValue(parent.game.playerId, parent.game.playerFaction, v)
+    parent.operationListeners.foreach(_(op))
+  }
+}
+
+class ControlSubUIHowILearnStopWorry(parent: ControlUI)
+  extends ControlSubUIText(parent, Array("", "", Lang.cardTips(Card046HowILearnStopWorry)(0))) {
+
+  val buttons = (1 to 5).map(i => addButton(i.toString, 5 + (5 - i) * 38, 120, 38, 30) -> i).toMap
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val v = buttons(e.getSource.asInstanceOf[JButton])
+    val op = new OperationIntValue(parent.game.playerId, parent.game.playerFaction, v)
     parent.operationListeners.foreach(_(op))
   }
 }

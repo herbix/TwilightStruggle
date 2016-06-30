@@ -21,6 +21,7 @@ class Flag (val flagType: FlagType, val isGoodFlag: Boolean, val priority: Int =
   def canRealignmentOrCoup(country: Country): Option[Boolean] = None
   def canRealignment(country: Country) = canRealignmentOrCoup(country)
   def canCoup(country: Country) = canRealignmentOrCoup(country)
+  def canKeep(game: Game, faction: Faction) = true
   override def compare(that: Flag): Int =
     if (priority > that.priority) -1 else if (priority < that.priority) 1 else
       if (id > that.id) 1 else if (id < that.id) -1 else 0
@@ -125,6 +126,10 @@ object Flags {
       if (country.regions(Region.Europe) && country.getController == US) Some(false) else None
   }
   val MarshallPlan = Flag(Always, true)
+  val SALT = Flag(ThisTurn, false)
+  val MissileEnvy = new Flag(Always, false) {
+    override def canKeep(game: Game, faction: Faction) = game.hand(faction).has(Card049MissileEnvy)
+  }
 
   def init(): Unit = {}
 }

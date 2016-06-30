@@ -14,8 +14,7 @@ import me.herbix.ts.util.{Lang, Resource}
 class HandUI(val game: Game) extends JPanel with ActionListener {
 
   game.stateUpdateListeners :+= (() => {
-    val data = game.currentCardData
-    if (data != null && data.isInstanceOf[CardSet] && game.operatingPlayer == game.playerFaction) {
+    if (hasEventCards && game.operatingPlayer == game.playerFaction) {
       if (!eventCards.isSelected) {
         switchToButton(eventCards)
       }
@@ -186,11 +185,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
             true
           }
         case _ =>
-          if (game.operatingPlayer == game.playerFaction) {
-            card.canPlay(game, game.playerFaction)
-          } else {
-            true
-          }
+          true
       }
     } else {
       true
@@ -233,6 +228,11 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
     }
   }
 
+  def hasEventCards: Boolean = {
+    val data = game.currentCardData
+    data != null && data.isInstanceOf[CardSet]
+  }
+
   def getShowCardSet: CardSet = {
     if (game.playerFaction == Neutral) {
       null
@@ -243,9 +243,8 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
     } else if (discarded.isSelected) {
       game.discards
     } else if (eventCards.isSelected && game.operatingPlayer == game.playerFaction) {
-      val data = game.currentCardData
-      if (data != null && data.isInstanceOf[CardSet]) {
-        data.asInstanceOf[CardSet]
+      if (hasEventCards) {
+        game.currentCardData.asInstanceOf[CardSet]
       } else {
         null
       }

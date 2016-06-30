@@ -10,7 +10,7 @@ import scala.collection.mutable
   * Created by Chaofan on 2016/6/12.
   */
 class CardSet extends mutable.Iterable[Card] {
-  private val cards = mutable.Set[Card]()
+  private val cards = mutable.TreeSet[Card]()
   private var hasChinaCard = false
 
   def cardCount = cards.size + (if (hasChinaCard) 1 else 0)
@@ -24,6 +24,7 @@ class CardSet extends mutable.Iterable[Card] {
       (cards + Cards.chinaCard).iterator
     else
       cards.iterator
+  def iteratorExcludingChinaCard: Iterator[Card] = cards.iterator
 
   def join(iterable: Iterable[Card]): Unit = {
     iterable.foreach(add)

@@ -27,5 +27,9 @@ class Country(val name: String, val stability: Int, val isBattlefield: Boolean, 
       Neutral
   }
 
+  override def hashCode: Int = name.hashCode
+  override def equals(that: Any) = {
+    if (that != null && that.isInstanceOf[Country]) that.asInstanceOf[Country].name == name else false
+  }
   override def toString = name
 }
