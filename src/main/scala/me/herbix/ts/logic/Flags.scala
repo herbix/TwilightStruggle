@@ -130,6 +130,11 @@ object Flags {
   val MissileEnvy = new Flag(Always, false) {
     override def canKeep(game: Game, faction: Faction) = game.hand(faction).has(Card049MissileEnvy)
   }
+  val DeathSquads = Flag(ThisTurn, true)
+  val DeathSquads2 = Flag(ThisTurn, false)
+  val Reformer = new Flag(Always, true, 90) {
+    override def canCoup(country: Country) = if (country.regions(Region.Europe)) Some(false) else None
+  }
 
   def init(): Unit = {}
 }

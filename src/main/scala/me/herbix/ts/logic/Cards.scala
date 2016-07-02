@@ -308,9 +308,8 @@ object Card019TrumanDoctrine extends CardNeedsSelection(19, 1, US, true, cardEve
   stepMeta(0) = (1, false, checkValidFunc)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     if (step == 1) {
-      val detail = input.asInstanceOf[OperationSelectCountry].detail
-      if (detail.nonEmpty) {
-        val country = game.worldMap.countries(detail.head.name)
+      for (c <- input.asInstanceOf[OperationSelectCountry].detail) {
+        val country = game.worldMap.countries(c.name)
         game.modifyInfluence(USSR, false, Map(country -> country.influence(USSR)))
       }
     }
@@ -735,6 +734,8 @@ object Card047Junta extends CardNeedsSelection(47, 2, Neutral, false,
     stepMeta(3) = (1, false, checkValidFunc)
     super.getStepMeta(game)
   }
+  def canCoup(game: Game): Boolean = game.canCoup(game.playerFaction,
+    c => c.regions(Region.MidAmerica) || c.regions(Region.SouthAmerica))
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     step match {
       case 0 => 1
@@ -764,10 +765,10 @@ object Card047Junta extends CardNeedsSelection(47, 2, Neutral, false,
         }
       case 4 =>
         val modifier = game.currentCardData.asInstanceOf[Int]
-        val detail = input.asInstanceOf[OperationSelectCountry].detail
-        if (detail.nonEmpty) {
-          game.coup(detail.head, faction, modifier)
+        for (country <- input.asInstanceOf[OperationSelectCountry].detail) {
+          game.coup(country, faction, modifier)
         }
+        game.currentCardData = null
         5
     }
   }
@@ -1077,6 +1078,14 @@ object Card068JohnPaulII extends CardInstant(68, 2, US, true) {
   }
 }
 
+object Card069LatinAmericaSquads extends CardInstant(69, 2, Neutral, false) {
+  override def instantEvent(game: Game, faction: Faction): Boolean = {
+    game.addFlag(faction, Flags.DeathSquads)
+    game.addFlag(Faction.getOpposite(faction), Flags.DeathSquads2)
+    true
+  }
+}
+
 object Card070OASFounded extends CardNeedsSelection(70, 1, US, true, cardEventInfluence) {
   val checkValidFunc: Map[Country, Int] => Boolean =
     _.forall(e => e._1.regions(Region.MidAmerica) || e._1.regions(Region.SouthAmerica))
@@ -1223,6 +1232,36 @@ object Card086NorthSeaOil extends CardInstant(86, 3, US, true) {
     game.addFlag(US, Flags.NorthSeaOil)
     game.addFlag(US, Flags.NorthSeaOil8Rounds)
     true
+  }
+}
+
+object Card087Reformer extends CardNeedsSelection(87, 3, USSR, true, cardEventInfluence, cardEventInfluence) {
+  val checkValidFunc: Map[Country, Int] => Boolean = _.forall(e => e._1.regions(Region.Europe) && e._2 <= 2)
+  stepMeta(0) = (4, true, true, USSR, checkValidFunc)
+  stepMeta(1) = (6, true, true, USSR, checkValidFunc)
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 0) {
+      if (game.vp < 0) 2 else 1
+    } else {
+      game.modifyInfluence(USSR, true, input.asInstanceOf[OperationModifyInfluence].detail)
+      game.addFlag(USSR, Flags.Reformer)
+      3
+    }
+  }
+}
+
+object Card088BarracksBombing extends CardNeedsSelection(88, 2, USSR, true, cardEventInfluence) {
+  val checkValidFunc: Map[Country, Int] => Boolean =
+    _.forall(e => e._1.regions(Region.Europe) && e._1.name != "Lebanon")
+  stepMeta(0) = (2, false, false, US, checkValidFunc)
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 0) {
+      val lebanon = game.worldMap.countries("Lebanon")
+      game.modifyInfluence(US, false, Map(lebanon -> lebanon.influence(US)))
+    } else if (step == 1) {
+      game.modifyInfluence(USSR, true, input.asInstanceOf[OperationModifyInfluence].detail)
+    }
+    step + 1
   }
 }
 
@@ -1395,7 +1434,7 @@ object Cards {
   addCard(Card066PuppetGovernments)
   addCard(67, 2, US)
   addCard(Card068JohnPaulII)
-  addCard(69, 2, Neutral)
+  addCard(Card069LatinAmericaSquads)
   addCard(Card070OASFounded)
   addCard(Card071NixonPlaysTheChinaCard)
   addCard(Card072SadatExpelsSoviets)
@@ -1413,8 +1452,8 @@ object Cards {
   addCard(Card084ReaganBombsLibya)
   addCard(85, 2, US)
   addCard(Card086NorthSeaOil)
-  addCard(87, 3, USSR)
-  addCard(88, 2, USSR)
+  addCard(Card087Reformer)
+  addCard(Card088BarracksBombing)
   addCard(89, 4, US)
   addCard(90, 4, USSR)
   addCard(91, 2, USSR)

@@ -123,12 +123,7 @@ class ControlUI(val game: Game) extends JPanel {
       case State.cardOperationAddInfluence =>
         if (game.playerFaction == game.operatingPlayer) {
           addInfluenceUI(game.currentCard.op, Lang.operationAddInfluence, true, false, true, true, game.playerFaction,
-            _.forall(e => {
-              val country = e._1
-              country.influence(game.playerFaction) > 0 ||
-                game.worldMap.links(country.name).exists(game.worldMap.countries(_).influence(game.playerFaction) > 0)
-            })
-          )
+            game.addInfluenceCondition(game.playerFaction))
         } else {
           waitOtherUI()
         }
@@ -231,7 +226,10 @@ class ControlUI(val game: Game) extends JPanel {
           card match {
             case Card045Summit => showSubUI(Summit)
             case Card046HowILearnStopWorry => showSubUI(StopWorry)
-            case Card047Junta => selectOperationUI(Lang.operationSelect)
+            case Card047Junta =>
+              selectOperationUI(Lang.operationSelect)
+              uiSelectOperation.influence.setEnabled(false)
+              uiSelectOperation.coup.setEnabled(Card047Junta.canCoup(game))
           }
         } else {
           waitOtherUI()
@@ -272,7 +270,8 @@ class ControlUI(val game: Game) extends JPanel {
   def selectOperationUI(tip: String) = {
     showSubUI(SelectOperation)
     uiSelectOperation.text(1) = String.format(tip, game.modifyOp(game.playerFaction, game.currentCard.op).toString)
-    uiSelectOperation.influence.setEnabled(game.stateStack.top != State.cardEventSpecial)
+    uiSelectOperation.influence.setEnabled(true)
+    uiSelectOperation.realignment.setEnabled(true)
     uiSelectOperation.coup.setEnabled(game.canCoup(game.playerFaction))
   }
 

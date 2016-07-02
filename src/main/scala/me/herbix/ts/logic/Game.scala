@@ -750,6 +750,14 @@ class Game {
     toSendPendingOperations = false
   }
 
+  def addInfluenceCondition(faction: Faction)(targets: Map[Country, Int]): Boolean = {
+    targets.forall(e => {
+      val country = e._1
+      country.influence(faction) > 0 ||
+        worldMap.links(country.name).exists(worldMap.countries(_).influence(faction) > 0)
+    })
+  }
+
   def nextStateOperationInfluence(input: Operation) = {
     val op = input.asInstanceOf[OperationModifyInfluence]
     modifyInfluence(op.faction, op.isAdd, op.detail)
@@ -778,8 +786,8 @@ class Game {
     true
   }
 
-  def canCoup(faction: Faction): Boolean = {
-    worldMap.countries.exists(e => canCoup(faction, e._2))
+  def canCoup(faction: Faction, filter: Country => Boolean = _ => true): Boolean = {
+    worldMap.countries.exists(e => filter(e._2) && canCoup(faction, e._2))
   }
 
   def getCurrentRealignmentRest(faction: Faction): Int =
@@ -863,8 +871,10 @@ class Game {
 
   def coup(country: Country, faction: Faction, op: Int): Unit = {
     val rollResult = rollDice()
-    val modifierSalt = if (flags.hasFlag(Flags.SALT)) 1 else 0
-    val coupFactor = Math.max(0, rollResult + op - 2 * country.stability - modifierSalt)
+    val modifierSalt = if (flags.hasFlag(Flags.SALT)) -1 else 0
+    val modifierDeathSquads = if (flags.hasFlag(faction, Flags.DeathSquads)) 1 else
+      if (flags.hasFlag(faction, Flags.DeathSquads2)) -1 else 0
+    val coupFactor = Math.max(0, rollResult + op - 2 * country.stability + modifierSalt + modifierDeathSquads)
 
     recordHistory(new HistoryOperationCoup(faction, country, rollResult, op, coupFactor))
 

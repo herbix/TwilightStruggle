@@ -615,6 +615,9 @@ object Lang {
   addFlagInfo("马歇尔计划", "可作为事件打出“北大西洋公约组织”。")
   addFlagInfo("限制战略武器谈判", "双方政变的掷骰-1。")
   addFlagInfo("导弹嫉妒", "%s下个行动轮必须以行动力方式使用掉“导弹嫉妒”。")
+  addFlagInfo("拉丁美洲敢死队", "%s在中南美的政变+1行动力。")
+  addFlagInfo("拉丁美洲敢死队", "%s在中南美的政变-1行动力。")
+  addFlagInfo("改革者", "苏联不能在欧洲发动政变。\n增强“开放”的效果。")
 
   val cardTips = mutable.Map.empty[Card, Array[String]]
   cardTips += Card007SocialistGovernments -> Array("请从西欧移除%s美国影响力")
@@ -647,6 +650,9 @@ object Lang {
   cardTips += Card074VoiceOfAmerica -> Array("请移除非欧洲%s苏联影响力")
   cardTips += Card075LiberationTheology -> Array("请在中美洲放置%s影响力")
   cardTips += Card076UssuriRiverSkirmish -> Array("请在亚洲放置%s影响力")
+
+  cardTips += Card087Reformer -> Array("请在欧洲增加%s影响力", "请在欧洲增加%s影响力")
+  cardTips += Card088BarracksBombing -> Array("请移除中东%s美国影响力")
 
   cardTips += Card102IranIraqWar -> Array("请选择两伊战争被入侵国")
 
