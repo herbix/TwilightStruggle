@@ -7,6 +7,8 @@ import javax.swing._
 
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic
+import me.herbix.ts.logic.State
+import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
 import me.herbix.ts.util.{Lang, Resource}
 
@@ -31,8 +33,12 @@ class ControlUI(val game: Game) extends JPanel {
     val YesNo = Value
     val Confirm = Value
     val SelectRegion = Value
+    val SelectMultipleCards = Value
+    val GameOver = Value
+    // Special
     val Summit = Value
     val StopWorry = Value
+    val GrainSales = Value
   }
 
   import UIType._
@@ -50,8 +56,12 @@ class ControlUI(val game: Game) extends JPanel {
   val uiYesNo = new ControlSubUIYesNo(this)
   val uiConfirm = new ControlSubUIConfirm(this)
   val uiSelectRegion = new ControlSubUISelectRegion(this)
+  val uiSelectMultipleCards = new ControlSubUISelectMultipleCards(this)
+  val uiGameOver = new ControlSubUIText(this, Array("", "", Lang.gameOver, "", Lang.winnerIs))
+  // Special
   val uiSummit = new ControlSubUISummit(this)
   val uiStopWorry = new ControlSubUIHowILearnStopWorry(this)
+  val uiGrainSales = new ControlSubUIGrainSales(this)
 
   var operationListeners: List[Operation => Unit] = List()
 
@@ -67,8 +77,11 @@ class ControlUI(val game: Game) extends JPanel {
   add(uiYesNo, YesNo.toString)
   add(uiConfirm, Confirm.toString)
   add(uiSelectRegion, SelectRegion.toString)
+  add(uiSelectMultipleCards, SelectMultipleCards.toString)
+  // Special
   add(uiSummit, Summit.toString)
   add(uiStopWorry, StopWorry.toString)
+  add(uiGrainSales, GrainSales.toString)
 
   updateState()
 
@@ -114,6 +127,12 @@ class ControlUI(val game: Game) extends JPanel {
       case State.selectCardAndAction =>
         if (game.playerFaction == game.operatingPlayer) {
           selectCardAndActionUI()
+        } else {
+          waitOtherUI()
+        }
+      case State.selectAction =>
+        if (game.playerFaction == game.operatingPlayer) {
+          selectCardAndActionUI(game.currentCard)
         } else {
           waitOtherUI()
         }
@@ -222,6 +241,14 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
+      case State.cardEventSelectMultipleCards =>
+        if (game.playerFaction == game.operatingPlayer) {
+          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
+          val step = card.getStep(game)
+          selectMultipleCardsUI(Lang.cardTips(card)(step-1))
+        } else {
+          waitOtherUI()
+        }
       case State.cardEventSpecial =>
         if (game.playerFaction == game.operatingPlayer) {
           val card = game.currentCard.asInstanceOf[CardNeedsSelection]
@@ -233,6 +260,9 @@ class ControlUI(val game: Game) extends JPanel {
               selectOperationUI(Lang.operationSelect)
               uiSelectOperation.influence.setEnabled(false)
               uiSelectOperation.coup.setEnabled(Card047Junta.canCoup(game))
+            case Card067GrainSales =>
+              showSubUI(GrainSales)
+              uiGrainSales.setCard(game.currentCardData.asInstanceOf[Card])
             case Card089ShootDownKAL007 | Card090Glasnost =>
               selectOperationUI(Lang.operationSelect)
               uiSelectOperation.coup.setEnabled(false)
@@ -245,6 +275,7 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
+      case State.end => gameOverUI()
       case _ => waitOtherUI()
     }
     repaint()
@@ -273,9 +304,19 @@ class ControlUI(val game: Game) extends JPanel {
     uiSelectCard.updateCard()
   }
 
-  def selectCardAndActionUI() = {
+  def selectMultipleCardsUI(tip: String) = {
+    showSubUI(SelectMultipleCards)
+    uiSelectMultipleCards.text(2) = tip
+  }
+
+  def selectCardAndActionUI(card: Card = null) = {
     showSubUI(SelectCardAndAction)
-    uiSelectCardAndAction.resetCard()
+    if (card == null) {
+      uiSelectCardAndAction.resetCard()
+    } else {
+      uiSelectCardAndAction.setCard(card)
+    }
+    uiSelectCardAndAction.isLocked = card != null
   }
 
   def selectOperationUI(tip: String) = {
@@ -316,6 +357,11 @@ class ControlUI(val game: Game) extends JPanel {
     showSubUI(SelectRegion)
   }
 
+  def gameOverUI(): Unit = {
+    showSubUI(GameOver)
+    uiGameOver.text(4) = String.format(Lang.winnerIs, Lang.getFactionName(game.operatingPlayer))
+  }
+
 }
 
 abstract class ControlSubUIBase(val control: ControlUI) extends JPanel with ActionListener {
@@ -351,15 +397,21 @@ class ControlSubUIText(parent: ControlUI, val text: Array[String]) extends Contr
   }
 }
 
+object ControlSubUICard {
+  var cardHoverListeners: List[Card => Unit] = List()
+}
+
 abstract class ControlSubUICard(parent: ControlUI, array: Array[String]) extends ControlSubUIText(parent, array) {
   var img = Resource.card(0)
   var card = Cards.fromId(0)
 
-  var cardHoverListeners: List[Card => Unit] = List()
+  var isLocked = false
 
   def resetCard() = setCard(Cards.fromId(0))
 
   def setCard(card: Card): Unit = {
+    if (isLocked) return
+
     img = Resource.card(card.id)
     this.card = card
     updateCard()
@@ -387,7 +439,7 @@ abstract class ControlSubUICard(parent: ControlUI, array: Array[String]) extends
       val x = e.getX
       val y = e.getY
       if (x >= 10 && x < 110 && y >= 45 && y < 185) {
-        cardHoverListeners.foreach(_(card))
+        ControlSubUICard.cardHoverListeners.foreach(_(card))
       }
     }
     override def mouseDragged(e: MouseEvent): Unit = {}
@@ -444,12 +496,12 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
   def updatePendingInfluenceChange(): Unit = {
     tableModel.setRowCount(0)
     for ((country, modifyValue) <- pendingInfluenceChange) {
-      val influence = country.influence(parent.game.playerFaction)
+      val influence = country.influence(targetFaction)
       val changedValue = influence + modifyValue * (if (isAdd) 1 else -1)
       tableModel.addRow(Array[Object](new CountryDelegate(country), f"$influence -> $changedValue"))
     }
     val rest = getPoint -
-      parent.game.calculateInfluenceCost(pendingInfluenceChange, parent.game.playerFaction, ignoreControl)
+      parent.game.calculateInfluenceCost(pendingInfluenceChange, targetFaction, ignoreControl)
     text(0) = String.format(tip, rest.toString)
     buttonDone.setEnabled(rest == 0 || !mustAllPoints)
     if (tableModel.getRowCount > 0) {
@@ -732,6 +784,49 @@ class ControlSubUIConfirm(parent: ControlUI) extends
   }
 }
 
+class ControlSubUISelectRegion(parent: ControlUI)
+  extends ControlSubUIText(parent, Array("", Lang.selectRegion)) {
+
+  val buttons = Map(
+    addButton(Lang.getRegionName(Region.Europe), 25, 85, 70, 30) -> Region.Europe,
+    addButton(Lang.getRegionName(Region.Asia), 105, 85, 70, 30) -> Region.Asia,
+    addButton(Lang.getRegionName(Region.MidEast), 25, 120, 70, 30) -> Region.MidEast,
+    addButton(Lang.getRegionName(Region.Africa), 105, 120, 70, 30) -> Region.Africa,
+    addButton(Lang.getRegionName(Region.MidAmerica), 25, 155, 70, 30) -> Region.MidAmerica,
+    addButton(Lang.getRegionName(Region.SouthAmerica), 105, 155, 70, 30) -> Region.SouthAmerica
+  )
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val region = buttons(e.getSource.asInstanceOf[JButton])
+    val op = new OperationSelectRegion(parent.game.playerId, parent.game.playerFaction, region)
+    parent.operationListeners.foreach(_(op))
+  }
+}
+
+class ControlSubUISelectMultipleCards(parent: ControlUI)
+  extends ControlSubUIText(parent, Array("", "", "")) {
+
+  var pendingCardSelection: mutable.Set[Card] = null
+  val buttonConfirm = addButton(Lang.done, 65, 120, 70, 30)
+
+  var updateListeners: List[() => Unit] = List()
+
+  def toggleCard(card: Card) = {
+    if (pendingCardSelection(card)) {
+      pendingCardSelection -= card
+    } else {
+      pendingCardSelection += card
+    }
+    updateListeners.foreach(_())
+  }
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val op = new OperationSelectCards(parent.game.playerId, parent.game.playerFaction, pendingCardSelection.toSet)
+    parent.operationListeners.foreach(_(op))
+    pendingCardSelection.clear()
+  }
+}
+
 class ControlSubUISummit(parent: ControlUI) extends ControlSubUIText(parent, Array("", "", Lang.cardTips(Card045Summit)(0))) {
 
   val buttonImprove = addButton(Lang.improve, 10, 120, 60, 30)
@@ -761,22 +856,22 @@ class ControlSubUIHowILearnStopWorry(parent: ControlUI)
   }
 }
 
-class ControlSubUISelectRegion(parent: ControlUI)
-  extends ControlSubUIText(parent, Array("", Lang.selectRegion)) {
+class ControlSubUIGrainSales(parent: ControlUI)
+  extends ControlSubUICard(parent, Array(Lang.cardTips(Card067GrainSales)(0))) {
 
-  val buttons = Map(
-    addButton(Lang.getRegionName(Region.Europe), 25, 85, 70, 30) -> Region.Europe,
-    addButton(Lang.getRegionName(Region.Asia), 105, 85, 70, 30) -> Region.Asia,
-    addButton(Lang.getRegionName(Region.MidEast), 25, 120, 70, 30) -> Region.MidEast,
-    addButton(Lang.getRegionName(Region.Africa), 105, 120, 70, 30) -> Region.Africa,
-    addButton(Lang.getRegionName(Region.MidAmerica), 25, 155, 70, 30) -> Region.MidAmerica,
-    addButton(Lang.getRegionName(Region.SouthAmerica), 105, 155, 70, 30) -> Region.SouthAmerica
-  )
+  val buttonPlay = addButton(Lang.play, 120, 70, 70, 30)
+  val buttonReturn = addButton(Lang.giveBack, 120, 130, 70, 30)
 
-  override def actionPerformed(e: ActionEvent): Unit = {
-    val region = buttons(e.getSource.asInstanceOf[JButton])
-    val op = new OperationSelectRegion(parent.game.playerId, parent.game.playerFaction, region)
-    parent.operationListeners.foreach(_(op))
+  override def updateCard(): Unit = {
+    buttonPlay.setEnabled(card.id != 0)
   }
 
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val v = e.getSource match {
+      case this.buttonPlay => true
+      case this.buttonReturn => false
+    }
+    val op = new OperationYesNo(parent.game.playerId, parent.game.playerFaction, v)
+    parent.operationListeners.foreach(_(op))
+  }
 }

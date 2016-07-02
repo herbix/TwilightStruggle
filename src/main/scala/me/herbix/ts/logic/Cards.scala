@@ -97,18 +97,22 @@ abstract class CardNeedsSelection(id: Int, op: Int, faction: Faction, isRemovedA
     } else if (nextStep != -1) {
       game.stateStack.push(cardEventStep(nextStep))
       game.stateStack.push(steps(nextStep-1))
-      if (steps(nextStep-1) == cardEventOperation) {
-        game.stateStack.push(cardOperationSelect)
+      steps(nextStep-1) match {
+        case State.cardEventOperation =>
+          game.stateStack.push(cardOperationSelect)
+        case State.cardEventAnotherCard =>
+          game.stateStack.push(selectAction)
+        case _ =>
       }
     }
   }
 }
 
-class CardScoring(id: Int, val region: Region, val presence: Int, val domination: Int, val control: Int)
+class CardScoring(id: Int, val region: Region)
   extends CardInstant(id, 0, Neutral, false) {
   override def canHeld(game: Game) = false
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    game.scoring(region, presence, domination, control)
+    game.scoring(region)
     game.checkVp()
     true
   }
@@ -118,9 +122,9 @@ object Card000Unknown extends Card(0, 0, Neutral, false) {
   override def nextState(game: Game, faction: Faction, input: Operation): Unit = throw new NotImplementedError()
 }
 
-object Card001AsiaScoring extends CardScoring(1, Region.Asia, 3, 7, 9)
-object Card002EuropeScoring extends CardScoring(2, Region.Europe, 3, 7, 1000)
-object Card003MidEastScoring extends CardScoring(3, Region.MidEast, 3, 5, 7)
+object Card001AsiaScoring extends CardScoring(1, Region.Asia)
+object Card002EuropeScoring extends CardScoring(2, Region.Europe)
+object Card003MidEastScoring extends CardScoring(3, Region.MidEast)
 
 object Card004DuckNCover extends CardInstant(4, 3, US, false) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
@@ -619,7 +623,7 @@ object Card036BrushWar extends CardNeedsSelection(36, 3, Neutral, false, cardEve
   }
 }
 
-object Card037MidAmericaScoring extends CardScoring(37, Region.MidAmerica, 1, 3, 5)
+object Card037MidAmericaScoring extends CardScoring(37, Region.MidAmerica)
 
 object Card038SEAsiaScoring extends CardInstant(38, 0, Neutral, true) {
   override def canHeld(game: Game) = false
@@ -678,6 +682,7 @@ object Card043SALTNegotiations extends CardNeedsSelection(43, 3, Neutral, true, 
     if (step == 0) {
       game.setDefcon(game.defcon + 2)
       game.addFlag(Neutral, Flags.SALT)
+      if (game.discards.isEmpty) return 2
       game.currentCardData = game.discards
     } else if (step == 1) {
       game.currentCardData = null
@@ -966,9 +971,11 @@ object Card058CulturalRevolution extends CardInstant(58, 3, USSR, true) {
     val chinaCard = Cards.chinaCard
     if (game.hand(US).has(chinaCard)) {
       game.hand(US).remove(chinaCard)
-      game.discardCard(chinaCard, US, true, true)
+      game.hand(USSR).add(chinaCard)
       game.flags.removeFlag(US, Flags.CantPlayChinaCard)
       game.flags.removeFlag(USSR, Flags.CantPlayChinaCard)
+      game.recordHistory(new HistoryLoseCard(US, chinaCard))
+      game.recordHistory(new HistoryGetCard(USSR, chinaCard))
     } else {
       game.addVpAndCheck(USSR, 1)
     }
@@ -1075,6 +1082,37 @@ object Card066PuppetGovernments extends CardNeedsSelection(66, 2, US, true, card
   }
 }
 
+object Card067GrainSales extends CardNeedsSelection(67, 2, US, false,
+  cardEventSpecial, cardEventOperation, cardEventAnotherCard) {
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    step match {
+      case 0 =>
+        if (game.hand(USSR).cardCountExcludingChinaCard > 0) {
+          val card = game.hand(USSR).pick(game.random)
+          game.currentCardData = card
+          1
+        } else {
+          2
+        }
+      case 1 =>
+        if (input.asInstanceOf[OperationYesNo].value) {
+          val card = game.currentCardData.asInstanceOf[Card]
+          game.hand(USSR).remove(card)
+          game.recordHistory(new HistoryLoseCard(USSR, card))
+          game.currentCardChange(card)
+          game.currentCardData = null
+          3
+        } else {
+          game.currentCardData = null
+          2
+        }
+      case 2 => 4
+      case 3 =>
+        4
+    }
+  }
+}
+
 object Card068JohnPaulII extends CardInstant(68, 2, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val poland = game.worldMap.countries("Poland")
@@ -1110,8 +1148,11 @@ object Card071NixonPlaysTheChinaCard extends CardInstant(71, 2, US, true) {
     val chinaCard = Cards.chinaCard
     if (game.hand(USSR).has(chinaCard)) {
       game.hand(USSR).remove(chinaCard)
-      game.discardCard(chinaCard, USSR, true, true)
+      game.hand(US).add(chinaCard)
       game.flags.removeFlag(USSR, Flags.CantPlayChinaCard)
+      game.flags.addFlag(US, Flags.CantPlayChinaCard)
+      game.recordHistory(new HistoryLoseCard(USSR, chinaCard))
+      game.recordHistory(new HistoryGetCard(US, chinaCard))
     } else {
       game.addVpAndCheck(US, 2)
     }
@@ -1165,9 +1206,11 @@ object Card076UssuriRiverSkirmish extends CardNeedsSelection(76, 3, US, true, ca
       val chinaCard = Cards.chinaCard
       if (game.hand(USSR).has(chinaCard)) {
         game.hand(USSR).remove(chinaCard)
-        game.discardCard(chinaCard, USSR, true, true)
-        game.flags.removeFlag(US, Flags.CantPlayChinaCard)
+        game.hand(US).add(chinaCard)
         game.flags.removeFlag(USSR, Flags.CantPlayChinaCard)
+        game.flags.removeFlag(US, Flags.CantPlayChinaCard)
+        game.recordHistory(new HistoryLoseCard(USSR, chinaCard))
+        game.recordHistory(new HistoryGetCard(US, chinaCard))
         2
       } else {
         1
@@ -1178,6 +1221,24 @@ object Card076UssuriRiverSkirmish extends CardNeedsSelection(76, 3, US, true, ca
     } else {
       step + 1
     }
+  }
+}
+
+object Card077AskNotWhatYourCountry extends CardNeedsSelection(77, 3, US, true, cardEventSelectMultipleCards) {
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 1) {
+      val cards = input.asInstanceOf[OperationSelectCards].cards
+      val hand = game.hand(US)
+      for (card <- cards) {
+        hand.remove(card)
+        game.discardCard(card, US, true, true)
+      }
+      for (i <- 0 until cards.size) {
+        hand.add(game.pickCardFromDeck())
+      }
+      game.recordHistory(new HistoryPickCard(US, cards.size))
+    }
+    step + 1
   }
 }
 
@@ -1193,7 +1254,7 @@ object Card078AllianceForProgress extends CardInstant(78, 3, US, true) {
   }
 }
 
-object Card079AfricaScoring extends CardScoring(79, Region.Africa, 1, 4, 6)
+object Card079AfricaScoring extends CardScoring(79, Region.Africa)
 
 object Card080SmallStep extends CardInstant(80, 2, Neutral, false) {
   override def canEvent(game: Game, faction: Faction) =
@@ -1204,7 +1265,7 @@ object Card080SmallStep extends CardInstant(80, 2, Neutral, false) {
   }
 }
 
-object Card081SouthAmericaScoring extends CardScoring(81, Region.SouthAmerica, 2, 5, 6)
+object Card081SouthAmericaScoring extends CardScoring(81, Region.SouthAmerica)
 
 object Card082IranianHostage extends CardInstant(82, 3, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
@@ -1231,6 +1292,31 @@ object Card084ReaganBombsLibya extends CardInstant(84, 2, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addVpAndCheck(US, game.worldMap.countries("Libya").influence(USSR) / 2)
     true
+  }
+}
+
+object Card085StarWars extends CardNeedsSelection(85, 2, US, true, cardEventSelectCard) {
+  stepMeta(0) = (game: Game, card: Card) => card.canHeld(game) && card.canEvent(game, game.operatingPlayer)
+  override def canEvent(game: Game, faction: Faction) =
+    game.space(US).level > game.space(USSR).level && game.discards.nonEmpty
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 0) {
+      game.currentCardData = game.discards
+      1
+    } else {
+      game.currentCardData = null
+      val card = input.asInstanceOf[OperationSelectCard].card
+
+      game.discards.remove(card)
+      game.discardCard(card, US)
+
+      game.currentCard = card
+      game.operatingPlayer = card.getOperatingPlayer(faction)
+      game.recordHistory(new HistoryEvent(faction, game.currentCard))
+      game.stateStack.push(cardEventStart)
+      card.nextState(game, faction, null)
+      -1
+    }
   }
 }
 
@@ -1631,7 +1717,7 @@ object Cards {
   addCard(Card064PanamaCanalReturned)
   addCard(Card065CampDavidAccords)
   addCard(Card066PuppetGovernments)
-  addCard(67, 2, US)
+  addCard(Card067GrainSales)
   addCard(Card068JohnPaulII)
   addCard(Card069LatinAmericaSquads)
   addCard(Card070OASFounded)
@@ -1641,7 +1727,7 @@ object Cards {
   addCard(Card074VoiceOfAmerica)
   addCard(Card075LiberationTheology)
   addCard(Card076UssuriRiverSkirmish)
-  addCard(77, 3, US)
+  addCard(Card077AskNotWhatYourCountry)
   addCard(Card078AllianceForProgress)
   addCard(Card079AfricaScoring)
   addCard(Card080SmallStep)
@@ -1649,7 +1735,7 @@ object Cards {
   addCard(Card082IranianHostage)
   addCard(Card083TheIronLady)
   addCard(Card084ReaganBombsLibya)
-  addCard(85, 2, US)
+  addCard(Card085StarWars)
   addCard(Card086NorthSeaOil)
   addCard(Card087Reformer)
   addCard(Card088BarracksBombing)
@@ -1676,7 +1762,7 @@ object Cards {
   addCard(109, 2, USSR)
   addCard(110, 3, US)
 
-  println("Featured Cards: " + cardMap.values.count(!_.isInstanceOf[DefaultCard]))
+  println("Featured Cards: " + (cardMap.values.count(!_.isInstanceOf[DefaultCard]) - 1))
 
   def fromId(id: Int): Card = cardMap(id)
 

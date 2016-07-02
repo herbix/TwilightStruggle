@@ -17,6 +17,14 @@ object Region extends Enumeration {
   val SouthEastAsiaSet = Set(SouthEastAsia, Asia)
 
   val MainRegionSet = Set(Europe, MidEast, Asia, Africa, MidAmerica, SouthAmerica)
+  val ScoringInfo = Map(
+    Asia -> (3, 7, 9),
+    Europe -> (3, 7, 1000),
+    MidEast -> (3, 5, 7),
+    MidAmerica -> (1, 3, 5),
+    Africa -> (1, 4, 6),
+    SouthAmerica -> (2, 5, 6)
+  )
 
   object RegionState extends Enumeration {
     type RegionState = Value

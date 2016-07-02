@@ -87,6 +87,7 @@ class GameUI(playerId: Int) extends JFrame {
   val pendingInfluenceChange: mutable.Map[Country, Int] = mutable.Map()
   controlUI.uiInfluence.pendingInfluenceChange = pendingInfluenceChange
   worldMapUI.pendingInfluenceChange = pendingInfluenceChange
+
   worldMapUI.countryClickListeners :+= ((country: Country, button: Int) => {
     if (button == MouseEvent.BUTTON1) {
       controlUI.uiType match {
@@ -96,6 +97,7 @@ class GameUI(playerId: Int) extends JFrame {
       }
     }
   })
+
   handUI.cardClickListeners :+= ((card: Card) => {
     val hasEventCards = handUI.hasEventCards
     if ((handUI.selfHand.isSelected && !hasEventCards) || (handUI.eventCards.isSelected && hasEventCards)) {
@@ -106,10 +108,13 @@ class GameUI(playerId: Int) extends JFrame {
           controlUI.uiSelectCardAndAction.setCard(card)
         case controlUI.UIType.SelectCardOrCancel =>
           controlUI.uiSelectCardOrCancel.setCard(card)
+        case controlUI.UIType.SelectMultipleCards =>
+          controlUI.uiSelectMultipleCards.toggleCard(card)
         case _ =>
       }
     }
   })
+
   controlUI.uiInfluence.updateListeners :+= (() => {
     worldMapUI.pendingInfluenceFaction = controlUI.uiInfluence.targetFaction
     worldMapUI.pendingInfluenceIsAdd = controlUI.uiInfluence.isAdd
@@ -119,15 +124,15 @@ class GameUI(playerId: Int) extends JFrame {
   worldMapUI.countryHoverListeners :+= ((country: Country) => {
     detailUI.setCountry(country)
   })
+
   handUI.cardHoverListeners :+= ((card: Card) => {
     detailUI.setCard(card)
   })
-  controlUI.uiSelectCard.cardHoverListeners :+= ((card: Card) => {
+
+  ControlSubUICard.cardHoverListeners :+= ((card: Card) => {
     detailUI.setCard(card)
   })
-  controlUI.uiSelectCardAndAction.cardHoverListeners :+= ((card: Card) => {
-    detailUI.setCard(card)
-  })
+
   flagsUI.flagHoverListeners :+= ((faction: Faction, flag: Flag, flagData: Any) => {
     detailUI.setFlag(faction, flag, flagData)
   })
@@ -146,6 +151,14 @@ class GameUI(playerId: Int) extends JFrame {
         detailUI.setCard(h.card)
       case _ =>
     }
+  })
+
+  val pendingCardSelection: mutable.Set[Card] = mutable.Set()
+  controlUI.uiSelectMultipleCards.pendingCardSelection = pendingCardSelection
+  handUI.pendingCardSelection = pendingCardSelection
+
+  controlUI.uiSelectMultipleCards.updateListeners :+= (() => {
+    handUI.repaint()
   })
 
 

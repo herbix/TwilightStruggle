@@ -28,3 +28,5 @@ class OperationYesNo(playerId: Int, faction: Faction, val value: Boolean) extend
 class OperationIntValue(playerId: Int, faction: Faction, val value: Int) extends Operation(playerId, faction)
 
 class OperationSelectRegion(playerId: Int, faction: Faction, val region: Region) extends Operation(playerId, faction)
+
+class OperationSelectCards(playerId: Int, faction: Faction, val cards: Set[Card]) extends Operation(playerId, faction)

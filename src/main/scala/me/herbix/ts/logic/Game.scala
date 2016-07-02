@@ -128,7 +128,7 @@ class Game {
       case State.selectHeadlineCard2 => nextStateSelectHeadline(input)
       case State.solveHeadLineCard1 => nextStateSolveHeadline1()
       case State.solveHeadLineCard2 => nextStateSolveHeadline2()
-      case State.selectCardAndAction => nextStateSelectCardAndAction(input)
+      case State.selectCardAndAction | State.selectAction => nextStateSelectCardAndAction(input)
       case State.cardEvent => nextStateCardEvent()
       case State.cardOperationSelect => nextStateOperationSelect(input)
       case State.cardOperationAddInfluence => nextStateOperationInfluence(input)
@@ -145,18 +145,29 @@ class Game {
     if (stateStack.top == cardEventEnd) {
       stateStack.pop()
       nextState(null, stateStack.top)
-    } else if (stateStack.top == cardOperation || stateStack.top == cardEventOperation) {
+    } else if (stateStack.top == cardOperation || stateStack.top == cardEventOperation || stateStack.top == cardEventAnotherCard) {
       nextState(null, stateStack.top)
     }
   }
 
-  private def nextState(input: Operation): Unit = {
-    toSendPendingOperations = true
+  private def nextStateContainsException(input: Operation): Unit = {
     stateStack.top match {
       case State.waitOther =>
         val top2 = stateStack(1)
         nextState(input, top2)
       case other => nextState(input, other)
+    }
+  }
+
+  private def nextState(input: Operation): Unit = {
+    toSendPendingOperations = true
+    try {
+      nextStateContainsException(input)
+    } catch {
+      case e: GameOverException =>
+        operatingPlayer = e.winner
+        toSendPendingOperations = true
+        stateStack.push(end)
     }
     if (toSendPendingOperations) {
       sendPendingOperations()
@@ -227,7 +238,7 @@ class Game {
     recordHistory(new HistoryTurnRound(turn, -1, Neutral))
   }
 
-  private def pickCardFromDeck(): Card = {
+  def pickCardFromDeck(): Card = {
     if (deck.cardCount == 0) {
       deck.join(discards)
       discards.clear()
@@ -268,9 +279,6 @@ class Game {
       worldMap.countries("South Africa") -> 1,
       worldMap.countries("UK") -> 5
     ))
-
-    // TODO test
-    //hand(US).add(Card094Chernobyl)
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -653,10 +661,12 @@ class Game {
         }
         op.card.afterPlay(this, op.faction)
         stateStack.pop()
-        if (nextRound()) {
-          stateStack.push(nextActionState)
-        } else {
-          nextTurn()
+        if (stateStack.isEmpty) {
+          if (nextRound()) {
+            stateStack.push(nextActionState)
+          } else {
+            nextTurn()
+          }
         }
       case Action.Event =>
         discardCard(op.card, op.faction)
@@ -716,10 +726,12 @@ class Game {
         currentCard.afterPlay(this, operatingPlayer)
         currentCard = null
         stateStack.pop()
-        if (nextRound()) {
-          stateStack.push(nextActionState)
-        } else {
-          nextTurn()
+        if (stateStack.isEmpty) {
+          if (nextRound()) {
+            stateStack.push(nextActionState)
+          } else {
+            nextTurn()
+          }
         }
     }
   }
@@ -926,10 +938,12 @@ class Game {
         currentCard.afterPlay(this, operatingPlayer)
         currentCard = null
         stateStack.pop()
-        if (nextRound()) {
-          stateStack.push(nextActionState)
-        } else {
-          nextTurn()
+        if (stateStack.isEmpty) {
+          if (nextRound()) {
+            stateStack.push(nextActionState)
+          } else {
+            nextTurn()
+          }
         }
     }
   }
@@ -1000,12 +1014,17 @@ class Game {
     }
   }
 
-  def scoring(region: Region, presence: Int, domination: Int, control: Int): Unit = {
+  def scoring(region: Region): Unit = {
+    val info = Region.ScoringInfo(region)
+    val presence = info._1
+    val domination = info._2
+    val control = info._3
+
     val targetCountries = worldMap.countries.values.filter(_.regions(region))
     val battlefieldCount = targetCountries.count(_.isBattlefield)
     var usBattlefield = targetCountries.count(country => country.isBattlefield && country.getController == US)
     val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController == US)
-    val ussrBattlefield = targetCountries.count(country => country.isBattlefield && country.getController == USSR)
+    var ussrBattlefield = targetCountries.count(country => country.isBattlefield && country.getController == USSR)
     val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController == USSR)
     val usAll = usBattlefield + usNonBattlefield
     val ussrAll = ussrBattlefield + ussrNonBattlefield
@@ -1013,6 +1032,11 @@ class Game {
     val taiwan = worldMap.countries("Taiwan")
     if (taiwan.regions(region) && taiwan.getController == US && flags.hasFlag(US, Flags.Taiwan)) {
       usBattlefield += 1
+    }
+
+    val useShuttleDiplomacy = flags.hasFlag(Flags.ShuttleDiplomacy) && (region == Region.Asia || region == Region.MidEast)
+    if (useShuttleDiplomacy) {
+      ussrBattlefield -= 1
     }
 
     val usPresence = usBattlefield > 0 || usNonBattlefield > 0
@@ -1031,18 +1055,35 @@ class Game {
     usVp += targetCountries.count(country => country.getController == US && worldMap.links(country.name)("USSR"))
     ussrVp += targetCountries.count(country => country.getController == USSR && worldMap.links(country.name)("US"))
 
+    if (useShuttleDiplomacy) {
+      ussrVp -= (if (targetCountries.exists(country => {
+        country.getController == USSR && worldMap.links(country.name)("US") && country.isBattlefield
+      })) 1 else 0)
+    }
+
     recordHistory(new HistoryScoring(region, usBattlefield, ussrBattlefield, usAll, ussrAll))
 
     addVp(US, usVp)
     addVp(USSR, ussrVp)
+
+    if (useShuttleDiplomacy) {
+      flags.removeFlag(US, Flags.ShuttleDiplomacy)
+      discards.add(Card073ShuttleDiplomacy)
+    }
   }
 
   def finalScoring(): Unit = {
-
+    flags.removeFlag(US, Flags.ShuttleDiplomacy)
+    scoring(Region.Asia)
+    scoring(Region.Europe)
+    scoring(Region.MidEast)
+    scoring(Region.Africa)
+    scoring(Region.MidAmerica)
+    scoring(Region.SouthAmerica)
   }
 
   def gameOver(faction: Faction): Unit = {
-    // TODO
+    throw new GameOverException(faction)
   }
 
   def pokeChest(faction: Faction) = {
@@ -1105,5 +1146,7 @@ class Game {
       }
     }
   }
+
+  class GameOverException(val winner: Faction) extends Exception
 
 }

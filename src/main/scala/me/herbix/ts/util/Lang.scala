@@ -3,6 +3,7 @@ package me.herbix.ts.util
 import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
+import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
 
 import scala.collection.mutable
@@ -90,6 +91,12 @@ object Lang {
   val keep = "不变"
 
   val selectRegion = "请选择一个区域"
+
+  val play = "打出"
+  val giveBack = "归还"
+
+  val gameOver = "游戏结束"
+  val winnerIs = "胜利者是%s"
 
   val historyStartGame = "开始游戏"
   val historyTurnStart = "第%s回合开始"
@@ -653,12 +660,13 @@ object Lang {
   cardTips += Card062LoneGunman -> Array("请确认对方手牌")
   cardTips += Card063ColonialRearGuards -> Array("请选择非洲或东南亚%s国")
   cardTips += Card066PuppetGovernments -> Array("请选择%s个无影响力国")
-
+  cardTips += Card067GrainSales -> Array("请选择打出或归还")
   cardTips += Card070OASFounded -> Array("请在中南美放置%s影响力")
   cardTips += Card074VoiceOfAmerica -> Array("请移除非欧洲%s苏联影响力")
   cardTips += Card075LiberationTheology -> Array("请在中美洲放置%s影响力")
   cardTips += Card076UssuriRiverSkirmish -> Array("请在亚洲放置%s影响力")
-
+  cardTips += Card077AskNotWhatYourCountry -> Array("请弃掉任意张牌")
+  cardTips += Card085StarWars -> Array("请从弃牌中选一张牌")
   cardTips += Card087Reformer -> Array("请在欧洲增加%s影响力", "请在欧洲增加%s影响力")
   cardTips += Card088BarracksBombing -> Array("请移除中东%s美国影响力")
   cardTips += Card089ShootDownKAL007 -> Array("", "请用%s行动力来增加影响力", "请调整%1$s个国家（剩余%2$s）")

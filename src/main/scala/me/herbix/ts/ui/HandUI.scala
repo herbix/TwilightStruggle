@@ -8,6 +8,8 @@ import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic._
 import me.herbix.ts.util.{Lang, Resource}
 
+import scala.collection.mutable
+
 /**
   * Created by Chaofan on 2016/6/14.
   */
@@ -30,6 +32,8 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
   var hoverCardId = -1
 
   val cardWidth = 150
+
+  var pendingCardSelection: mutable.Set[Card] = null
 
   var cardHoverListeners: List[(Card) => Unit] = List()
   var cardClickListeners: List[(Card) => Unit] = List()
@@ -83,10 +87,14 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
     for (card <- hand) {
       val l = cardpos(n)
       val img = if (otherHand.isSelected && !showOppositeHand) Resource.card(0) else Resource.card(card.id)
-      val t = if (n == hoverCardId) 0 else 10
+      val t = if (n == hoverCardId || pendingCardSelection(cards(n))) 0 else 10
       g.drawImage(img, l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, null)
       g.setColor(Resource.textColor)
       g.drawRoundRect(l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, 5, 5)
+      if (pendingCardSelection(cards(n))) {
+        g.setColor(new Color(255, 80, 80, 90))
+        g.fillRoundRect(l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, 5, 5)
+      }
       if (!cardsEnabled(n)) {
         g.setColor(new Color(90, 90, 90, 90))
         g.fillRoundRect(l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, 5, 5)
