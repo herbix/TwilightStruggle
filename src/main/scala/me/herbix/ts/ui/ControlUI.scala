@@ -30,6 +30,7 @@ class ControlUI(val game: Game) extends JPanel {
     val SelectCardOrCancel = Value
     val YesNo = Value
     val Confirm = Value
+    val SelectRegion = Value
     val Summit = Value
     val StopWorry = Value
   }
@@ -48,6 +49,7 @@ class ControlUI(val game: Game) extends JPanel {
   val uiSelectCardOrCancel = new ControlSubUISelectCardOrCancel(this)
   val uiYesNo = new ControlSubUIYesNo(this)
   val uiConfirm = new ControlSubUIConfirm(this)
+  val uiSelectRegion = new ControlSubUISelectRegion(this)
   val uiSummit = new ControlSubUISummit(this)
   val uiStopWorry = new ControlSubUIHowILearnStopWorry(this)
 
@@ -64,6 +66,7 @@ class ControlUI(val game: Game) extends JPanel {
   add(uiSelectCardOrCancel, SelectCardOrCancel.toString)
   add(uiYesNo, YesNo.toString)
   add(uiConfirm, Confirm.toString)
+  add(uiSelectRegion, SelectRegion.toString)
   add(uiSummit, Summit.toString)
   add(uiStopWorry, StopWorry.toString)
 
@@ -123,7 +126,7 @@ class ControlUI(val game: Game) extends JPanel {
       case State.cardOperationAddInfluence =>
         if (game.playerFaction == game.operatingPlayer) {
           addInfluenceUI(game.currentCard.op, Lang.operationAddInfluence, true, false, true, true, game.playerFaction,
-            game.addInfluenceCondition(game.playerFaction))
+            game.canAddInfluence(game.playerFaction))
         } else {
           waitOtherUI()
         }
@@ -230,6 +233,14 @@ class ControlUI(val game: Game) extends JPanel {
               selectOperationUI(Lang.operationSelect)
               uiSelectOperation.influence.setEnabled(false)
               uiSelectOperation.coup.setEnabled(Card047Junta.canCoup(game))
+            case Card089ShootDownKAL007 | Card090Glasnost =>
+              selectOperationUI(Lang.operationSelect)
+              uiSelectOperation.coup.setEnabled(false)
+            case Card094Chernobyl => selectRegionUI()
+            case Card096TearDownThisWall =>
+              selectOperationUI(Lang.operationSelect)
+              uiSelectOperation.influence.setEnabled(false)
+              uiSelectOperation.coup.setEnabled(Card096TearDownThisWall.canCoup(game))
           }
         } else {
           waitOtherUI()
@@ -299,6 +310,10 @@ class ControlUI(val game: Game) extends JPanel {
   def confirmUI(tip: String) = {
     showSubUI(Confirm)
     uiConfirm.text(2) = tip
+  }
+
+  def selectRegionUI() = {
+    showSubUI(SelectRegion)
   }
 
 }
@@ -430,7 +445,8 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
     tableModel.setRowCount(0)
     for ((country, modifyValue) <- pendingInfluenceChange) {
       val influence = country.influence(parent.game.playerFaction)
-      tableModel.addRow(Array[Object](new CountryDelegate(country), f"$influence -> ${influence + modifyValue}"))
+      val changedValue = influence + modifyValue * (if (isAdd) 1 else -1)
+      tableModel.addRow(Array[Object](new CountryDelegate(country), f"$influence -> $changedValue"))
     }
     val rest = getPoint -
       parent.game.calculateInfluenceCost(pendingInfluenceChange, parent.game.playerFaction, ignoreControl)
@@ -743,4 +759,24 @@ class ControlSubUIHowILearnStopWorry(parent: ControlUI)
     val op = new OperationIntValue(parent.game.playerId, parent.game.playerFaction, v)
     parent.operationListeners.foreach(_(op))
   }
+}
+
+class ControlSubUISelectRegion(parent: ControlUI)
+  extends ControlSubUIText(parent, Array("", Lang.selectRegion)) {
+
+  val buttons = Map(
+    addButton(Lang.getRegionName(Region.Europe), 25, 85, 70, 30) -> Region.Europe,
+    addButton(Lang.getRegionName(Region.Asia), 105, 85, 70, 30) -> Region.Asia,
+    addButton(Lang.getRegionName(Region.MidEast), 25, 120, 70, 30) -> Region.MidEast,
+    addButton(Lang.getRegionName(Region.Africa), 105, 120, 70, 30) -> Region.Africa,
+    addButton(Lang.getRegionName(Region.MidAmerica), 25, 155, 70, 30) -> Region.MidAmerica,
+    addButton(Lang.getRegionName(Region.SouthAmerica), 105, 155, 70, 30) -> Region.SouthAmerica
+  )
+
+  override def actionPerformed(e: ActionEvent): Unit = {
+    val region = buttons(e.getSource.asInstanceOf[JButton])
+    val op = new OperationSelectRegion(parent.game.playerId, parent.game.playerFaction, region)
+    parent.operationListeners.foreach(_(op))
+  }
+
 }

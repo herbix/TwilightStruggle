@@ -128,8 +128,8 @@ class GameUI(playerId: Int) extends JFrame {
   controlUI.uiSelectCardAndAction.cardHoverListeners :+= ((card: Card) => {
     detailUI.setCard(card)
   })
-  flagsUI.flagHoverListeners :+= ((faction: Faction, flag: Flag) => {
-    detailUI.setFlag(faction, flag)
+  flagsUI.flagHoverListeners :+= ((faction: Faction, flag: Flag, flagData: Any) => {
+    detailUI.setFlag(faction, flag, flagData)
   })
 
   val pendingCountrySelection: mutable.Set[Country] = mutable.Set()

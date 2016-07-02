@@ -17,7 +17,7 @@ class FlagsUI(game: Game) extends JPanel {
   val flags = new Array[(Faction, Flag)](110)
   var hoverFlag: (Faction, Flag) = null
 
-  var flagHoverListeners: List[(Faction, Flag) => Unit] = List()
+  var flagHoverListeners: List[(Faction, Flag, Any) => Unit] = List()
 
   override def paint(graphics: Graphics): Unit = {
     super.paint(graphics)
@@ -63,7 +63,7 @@ class FlagsUI(game: Game) extends JPanel {
           if (flag != hoverFlag) {
             hoverFlag = flag
             if (flag != null) {
-              flagHoverListeners.foreach(_ (flag._1, flag._2))
+              flagHoverListeners.foreach(_(flag._1, flag._2, game.flags.getFlagData(flag._1, flag._2)))
             }
           }
         }

@@ -24,6 +24,7 @@ class DetailUI extends JPanel {
   var country: Country = null
   var card: Card = null
   var flag: Flag = null
+  var flagData: Any = null
   var flagFaction: Faction = US
 
   def setCountry(country: Country): Unit = {
@@ -38,9 +39,10 @@ class DetailUI extends JPanel {
     repaint()
   }
 
-  def setFlag(faction: Faction, flag: Flag): Unit = {
+  def setFlag(faction: Faction, flag: Flag, flagData: Any): Unit = {
     mode = FlagMode
     this.flag = flag
+    this.flagData = flagData
     this.flagFaction = faction
     repaint()
   }
@@ -306,7 +308,7 @@ class DetailUI extends JPanel {
       (if (flagFaction == Neutral)
         Lang.flagInfo(flag.id)._2
       else
-        String.format(Lang.flagInfo(flag.id)._2, Lang.getFactionName(flagFaction))
+        String.format(Lang.flagInfo(flag.id)._2, Lang.getFactionName(flagFaction), Lang.toString(flagData))
       ) +
         (if (flag.flagType == FlagType.ThisTurn) "\n" + Lang.thisTurnFlag else "")
 

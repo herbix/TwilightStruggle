@@ -82,7 +82,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
 
     for (card <- hand) {
       val l = cardpos(n)
-      val img = if (otherHand.isSelected) Resource.card(0) else Resource.card(card.id)
+      val img = if (otherHand.isSelected && !showOppositeHand) Resource.card(0) else Resource.card(card.id)
       val t = if (n == hoverCardId) 0 else 10
       g.drawImage(img, l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, null)
       g.setColor(Resource.textColor)
@@ -94,6 +94,8 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       n += 1
     }
   }
+
+  def showOppositeHand = game.flags.hasFlag(Faction.getOpposite(game.playerFaction), Flags.AldrichAmes)
 
   addMouseMotionListener(new MouseMotionAdapter {
     override def mouseMoved(e: MouseEvent): Unit = {

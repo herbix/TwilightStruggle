@@ -172,8 +172,8 @@ class Game {
     currentHistory :+= h
   }
 
-  def addFlag(faction: Faction, flag: Flag): Unit = {
-    flags.addFlag(faction, flag)
+  def addFlag(faction: Faction, flag: Flag, data: Any = null): Unit = {
+    flags.addFlag(faction, flag, data)
   }
 
   def removeFlag(faction: Faction, flag: Flag): Unit = {
@@ -270,9 +270,7 @@ class Game {
     ))
 
     // TODO test
-    // hand(US).add(Card049MissileEnvy)
-    // hand(US).add(Card044BearTrap)
-    // hand(US).add(Card031RedScarePurge)
+    //hand(US).add(Card094Chernobyl)
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -750,12 +748,17 @@ class Game {
     toSendPendingOperations = false
   }
 
-  def addInfluenceCondition(faction: Faction)(targets: Map[Country, Int]): Boolean = {
-    targets.forall(e => {
-      val country = e._1
-      country.influence(faction) > 0 ||
-        worldMap.links(country.name).exists(worldMap.countries(_).influence(faction) > 0)
-    })
+  def canAddInfluence(faction: Faction, country: Country): Boolean = {
+    if (flags.hasFlag(faction, Flags.Chernobyl) &&
+      country.regions(flags.getFlagData(faction, Flags.Chernobyl).asInstanceOf[Region])) {
+      return false
+    }
+    country.influence(faction) > 0 ||
+      worldMap.links(country.name).exists(worldMap.countries(_).influence(faction) > 0)
+  }
+
+  def canAddInfluence(faction: Faction)(targets: Map[Country, Int]): Boolean = {
+    targets.forall(e => canAddInfluence(faction, e._1))
   }
 
   def nextStateOperationInfluence(input: Operation) = {
@@ -790,6 +793,14 @@ class Game {
     worldMap.countries.exists(e => filter(e._2) && canCoup(faction, e._2))
   }
 
+  def canCoupWithoutFlags(faction: Faction, country: Country): Boolean = {
+    !country.regions(Region.Super) && country.influence(Faction.getOpposite(faction)) > 0
+  }
+
+  def canCoupWithoutFlags(faction: Faction, filter: Country => Boolean = _ => true): Boolean = {
+    worldMap.countries.exists(e => filter(e._2) && canCoupWithoutFlags(faction, e._2))
+  }
+
   def getCurrentRealignmentRest(faction: Faction): Int =
     modifyOp(faction, currentCard.op, currentRealignments) - currentRealignments.size
 
@@ -803,7 +814,8 @@ class Game {
     }
   }
 
-  def realignment(country: Country): Unit = {
+  def realignment(c: Country): Unit = {
+    val country = worldMap.countries(c.name)
     val rollUSOriginal = rollDice()
     val rollUSSROriginal = rollDice()
     var rollUS = rollUSOriginal

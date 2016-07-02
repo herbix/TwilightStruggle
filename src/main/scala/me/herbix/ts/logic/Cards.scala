@@ -47,6 +47,25 @@ abstract class Card(val id: Int, val op: Int, val faction: Faction, val isRemove
   }
 }
 
+object Card {
+  def realignment(game: Game, input: Operation): Boolean = {
+    var rest = game.currentCardData.asInstanceOf[Int] - 1
+    val detail = input.asInstanceOf[OperationSelectCountry].detail
+    if (detail.nonEmpty) {
+      game.realignment(detail.head)
+    } else {
+      rest = 0
+    }
+    if (rest == 0) {
+      game.currentCardData = null
+      true
+    } else {
+      game.currentCardData = rest
+      false
+    }
+  }
+}
+
 abstract class CardInstant(id: Int, op: Int, faction: Faction, isRemovedAfterEvent: Boolean)
   extends Card(id, op, faction, isRemovedAfterEvent) {
   def instantEvent(game: Game, faction: Faction): Boolean
@@ -730,11 +749,11 @@ object Card047Junta extends CardNeedsSelection(47, 2, Neutral, false,
   override def getStepMeta(game: Game): Any = {
     val checkValidFunc: Set[Country] => Boolean =
       _.forall(country => (country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica)) &&
-        game.canCoup(game.operatingPlayer, country))
+        game.canCoupWithoutFlags(game.operatingPlayer, country))
     stepMeta(3) = (1, false, checkValidFunc)
     super.getStepMeta(game)
   }
-  def canCoup(game: Game): Boolean = game.canCoup(game.playerFaction,
+  def canCoup(game: Game): Boolean = game.canCoupWithoutFlags(game.playerFaction,
     c => c.regions(Region.MidAmerica) || c.regions(Region.SouthAmerica))
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     step match {
@@ -749,20 +768,7 @@ object Card047Junta extends CardNeedsSelection(47, 2, Neutral, false,
         game.currentCardData = game.modifyOp(faction, this.op)
         if (op.action == Action.Realignment) 3 else 4
       case 3 =>
-        var rest = game.currentCardData.asInstanceOf[Int] - 1
-        val detail = input.asInstanceOf[OperationSelectCountry].detail
-        if (detail.nonEmpty) {
-          game.realignment(detail.head)
-        } else {
-          rest = 0
-        }
-        if (rest == 0) {
-          game.currentCardData = null
-          5
-        } else {
-          game.currentCardData = rest
-          3
-        }
+        if (Card.realignment(game, input)) 5 else 3
       case 4 =>
         val modifier = game.currentCardData.asInstanceOf[Int]
         for (country <- input.asInstanceOf[OperationSelectCountry].detail) {
@@ -876,7 +882,7 @@ object Card052PortugueseCrumbles extends CardInstant(52, 2, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val seAfricanStates = game.worldMap.countries("SE African States")
     val angola = game.worldMap.countries("Angola")
-    game.modifyInfluence(US, true, Map(seAfricanStates -> 2, angola -> 2))
+    game.modifyInfluence(USSR, true, Map(seAfricanStates -> 2, angola -> 2))
     true
   }
 }
@@ -914,6 +920,7 @@ object Card054Allende extends CardInstant(54, 1, USSR, true) {
 }
 
 object Card055WillyBrandt extends CardInstant(55, 2, USSR, true) {
+  override def canEvent(game: Game, faction: Faction): Boolean = !game.flags.hasFlag(Flags.TearDownThisWall)
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val wGermany = game.worldMap.countries("W.Germany")
     game.addVpAndCheck(USSR, 1)
@@ -1058,7 +1065,7 @@ object Card065CampDavidAccords extends CardInstant(65, 2, US, true) {
 
 object Card066PuppetGovernments extends CardNeedsSelection(66, 2, US, true, cardEventInfluence) {
   val checkValidFunc: Map[Country, Int] => Boolean =
-    _.forall(e => e._1.getController == Neutral && e._2 <= 1)
+    _.forall(e => e._1.influence(US) == 0 && e._1.influence(USSR) == 0 && e._2 <= 1)
   stepMeta(0) = (3, true, false, US, checkValidFunc)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     if (step == 1) {
@@ -1252,7 +1259,7 @@ object Card087Reformer extends CardNeedsSelection(87, 3, USSR, true, cardEventIn
 
 object Card088BarracksBombing extends CardNeedsSelection(88, 2, USSR, true, cardEventInfluence) {
   val checkValidFunc: Map[Country, Int] => Boolean =
-    _.forall(e => e._1.regions(Region.Europe) && e._1.name != "Lebanon")
+    _.forall(e => e._1.regions(Region.MidEast) && e._1.name != "Lebanon")
   stepMeta(0) = (2, false, false, US, checkValidFunc)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     if (step == 0) {
@@ -1260,6 +1267,86 @@ object Card088BarracksBombing extends CardNeedsSelection(88, 2, USSR, true, card
       game.modifyInfluence(US, false, Map(lebanon -> lebanon.influence(US)))
     } else if (step == 1) {
       game.modifyInfluence(USSR, true, input.asInstanceOf[OperationModifyInfluence].detail)
+    }
+    step + 1
+  }
+}
+
+object Card089ShootDownKAL007 extends CardNeedsSelection(89, 4, US, true,
+  cardEventSpecial, cardEventInfluence, cardEventSelectCountry) {
+  val checkValidFunc: Set[Country] => Boolean = _ => true
+  stepMeta(1) = (4, true, true, US, checkValidFunc)
+  stepMeta(2) = (1, true, checkValidFunc)
+  override def getStepMeta(game: Game): Any = {
+    stepMeta(1) = (4, true, true, US, game.canAddInfluence(game.operatingPlayer): Map[Country, Int] => Boolean)
+    super.getStepMeta(game)
+  }
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    step match {
+      case 0 =>
+        game.setDefcon(game.defcon - 1)
+        game.addVp(US, 2)
+        if (game.worldMap.countries("S.Korea").getController == US) 1 else 4
+      case 1 =>
+        val op = input.asInstanceOf[OperationSelectOperation]
+        game.recordHistory(new HistoryCardOperation(op.faction, this, op.action))
+        game.currentCardData = 4
+        if (op.action == Action.Influence) 2 else 3
+      case 2 =>
+        game.modifyInfluence(US, true, input.asInstanceOf[OperationModifyInfluence].detail)
+        game.currentCardData = null
+        4
+      case 3 =>
+        if (Card.realignment(game, input)) 4 else 3
+    }
+  }
+}
+
+object Card090Glasnost extends CardNeedsSelection(90, 4, USSR, true,
+  cardEventSpecial, cardEventInfluence, cardEventSelectCountry) {
+  val checkValidFunc: Set[Country] => Boolean = _ => true
+  stepMeta(1) = (4, true, true, USSR, checkValidFunc)
+  stepMeta(2) = (1, true, checkValidFunc)
+  override def getStepMeta(game: Game): Any = {
+    stepMeta(1) = (4, true, true, USSR, game.canAddInfluence(game.operatingPlayer): Map[Country, Int] => Boolean)
+    super.getStepMeta(game)
+  }
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    step match {
+      case 0 =>
+        game.addVp(USSR, 2)
+        game.setDefcon(game.defcon + 1)
+        if (game.flags.hasFlag(faction, Flags.Reformer)) 1 else 4
+      case 1 =>
+        val op = input.asInstanceOf[OperationSelectOperation]
+        game.recordHistory(new HistoryCardOperation(op.faction, this, op.action))
+        game.currentCardData = 4
+        if (op.action == Action.Influence) 2 else 3
+      case 2 =>
+        game.modifyInfluence(USSR, true, input.asInstanceOf[OperationModifyInfluence].detail)
+        game.currentCardData = null
+        4
+      case 3 =>
+        if (Card.realignment(game, input)) 4 else 3
+    }
+  }
+}
+
+object Card091OrtegaInNicaragua extends CardNeedsSelection(91, 2, USSR, true, cardEventSelectCountry) {
+  val countries = Set("Cuba", "Honduras", "Costa Rica")
+  val checkValidFunc: Set[Country] => Boolean = _.forall(c => countries(c.name))
+  stepMeta(0) = (1, false, checkValidFunc)
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 0) {
+      val nicaragua = game.worldMap.countries("Nicaragua")
+      game.modifyInfluence(US, false, Map(nicaragua -> nicaragua.influence(US)))
+      game.currentCardData = game.modifyOp(faction, this.op)
+    } else if (step == 1) {
+      val modifier = game.currentCardData.asInstanceOf[Int]
+      for (country <- input.asInstanceOf[OperationSelectCountry].detail) {
+        game.coup(country, faction, modifier)
+      }
+      game.currentCardData = null
     }
     step + 1
   }
@@ -1287,12 +1374,124 @@ object Card093IranContra extends CardInstant(93, 2, USSR, true) {
   }
 }
 
+object Card094Chernobyl extends CardNeedsSelection(94, 3, US, true, cardEventSpecial) {
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 1) {
+      val region = input.asInstanceOf[OperationSelectRegion].region
+      game.recordHistory(new HistoryRegion(faction, region))
+      game.addFlag(USSR, Flags.Chernobyl, region)
+    }
+    step + 1
+  }
+}
+
+object Card095LatinAmericaDebtCrisis extends CardNeedsSelection(95, 2, USSR, false,
+  cardEventSelectCardOrCancel, cardEventSelectCountry) {
+  val checkValidFunc: Set[Country] => Boolean = _.forall(c => c.regions(Region.SouthAmerica))
+  stepMeta(0) = (game: Game, card: Card) => game.modifyOp(US, card.op) >= 3 && card.canDiscard(game, US)
+  stepMeta(1) = (2, true, checkValidFunc)
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    step match {
+      case 0 =>
+        game.operatingPlayerChange(US)
+        1
+      case 1 =>
+        game.operatingPlayerRollBack()
+        val op = input.asInstanceOf[OperationSelectCard]
+        if (op.card != null) {
+          game.hand(US).remove(op.card)
+          game.discardCard(op.card, US, true, true)
+          3
+        } else {
+          2
+        }
+      case 2 =>
+        game.modifyInfluence(USSR, true, input.asInstanceOf[OperationSelectCountry].detail.map(c => {
+          val country = game.worldMap.countries(c.name)
+          country -> country.influence(USSR)
+        }).toMap)
+        3
+    }
+  }
+}
+
+object Card096TearDownThisWall extends CardNeedsSelection(96, 3, US, true,
+  cardEventSpecial, cardEventSelectCountry, cardEventSelectCountry) {
+  val checkValidFunc: Set[Country] => Boolean = _.forall(country => country.regions(Region.Europe))
+  stepMeta(1) = (1, false, checkValidFunc)
+  stepMeta(2) = (1, false, checkValidFunc)
+  def canCoup(game: Game): Boolean = game.canCoupWithoutFlags(game.playerFaction, c => c.regions(Region.Europe))
+  override def getStepMeta(game: Game): Any = {
+    val checkValidFunc: Set[Country] => Boolean =
+      _.forall(country => country.regions(Region.Europe) && game.canCoupWithoutFlags(game.operatingPlayer, country))
+    stepMeta(2) = (1, false, checkValidFunc)
+    super.getStepMeta(game)
+  }
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    step match {
+      case 0 =>
+        game.addFlag(US, Flags.TearDownThisWall)
+        game.removeFlag(USSR, Flags.WillyBrandt)
+        val eGermany = game.worldMap.countries("E.Germany")
+        game.modifyInfluence(US, true, Map(eGermany -> 3))
+        1
+      case 1 =>
+        val op = input.asInstanceOf[OperationSelectOperation]
+        game.recordHistory(new HistoryCardOperation(op.faction, this, op.action))
+        game.currentCardData = game.modifyOp(faction, this.op)
+        if (op.action == Action.Realignment) 2 else 3
+      case 2 =>
+        if (Card.realignment(game, input)) 4 else 2
+      case 3 =>
+        val modifier = game.currentCardData.asInstanceOf[Int]
+        for (country <- input.asInstanceOf[OperationSelectCountry].detail) {
+          game.coup(country, faction, modifier)
+        }
+        game.currentCardData = null
+        4
+    }
+  }
+}
+
 object Card097EvilEmpire extends CardInstant(97, 3, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addVpAndCheck(US, 1)
     game.removeFlag(US, Flags.FlowerPower)
     game.addFlag(US, Flags.EvilEmpire)
     true
+  }
+}
+
+object Card098AldrichAmes extends CardNeedsSelection(98, 3, USSR, true, cardEventSelectCard) {
+  stepMeta(0) = (game: Game, card: Card) => true
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 0) {
+      game.addFlag(US, Flags.AldrichAmes)
+      if (game.hand(US).cardCountExcludingChinaCard == 0) {
+        return 2
+      }
+      val eventCards = new CardSet
+      game.hand(US).iteratorExcludingChinaCard.foreach(eventCards.add)
+      game.currentCardData = eventCards
+    } else {
+      game.currentCardData = null
+      val card = input.asInstanceOf[OperationSelectCard].card
+      game.hand(US).remove(card)
+      game.discardCard(card, US, true, true)
+    }
+    step + 1
+  }
+}
+
+object Card099PershingII extends CardNeedsSelection(99, 3, USSR, true, cardEventInfluence) {
+  val checkValidFunc: Map[Country, Int] => Boolean = _.forall(e => e._1.regions(Region.WestEurope) && e._2 <= 1)
+  stepMeta(0) = (3, false, false, US, checkValidFunc)
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 1) {
+      game.addVp(USSR, 1)
+      game.modifyInfluence(US, false, input.asInstanceOf[OperationModifyInfluence].detail)
+    }
+    step + 1
   }
 }
 
@@ -1454,17 +1653,17 @@ object Cards {
   addCard(Card086NorthSeaOil)
   addCard(Card087Reformer)
   addCard(Card088BarracksBombing)
-  addCard(89, 4, US)
-  addCard(90, 4, USSR)
-  addCard(91, 2, USSR)
+  addCard(Card089ShootDownKAL007)
+  addCard(Card090Glasnost)
+  addCard(Card091OrtegaInNicaragua)
   addCard(Card092Terrorism)
   addCard(Card093IranContra)
-  addCard(94, 3, US)
-  addCard(95, 2, USSR)
-  addCard(96, 3, US)
+  addCard(Card094Chernobyl)
+  addCard(Card095LatinAmericaDebtCrisis)
+  addCard(Card096TearDownThisWall)
   addCard(Card097EvilEmpire)
-  addCard(98, 3, USSR)
-  addCard(99, 3, USSR)
+  addCard(Card098AldrichAmes)
+  addCard(Card099PershingII)
   addCard(Card100WarGames)
   addCard(Card101Solidarity)
   addCard(Card102IranIraqWar)

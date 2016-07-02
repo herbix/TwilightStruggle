@@ -2,7 +2,7 @@ package me.herbix.ts.logic
 
 import me.herbix.ts.logic.FlagType.FlagType
 
-import Faction._
+import me.herbix.ts.logic.Faction._
 
 import scala.collection.mutable
 
@@ -47,8 +47,14 @@ class Flags {
     US -> mutable.SortedSet(),
     USSR -> mutable.SortedSet()
   )
-  def addFlag(faction: Faction, flag: Flag): Unit = {
+  val flagData = Map[Faction, mutable.Map[Flag, Any]](
+    US -> mutable.Map(),
+    USSR -> mutable.Map(),
+    Neutral -> mutable.Map()
+  )
+  def addFlag(faction: Faction, flag: Flag, data: Any = null): Unit = {
     flagSets(faction) += flag
+    flagData(faction)(flag) = data
     if (faction == Neutral) {
       flagSets2.foreach(_._2 += flag)
     } else {
@@ -57,6 +63,7 @@ class Flags {
   }
   def removeFlag(faction: Faction, flag: Flag): Unit = {
     flagSets(faction) -= flag
+    flagData(faction) -= flag
     if (faction == Neutral) {
       flagSets2.foreach(_._2 -= flag)
     } else {
@@ -64,10 +71,17 @@ class Flags {
     }
   }
   def hasFlag(faction: Faction, flag: Flag): Boolean = {
-    flagSets2(faction)(flag)
+    if (faction != Neutral) {
+      flagSets2(faction)(flag)
+    } else {
+      flagSets(Neutral)(flag)
+    }
   }
   def hasFlag(flag: Flag): Boolean = {
     flagSets.exists(_._2(flag))
+  }
+  def getFlagData(faction: Faction, flag: Flag): Any = {
+    if (hasFlag(faction, flag)) flagData(faction)(flag) else null
   }
   def turnEnds(): Unit = {
     flagSets.foreach(_._2.retain(_.flagType == Always))
@@ -135,6 +149,9 @@ object Flags {
   val Reformer = new Flag(Always, true, 90) {
     override def canCoup(country: Country) = if (country.regions(Region.Europe)) Some(false) else None
   }
+  val Chernobyl = Flag(ThisTurn, false)
+  val TearDownThisWall = Flag(Always, true)
+  val AldrichAmes = Flag(ThisTurn, false)
 
   def init(): Unit = {}
 }

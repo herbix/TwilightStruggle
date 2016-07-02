@@ -14,12 +14,6 @@ object Lang {
   val USSR = "苏联"
   val US = "美国"
 
-  def getFactionName(faction: Faction) = faction match {
-    case Faction.US => US
-    case Faction.USSR => USSR
-    case Faction.Neutral => null
-  }
-
   val vp = "ＶＰ: "
   val defcon = "核战: %s"
   val military = "军事: "
@@ -79,27 +73,6 @@ object Lang {
   val increase = "增加"
   val decrease = "减少"
 
-  def getActionName(action: Action) = action match {
-    case Action.Space => space
-    case Action.Event => event
-    case Action.Operation => operation
-    case Action.Influence => addInfluence
-    case Action.Realignment => realignment
-    case Action.Coup => coup
-  }
-
-  def getRegionName(region: Region) = region match {
-    case Region.Europe => "欧洲"
-    case Region.Asia => "亚洲"
-    case Region.MidEast => "中东"
-    case Region.Africa => "非洲"
-    case Region.MidAmerica => "中美洲"
-    case Region.SouthAmerica => "南美洲"
-    case Region.EastEurope => "东欧"
-    case Region.WestEurope => "西欧"
-    case Region.SouthEastAsia => "东南亚"
-  }
-
   val discardHeldCard = "可以弃掉一张持牌"
 
   val yes = "是"
@@ -115,6 +88,8 @@ object Lang {
   val improve = "改善"
   val degrade = "恶化"
   val keep = "不变"
+
+  val selectRegion = "请选择一个区域"
 
   val historyStartGame = "开始游戏"
   val historyTurnStart = "第%s回合开始"
@@ -233,6 +208,33 @@ object Lang {
   countryNames += "Botswana" -> "博茨瓦纳"
   countryNames += "South Africa" -> "南非"
 
+  def getFactionName(faction: Faction) = faction match {
+    case Faction.US => US
+    case Faction.USSR => USSR
+    case Faction.Neutral => null
+  }
+
+  def getActionName(action: Action) = action match {
+    case Action.Space => space
+    case Action.Event => event
+    case Action.Operation => operation
+    case Action.Influence => addInfluence
+    case Action.Realignment => realignment
+    case Action.Coup => coup
+  }
+
+  def getRegionName(region: Region) = region match {
+    case Region.Europe => "欧洲"
+    case Region.Asia => "亚洲"
+    case Region.MidEast => "中东"
+    case Region.Africa => "非洲"
+    case Region.MidAmerica => "中美洲"
+    case Region.SouthAmerica => "南美洲"
+    case Region.EastEurope => "东欧"
+    case Region.WestEurope => "西欧"
+    case Region.SouthEastAsia => "东南亚"
+  }
+
   val cardInfo = new Array[(String, String)](120)
   var cardInfoCount = 0
   def addCardInfo(name: String, desc: String): Unit = {
@@ -330,7 +332,7 @@ object Lang {
   addCardInfo("建立中情局*", "苏联公开手牌。\n然后美国视作打出一张1行动力的牌进行行动。")
   addCardInfo("美日共同防卫协定*", "美国获得足以控制日本的影响力。\n苏联不能在日本进行政变或调整阵营。")
   addCardInfo("苏伊士运河危机*", "从法国，英国和以色列移除4点美国影响力，每个国家最多2点。")
-  addCardInfo("东欧剧变", "冷战早中期：从东欧的3个国家各移除1点影响力。\n冷战后期：从东欧的3个国家各移除2点影响力。")
+  addCardInfo("东欧剧变", "冷战早中期：从东欧的3个国家各移除1点苏联影响力。\n冷战后期：从东欧的3个国家各移除2点苏联影响力。")
   addCardInfo("反殖民化", "在任意4个非洲或东南亚国家各增加1点苏联影响力。")
   addCardInfo("红色恐慌/党内清洗", "对手本回合打出的所有行动牌行动力-1（下限是1）。")
   addCardInfo("联合国干预",
@@ -505,7 +507,7 @@ object Lang {
   )
   addCardInfo("恐怖主义", "对手须随机弃1张牌，若苏联打出此牌且“伊朗人质危机”生效，则美国要弃2张牌。\n弃牌上的事件不发动。")
   addCardInfo("伊朗门丑闻*", "本回合美国调整阵营掷骰点数-1。")
-  addCardInfo("切尔诺贝利*", "美国玩家指定1个区域，本回合内苏联玩家不能此区域进行增加影响力的行动。")
+  addCardInfo("切尔诺贝利*", "美国玩家指定1个区域，本回合内苏联玩家不能在此区域进行增加影响力的行动。")
   addCardInfo("拉美债务危机", "美国玩家需弃一张行动力3及以上的牌，否则苏联在南美国家的影响力加倍。")
   addCardInfo("推倒柏林墙*",
     "在东德增加3点美国影响力。\n" +
@@ -570,7 +572,7 @@ object Lang {
   addFlagInfo("太空竞赛限制", "%1$s本回合已尝试过2次太空竞赛，不能进行太空竞赛尝试。")
   addFlagInfo("送动物上太空", "%1$s每回合可以进行2次太空竞赛尝试。")
   addFlagInfo("常驻地球轨道的人", "%1$s的对手须先选择和展示头条牌。")
-  addFlagInfo("鹰落在月亮上", "熊落在月亮上", "有人落在月亮上", "%1$s可以弃掉1张持牌。")
+  addFlagInfo("鹰落在月亮上", "熊落在月亮上", "鹰/熊落在月亮上", "%1$s可以弃掉1张持牌。")
   addFlagInfo("太空站", "%1$s可以进行8个行动轮。")
   addFlagInfo("面朝下的中国牌", "%1$s刚从对手接收中国牌，本回合不能使用。")
   addFlagInfo("核战等级限制", "双方不能在欧洲调整阵营或发动政变。")
@@ -581,7 +583,9 @@ object Lang {
   addFlagInfo("遏制政策", "勃列日涅夫主义", "遏制政策/勃列日涅夫主义", "本回合%s打出的所有行动牌行动力+1（上限为4）。")
   addFlagInfo("美日共同防卫协定", "苏联不能在日本进行政变或调整阵营。")
   addFlagInfo("红色恐慌", "党内清洗", "红色恐慌/党内清洗", "%s本回合打出的所有行动牌行动力-1（下限是1）。")
-  addFlagInfo("台湾决议", "在亚洲计分或终局计分时，若美国控制台湾，则台湾被视作战场国，其他时刻和情况下不被视为战场国。")
+  addFlagInfo("台湾决议",
+    "在亚洲计分或终局计分时，若美国控制台湾，则台湾被视作战场国，其他时刻和情况下不被视为战场国。\n" +
+    "美国打出中国牌时此标记失效。")
   addFlagInfo("古巴导弹危机",
     "本回合%s的任何政变将引发核战，使其输掉游戏。\n" +
     "在任何时候，作为苏联移除古巴的2点影响力，或作为美国移除西德和土耳其之一的2点影响力，就可以使此标记失效。")
@@ -618,6 +622,9 @@ object Lang {
   addFlagInfo("拉丁美洲敢死队", "%s在中南美的政变+1行动力。")
   addFlagInfo("拉丁美洲敢死队", "%s在中南美的政变-1行动力。")
   addFlagInfo("改革者", "苏联不能在欧洲发动政变。\n增强“开放”的效果。")
+  addFlagInfo("切尔诺贝利", "苏联不能在%2$s进行增加影响力的行动。")
+  addFlagInfo("推倒柏林墙", "不可作为事件打出“维利·勃兰特”。")
+  addFlagInfo("奥德里奇·艾姆斯泄密", "美国公开手牌。")
 
   val cardTips = mutable.Map.empty[Card, Array[String]]
   cardTips += Card007SocialistGovernments -> Array("请从西欧移除%s美国影响力")
@@ -646,6 +653,7 @@ object Lang {
   cardTips += Card062LoneGunman -> Array("请确认对方手牌")
   cardTips += Card063ColonialRearGuards -> Array("请选择非洲或东南亚%s国")
   cardTips += Card066PuppetGovernments -> Array("请选择%s个无影响力国")
+
   cardTips += Card070OASFounded -> Array("请在中南美放置%s影响力")
   cardTips += Card074VoiceOfAmerica -> Array("请移除非欧洲%s苏联影响力")
   cardTips += Card075LiberationTheology -> Array("请在中美洲放置%s影响力")
@@ -653,7 +661,21 @@ object Lang {
 
   cardTips += Card087Reformer -> Array("请在欧洲增加%s影响力", "请在欧洲增加%s影响力")
   cardTips += Card088BarracksBombing -> Array("请移除中东%s美国影响力")
-
+  cardTips += Card089ShootDownKAL007 -> Array("", "请用%s行动力来增加影响力", "请调整%1$s个国家（剩余%2$s）")
+  cardTips += Card090Glasnost -> Array("", "请用%s行动力来增加影响力", "请调整%1$s个国家（剩余%2$s）")
+  cardTips += Card091OrtegaInNicaragua -> Array("请政变%1$s个国家（行动力%2$s）")
+  cardTips += Card095LatinAmericaDebtCrisis -> Array("请弃一张3以上行动力的牌", "请选择%s个南美国家")
+  cardTips += Card096TearDownThisWall -> Array("", "请调整%1$s个国家（剩余%2$s）", "请政变%1$s个国家（行动力%2$s）")
+  cardTips += Card098AldrichAmes -> Array("请弃对手一张牌")
+  cardTips += Card099PershingII -> Array("请移除西欧%s国1美国影响力")
   cardTips += Card102IranIraqWar -> Array("请选择两伊战争被入侵国")
+
+  def toString(flagData: Any): String = {
+    flagData match {
+      case null => null
+      case region: Region => getRegionName(region)
+      case _ => null
+    }
+  }
 
 }
