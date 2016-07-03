@@ -1769,6 +1769,9 @@ object Cards {
   def earlyWarSet = cardMap.filter(e => (e._1 > 0 && e._1 <= 35 && e._1 != 6) || e._1 == 103).values
   def midWarSet = cardMap.filter(e => e._1 > 35 && e._1 <= 81).values
   def lateWarSet = cardMap.filter(e => e._1 > 81 && e._1 <= 102).values
+  def earlyWarOptionalSet = cardMap.filter(e => e._1 > 103 && e._1 <= 106).values
+  def midWarOptionalSet = cardMap.filter(e => e._1 > 106 && e._1 <= 108).values
+  def lateWarOptionalSet = cardMap.filter(e => e._1 > 108 && e._1 <= 110).values
   def chinaCard = cardMap(6)
 
   def isEarlyWarCard(card: Card): Boolean = {

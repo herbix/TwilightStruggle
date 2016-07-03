@@ -14,10 +14,17 @@ import scala.collection.mutable
   */
 class Game {
 
+  // other players
   var anotherGame: Game = null
 
+  // player info
   var playerId = 0
   var playerFaction = Neutral
+
+  // config
+  var extraInfluence = -2
+  var optionalCards = true
+  var drawGameWinner = US
 
   // game table
   val worldMap = new WorldMap
@@ -118,14 +125,10 @@ class Game {
     currentState match {
       case State.start => nextStateMayWait(input, nextStateStart)
       case State.putStartUSSR => nextStatePutStart(input, putStartUS)
-      case State.putStartUS => nextStatePutStart(input, putStartUSExtra)
-      case State.putStartUSExtra => nextStatePutUSExtra(input)
-      case State.selectHeadlineCard =>
-        if (!flags.hasFlag(Flags.SpaceAwardHeadlineThen))
-          nextStateMayWait(input, nextStateSelectHeadline)
-        else
-          nextStateSelectHeadlineFirst(input)
-      case State.selectHeadlineCard2 => nextStateSelectHeadline(input)
+      case State.putStartUS => nextStatePutStartUS(input)
+      case State.putStartExtra => nextStatePutExtra(input)
+      case State.selectHeadlineCard => nextStateSelectHeadline(input)
+      case State.selectHeadlineCard2 => nextStateSelectHeadlineNormal(input)
       case State.solveHeadLineCard1 => nextStateSolveHeadline1()
       case State.solveHeadLineCard2 => nextStateSolveHeadline2()
       case State.selectCardAndAction | State.selectAction => nextStateSelectCardAndAction(input)
@@ -233,7 +236,7 @@ class Game {
     stateStack.push(putStartUSSR)
   }
 
-  def nextStatePutUSExtra(input: Operation): Unit = {
+  def nextStatePutExtra(input: Operation): Unit = {
     nextStatePutStart(input, selectHeadlineCard)
     recordHistory(new HistoryTurnRound(turn, -1, Neutral))
   }
@@ -248,6 +251,9 @@ class Game {
 
   private def initGame(): Unit = {
     deck.join(Cards.earlyWarSet)
+    if (optionalCards) {
+      deck.join(Cards.earlyWarOptionalSet)
+    }
 
     for (i <- 0 until 8) {
       hand(US).add(pickCardFromDeck())
@@ -279,6 +285,14 @@ class Game {
       worldMap.countries("South Africa") -> 1,
       worldMap.countries("UK") -> 5
     ))
+  }
+
+  def nextStatePutStartUS(input: Operation): Unit = {
+    if (extraInfluence != 0) {
+      nextStatePutStart(input, putStartExtra)
+    } else {
+      nextStatePutExtra(input)
+    }
   }
 
   def nextStatePutStart(input: Operation, next: State): Unit = {
@@ -351,6 +365,13 @@ class Game {
     }
   }
 
+  def nextStateSelectHeadline(input: Operation): Unit = {
+    if (!flags.hasFlag(Flags.SpaceAwardHeadlineThen))
+      nextStateMayWait(input, nextStateSelectHeadlineNormal)
+    else
+      nextStateSelectHeadlineFirst(input)
+  }
+
   def nextStateSelectHeadlineFirst(input: Operation): Unit = {
     val op = input.asInstanceOf[OperationSelectCard]
     pendingInput = input
@@ -359,7 +380,7 @@ class Game {
     stateStack.push(selectHeadlineCard2)
   }
 
-  def nextStateSelectHeadline(input: Operation): Unit = {
+  def nextStateSelectHeadlineNormal(input: Operation): Unit = {
     val input1 = input.asInstanceOf[OperationSelectCard]
     val input2 = pendingInput.asInstanceOf[OperationSelectCard]
 
@@ -532,8 +553,8 @@ class Game {
   def setDefcon(newVal: Int): Unit = {
     val oldVal = defcon
     defcon = newVal
-    checkDefcon()
     recordHistory(new HistoryDefcon(oldVal, defcon))
+    checkDefcon()
   }
 
   def mayTake8Rounds(faction: Faction) =
@@ -559,7 +580,7 @@ class Game {
     if (usFail != ussrFail) {
       if (usFail) gameOver(USSR) else gameOver(US)
     } else {
-      gameOver(US)
+      gameOver(Neutral)
     }
 
     if (flags.hasFlag(Flags.SpaceAwardMayDiscard) && !dontDiscardHeld) {
@@ -586,8 +607,14 @@ class Game {
 
     if (turn == 4) {
       deck.join(Cards.midWarSet)
+      if (optionalCards) {
+        deck.join(Cards.midWarOptionalSet)
+      }
     } else if (turn == 8) {
       deck.join(Cards.lateWarSet)
+      if (optionalCards) {
+        deck.join(Cards.lateWarOptionalSet)
+      }
     }
 
     val usHandCount = hand(US).cardCount
@@ -1083,7 +1110,11 @@ class Game {
   }
 
   def gameOver(faction: Faction): Unit = {
-    throw new GameOverException(faction)
+    if (faction == Neutral) {
+      throw new GameOverException(drawGameWinner)
+    } else {
+      throw new GameOverException(faction)
+    }
   }
 
   def pokeChest(faction: Faction) = {
@@ -1093,8 +1124,10 @@ class Game {
   def endGameByVp(): Unit = {
     if (vp < 0) {
       gameOver(USSR)
-    } else {
+    } else if (vp > 0) {
       gameOver(US)
+    } else {
+      gameOver(Neutral)
     }
   }
 

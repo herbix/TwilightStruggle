@@ -2,11 +2,12 @@ package me.herbix.ts.ui
 
 import java.awt._
 import java.awt.event._
+import java.awt.image.BufferedImage
 import javax.swing.{JPanel, JScrollPane, SwingUtilities}
 
-import me.herbix.ts.logic.{Faction, Country, Game}
+import me.herbix.ts.logic.{Country, Faction, Game}
+import me.herbix.ts.util.MapValue
 import me.herbix.ts.util.Resource._
-import me.herbix.ts.util.{MapValue, Resource}
 
 import scala.List
 import scala.collection.mutable
@@ -147,48 +148,23 @@ class WorldMapUI(val game: Game) extends JPanel {
     g2d.scale(scale, scale)
     g.drawImage(bg, 0, 0, null)
 
-    drawToken(g, tokenColor,
-      (MapValue.turnArea._1 * (21 - game.turn * 2) + MapValue.turnArea._3 * (game.turn * 2 - 1) - tokenSize * 10) / 20,
-      (MapValue.turnArea._2 + MapValue.turnArea._4 - tokenSize) / 2
-    )
-
-    drawToken(g, tokenColor,
-      (MapValue.defcon5._1 * (game.defcon - 1) + MapValue.defcon1._1 * (5 - game.defcon)) / 4 + (MapValue.defconSize._1 - tokenSize) / 2,
-      MapValue.defcon5._2 + (MapValue.defconSize._2 - tokenSize) / 2
-    )
-
-    drawToken(g, tokenColor,
-      (MapValue.vpUssr20._1 * (20 - game.vp) + MapValue.vpUs20._1 * (game.vp + 20)) / 40 + (MapValue.vpSize._1 - tokenSize) / 2,
-      MapValue.vpUssr20._2 + (MapValue.vpSize._2 - tokenSize) / 2
-    )
+    drawTurnToken(g)
+    drawDefconToken(g)
+    drawVPToken(g)
 
     import me.herbix.ts.logic.Faction._
 
     val round = if (game.round < 1) 1 else game.round
-    drawToken(g, if (game.phasingPlayer == US && game.round >= 1) usColor else ussrColor,
-      (MapValue.round1._1 * (8 - round) + MapValue.round8._1 * (round - 1)) / 7 + (MapValue.roundSize._1 - tokenSize) / 2,
-      MapValue.round1._2 + (MapValue.roundSize._2 - tokenSize) / 2
-    )
+    val isUS = game.phasingPlayer == US && game.round >= 1
+    val roundColor = if (isUS) usColor else ussrColor
+    val roundImg = if (isUS) tokenActionUs else tokenActionUssr
+    drawActionToken(g, roundColor, roundImg, round)
 
-    drawToken(g, usColor,
-      (MapValue.military5._1 * game.military(US) + MapValue.military0._1 * (5 - game.military(US))) / 5 + (MapValue.militarySize._1 - tokenSize) / 2,
-      MapValue.military5._2 + (MapValue.militarySize._2 - tokenSize * 2) / 2
-    )
+    drawMilitaryToken(g, usColor, game.military(US), -tokenSize/2, tokenMilitaryUs)
+    drawMilitaryToken(g, ussrColor, game.military(USSR), tokenSize/2, tokenMilitaryUssr)
 
-    drawToken(g, ussrColor,
-      (MapValue.military5._1 * game.military(USSR) + MapValue.military0._1 * (5 - game.military(USSR))) / 5 + (MapValue.militarySize._1 - tokenSize) / 2,
-      MapValue.military5._2 + MapValue.militarySize._2 / 2
-    )
-
-    drawToken(g, usColor,
-      (MapValue.space8._1 * game.space(US).level + MapValue.space0._1 * (8 - game.space(US).level)) / 8 + (MapValue.spaceSize._1 - tokenSize) / 2,
-      MapValue.space8._2 + (MapValue.spaceSize._2 - tokenSize * 2) / 2
-    )
-
-    drawToken(g, ussrColor,
-      (MapValue.space8._1 * game.space(USSR).level + MapValue.space0._1 * (8 - game.space(USSR).level)) / 8 + (MapValue.spaceSize._1 - tokenSize) / 2,
-      MapValue.space8._2 + MapValue.spaceSize._2 / 2
-    )
+    drawSpaceToken(g, usColor, game.space(US).level, -tokenSize/2, tokenSpaceUs)
+    drawSpaceToken(g, ussrColor, game.space(USSR).level, tokenSize/2, tokenSpaceUssr)
 
     g.setFont(influenceTokenTextFont)
     val fm = g.getFontMetrics
@@ -244,5 +220,72 @@ class WorldMapUI(val game: Game) extends JPanel {
     g.fillRoundRect(mx, my, tokenSize, tokenSize, 10, 10)
     g.setColor(Color.DARK_GRAY)
     g.drawRoundRect(mx, my, tokenSize, tokenSize, 10, 10)
+  }
+
+  def getTokenCenterX(xStart: Int, xEnd: Int, start: Int, end: Int, value: Int): Int = {
+    ((end - value) * xStart + (value - start) * xEnd) / (end - start)
+  }
+
+  def getTokenCenter(rect: (Int, Int, Int, Int), offset: Int, count: Int, value: Int): (Int, Int) = {
+    val halfToken: Int = ((rect._3 - rect._1) / count) / 2
+    val xStart = halfToken + rect._1
+    val xEnd = rect._3 - halfToken
+    val y = (rect._2 + rect._4) / 2
+    val x = getTokenCenterX(xStart, xEnd, offset, offset + count - 1, value)
+    (x, y)
+  }
+
+  def getTokenCenter(startPos: (Int, Int), endPos: (Int, Int), size: (Int, Int),
+                     start: Int, end: Int, value: Int): (Int, Int) = {
+    val xStart = startPos._1 + size._1 / 2
+    val xEnd = endPos._1 + size._1 / 2
+    val y = startPos._2 + size._2 / 2
+    val x = getTokenCenterX(xStart, xEnd, start, end, value)
+    (x, y)
+  }
+
+  def drawTokenString(g: Graphics, x: Int, y: Int, turn: String): Unit = {
+    g.setColor(Color.BLACK)
+    val fm = g.getFontMetrics
+    g.drawString(turn, x - fm.stringWidth(turn) / 2, y + fm.getHeight / 2 - 4)
+  }
+
+  def drawTurnToken(g: Graphics): Unit = {
+    val (x, y) = getTokenCenter(MapValue.turnArea, 1, 10, game.turn)
+    drawToken(g, tokenColor, x - tokenSize / 2, y - tokenSize / 2)
+    g.setFont(tokenFont)
+    drawTokenString(g, x, y, "Turn")
+  }
+
+  def drawDefconToken(g: Graphics): Unit = {
+    val (x, y) = getTokenCenter(MapValue.defcon1, MapValue.defcon5, MapValue.defconSize, 1, 5, game.defcon)
+    val img = tokenDefcon
+    drawToken(g, tokenColor, x - tokenSize / 2, y - tokenSize / 2)
+    g.drawImage(img, x - img.getWidth / 2, y - img.getHeight / 2, null)
+  }
+
+  def drawVPToken(g: Graphics): Unit = {
+    val (x, y) = getTokenCenter(MapValue.vpUs20, MapValue.vpUssr20, MapValue.vpSize, 20, -20, game.vp)
+    drawToken(g, tokenColor, x - tokenSize / 2, y - tokenSize / 2)
+    g.setFont(tokenFont2)
+    drawTokenString(g, x, y, "VP")
+  }
+
+  def drawActionToken(g: Graphics, bgColor: Color, img: BufferedImage, value: Int): Unit = {
+    val (x, y) = getTokenCenter(MapValue.round1, MapValue.round8, MapValue.roundSize, 1, 8, value)
+    drawToken(g, bgColor, x - tokenSize / 2, y - tokenSize / 2)
+    g.drawImage(img, x - img.getWidth / 2, y - img.getHeight / 2, null)
+  }
+
+  def drawSpaceToken(g: Graphics, bgColor: Color, level: Int, yOffset: Int, img: BufferedImage): Unit = {
+    val (x, y) = getTokenCenter(MapValue.space0, MapValue.space8, MapValue.spaceSize, 0, 8, level)
+    drawToken(g, bgColor, x - tokenSize / 2, y - tokenSize / 2 + yOffset)
+    g.drawImage(img, x - img.getWidth / 2, y - img.getHeight / 2 + yOffset, null)
+  }
+
+  def drawMilitaryToken(g: Graphics, bgColor: Color, level: Int, yOffset: Int, img: BufferedImage): Unit = {
+    val (x, y) = getTokenCenter(MapValue.military0, MapValue.military5, MapValue.militarySize, 0, 5, level)
+    drawToken(g, bgColor, x - tokenSize / 2, y - tokenSize / 2 + yOffset)
+    g.drawImage(img, x - img.getWidth / 2, y - img.getHeight / 2 + yOffset, null)
   }
 }

@@ -31,6 +31,14 @@ object Resource {
     }
   }).toMap
 
+  val tokenSpaceUs = ImageIO.read(getClass.getResourceAsStream("/tokens/spaceus.png"))
+  val tokenSpaceUssr = ImageIO.read(getClass.getResourceAsStream("/tokens/spaceussr.png"))
+  val tokenDefcon = ImageIO.read(getClass.getResourceAsStream("/tokens/defcon.png"))
+  val tokenMilitaryUs = ImageIO.read(getClass.getResourceAsStream("/tokens/militaryus.png"))
+  val tokenMilitaryUssr = ImageIO.read(getClass.getResourceAsStream("/tokens/militaryussr.png"))
+  val tokenActionUs = ImageIO.read(getClass.getResourceAsStream("/tokens/actionus.png"))
+  val tokenActionUssr = ImageIO.read(getClass.getResourceAsStream("/tokens/actionussr.png"))
+
   val textFont = new Font(Lang.heiti, 0, 16)
   val textFont2 = new Font(Lang.lishu, 0, 32)
   val textColor = Color.DARK_GRAY
@@ -84,5 +92,8 @@ object Resource {
   val cardDescFont = new Font(Lang.heiti, 0, 13)
 
   val selectedCountry = new Color(255, 255, 255, 192)
+
+  val tokenFont = new Font("Arial", Font.BOLD, 18)
+  val tokenFont2 = new Font("Arial", Font.BOLD, 24)
 
 }

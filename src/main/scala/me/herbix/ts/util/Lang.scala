@@ -14,6 +14,7 @@ import scala.collection.mutable
 object Lang {
   val USSR = "苏联"
   val US = "美国"
+  val Neutral = "中立"
 
   val vp = "ＶＰ: "
   val defcon = "核战: %s"
@@ -97,6 +98,7 @@ object Lang {
 
   val gameOver = "游戏结束"
   val winnerIs = "胜利者是%s"
+  val drawGame = "平局"
 
   val historyStartGame = "开始游戏"
   val historyTurnStart = "第%s回合开始"
@@ -218,7 +220,7 @@ object Lang {
   def getFactionName(faction: Faction) = faction match {
     case Faction.US => US
     case Faction.USSR => USSR
-    case Faction.Neutral => null
+    case Faction.Neutral => Neutral
   }
 
   def getActionName(action: Action) = action match {

@@ -1,15 +1,13 @@
 package me.herbix.ts.ui
 
-import java.awt.{CardLayout, RenderingHints, Graphics2D, Graphics}
-import java.awt.event.{MouseEvent, MouseMotionListener, ActionEvent, ActionListener}
-import javax.swing.table.DefaultTableModel
+import java.awt.event.{ActionEvent, ActionListener, MouseEvent, MouseMotionListener}
+import java.awt.{CardLayout, Graphics, Graphics2D, RenderingHints}
 import javax.swing._
+import javax.swing.table.DefaultTableModel
 
-import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic
-import me.herbix.ts.logic.State
-import me.herbix.ts.logic.State._
-import me.herbix.ts.logic._
+import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic.{State, _}
 import me.herbix.ts.util.{Lang, Resource}
 
 import scala.collection.mutable
@@ -78,6 +76,7 @@ class ControlUI(val game: Game) extends JPanel {
   add(uiConfirm, Confirm.toString)
   add(uiSelectRegion, SelectRegion.toString)
   add(uiSelectMultipleCards, SelectMultipleCards.toString)
+  add(uiGameOver, GameOver.toString)
   // Special
   add(uiSummit, Summit.toString)
   add(uiStopWorry, StopWorry.toString)
@@ -106,9 +105,11 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
-      case State.putStartUSExtra =>
-        if (game.playerFaction == Faction.US) {
-          addInfluenceUI(1, Lang.putExtra, true, true, true, false, game.playerFaction, _.forall(_._1.influence(Faction.US) > 0))
+      case State.putStartExtra =>
+        if (game.playerFaction == Faction.US && game.extraInfluence > 0) {
+          addInfluenceUI(game.extraInfluence, Lang.putExtra, true, true, true, false, game.playerFaction, _.forall(_._1.influence(Faction.US) > 0))
+        } else if (game.playerFaction == Faction.USSR && game.extraInfluence < 0) {
+          addInfluenceUI(-game.extraInfluence, Lang.putExtra, true, true, true, false, game.playerFaction, _.forall(_._1.influence(Faction.USSR) > 0))
         } else {
           waitOtherUI()
         }
@@ -359,7 +360,11 @@ class ControlUI(val game: Game) extends JPanel {
 
   def gameOverUI(): Unit = {
     showSubUI(GameOver)
-    uiGameOver.text(4) = String.format(Lang.winnerIs, Lang.getFactionName(game.operatingPlayer))
+    if (game.operatingPlayer == Faction.Neutral) {
+      uiGameOver.text(4) = Lang.drawGame
+    } else {
+      uiGameOver.text(4) = String.format(Lang.winnerIs, Lang.getFactionName(game.operatingPlayer))
+    }
   }
 
 }

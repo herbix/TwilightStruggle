@@ -8,7 +8,7 @@ object State extends Enumeration {
 
   val start = Value
   val waitOther = Value
-  val putStartUSSR, putStartUS, putStartUSExtra = Value
+  val putStartUSSR, putStartUS, putStartExtra = Value
   val selectHeadlineCard, selectHeadlineCard2, solveHeadLineCard1, solveHeadLineCard2 = Value
   val selectCardAndAction, selectAction = Value
   val cardE, cardO, cardOE, cardEO = Value
