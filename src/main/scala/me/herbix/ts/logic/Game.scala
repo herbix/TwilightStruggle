@@ -308,8 +308,6 @@ class Game {
       worldMap.countries("South Africa") -> 1,
       worldMap.countries("UK") -> 5
     ))
-
-    hand(USSR).add(Card040CubaMissile)
   }
 
   def nextStatePutStartUS(input: Operation): Unit = {
