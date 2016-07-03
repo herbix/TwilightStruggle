@@ -696,9 +696,7 @@ class Game {
 
     hand(op.faction).remove(op.card)
 
-    if (op.action != Action.Space) {
-      currentCard = op.card
-    }
+    currentCard = op.card
 
     recordHistory(new HistoryCardAction(op.faction, op.card, op.action, oppositeCard))
 
@@ -722,7 +720,8 @@ class Game {
         } else {
           addFlag(op.faction, Flags.Space1)
         }
-        op.card.afterPlay(this, op.faction)
+        currentCard.afterPlay(this, op.faction)
+        currentCard = null
         stateStack.pop()
         tryNextRound()
       case Action.Event =>

@@ -45,6 +45,7 @@ object Lang {
   val done = "完成"
   val cancel = "取消"
   val reset = "重置"
+  val remove = "去除"
 
   val earlyWar = "冷战早期"
   val midWar = "冷战中期"

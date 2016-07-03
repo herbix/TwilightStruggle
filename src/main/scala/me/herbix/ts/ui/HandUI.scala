@@ -185,7 +185,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
           } else {
             true
           }
-        case State.cardEventSelectCardOrCancel | State.cardEventSelectCard =>
+        case State.cardEventSelectCardOrCancel | State.cardEventSelectCard | State.cardEventSelectMultipleCards =>
           if (game.operatingPlayer == game.playerFaction) {
             val currentCard = game.currentCard.asInstanceOf[CardNeedsSelection]
             val step = currentCard.getStep(game)

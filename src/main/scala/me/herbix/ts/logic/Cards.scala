@@ -654,7 +654,7 @@ object Card039ArmsRace extends CardInstant(39, 3, Neutral, false) {
   }
 }
 
-object Card040CubaMissile extends CardInstant(40, 3, Neutral, true) {  // TODO how to remove
+object Card040CubaMissile extends CardInstant(40, 3, Neutral, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.setDefcon(2)
     game.addFlag(Faction.getOpposite(faction), Flags.CubaMissile)
@@ -1233,6 +1233,7 @@ object Card076UssuriRiverSkirmish extends CardNeedsSelection(76, 3, US, true, ca
 }
 
 object Card077AskNotWhatYourCountry extends CardNeedsSelection(77, 3, US, true, cardEventSelectMultipleCards) {
+  stepMeta(0) = (game: Game, card: Card) => card.canDiscard(game, game.operatingPlayer)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     if (step == 1) {
       val cards = input.asInstanceOf[OperationSelectCards].cards
@@ -1627,7 +1628,7 @@ object Card102IranIraqWar extends CardNeedsSelection(102, 2, Neutral, false, car
 
 object Card103Defectors extends CardInstant(103, 2, US, false) {
   override def canHeadline(game: Game, faction: Faction) = true
-  override def canEvent(game: Game, faction: Faction) = false
+  override def canEvent(game: Game, faction: Faction) = game.round == 0
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     if (faction == US) {
       game.skipHeadlineCard2 = true
@@ -1770,6 +1771,7 @@ object Card107Che extends CardNeedsSelection(107, 3, USSR, false, cardEventSelec
 }
 
 object Card108OurManInTehran extends CardNeedsSelection(108, 2, US, true, cardEventSelectMultipleCards) {
+  stepMeta(0) = (game: Game, card: Card) => card.canDiscard(game, game.operatingPlayer)
   override def canEvent(game: Game, faction: Faction) =
     game.worldMap.countries.values.exists(c => c.getController == US && c.regions(Region.MidEast))
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {

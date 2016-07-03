@@ -331,11 +331,12 @@ class ControlUI(val game: Game) extends JPanel {
   def selectCardAndActionUI(card: Card = null) = {
     showSubUI(SelectCardAndAction)
     if (card == null) {
+      uiSelectCardAndAction.isLocked = false
       uiSelectCardAndAction.resetCard()
     } else {
       uiSelectCardAndAction.setCard(card)
+      uiSelectCardAndAction.isLocked = true
     }
-    uiSelectCardAndAction.isLocked = card != null
   }
 
   def selectOperationUI(tip: String) = {
@@ -489,7 +490,7 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
   ControlSubUIText(parent, Array("")) { // TODO what to do when no avaliable target
 
   val buttonDone = addButton(Lang.done, 10, 165, 60, 30)
-  val buttonCancel = addButton(Lang.cancel, 70, 165, 60, 30)
+  val buttonCancel = addButton(Lang.remove, 70, 165, 60, 30)
   val buttonReset = addButton(Lang.reset, 130, 165, 60, 30)
 
   val tableModel = new DefaultTableModel()
@@ -668,7 +669,7 @@ class ControlSubUISelectCountry(parent: ControlUI) extends
   ControlSubUIText(parent, Array("")) {
 
   val buttonDone = addButton(Lang.done, 10, 165, 60, 30)
-  val buttonCancel = addButton(Lang.cancel, 70, 165, 60, 30)
+  val buttonCancel = addButton(Lang.remove, 70, 165, 60, 30)
   val buttonReset = addButton(Lang.reset, 130, 165, 60, 30)
 
   val tableModel = new DefaultTableModel()
