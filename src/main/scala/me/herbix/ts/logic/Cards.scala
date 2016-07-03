@@ -475,7 +475,7 @@ object Card027USJapanPact extends CardInstant(27, 4, US, true) {
 object Card028SuezCrisis extends CardNeedsSelection(28, 3, USSR, true, cardEventInfluence) {
   val countryNames = Set("UK", "France", "Israel")
   val checkValidFunc: Map[Country, Int] => Boolean = _.forall(e => countryNames(e._1.name) && e._2 <= 2)
-  stepMeta(0) = (5, false, false, US, checkValidFunc)
+  stepMeta(0) = (4, false, false, US, checkValidFunc)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     if (step == 1) {
       game.modifyInfluence(US, false, input.asInstanceOf[OperationModifyInfluence].detail)

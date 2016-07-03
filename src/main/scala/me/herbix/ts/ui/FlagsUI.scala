@@ -48,7 +48,7 @@ class FlagsUI(game: Game) extends JPanel {
     }
 
     for (i <- n until flags.length) {
-      flags(n) = null
+      flags(i) = null
     }
   }
 
