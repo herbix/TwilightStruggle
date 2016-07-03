@@ -188,6 +188,12 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
+      case State.noradInfluence =>
+        if (game.playerFaction == Faction.US) {
+          addInfluenceUI(1, Lang.putExtra, true, true, true, false, Faction.US, _.forall(_._1.influence(Faction.US) > 0))
+        } else {
+          waitOtherUI()
+        }
       case State.cardEventInfluence =>
         if (game.playerFaction == game.operatingPlayer) {
           val card = game.currentCard.asInstanceOf[CardNeedsSelection]
@@ -218,10 +224,15 @@ class ControlUI(val game: Game) extends JPanel {
           val card = game.currentCard.asInstanceOf[CardNeedsSelection]
           val step = card.getStep(game)
           val stepMeta = card.getStepMeta(game).asInstanceOf[(Int, Boolean, Set[Country] => Boolean)]
-          val rest = if (game.currentCardData != null && game.currentCardData.isInstanceOf[Int])
-            game.currentCardData.asInstanceOf[Int]
-          else
+          val rest = if (game.currentCardData != null) {
+            game.currentCardData match {
+              case i: Int => i
+              case (i: Int, _) => i
+              case _ => 0
+            }
+          } else {
             0
+          }
           selectCountryUI(stepMeta._1, rest, Lang.cardTips(card)(step-1), stepMeta._2, stepMeta._3)
         } else {
           waitOtherUI()

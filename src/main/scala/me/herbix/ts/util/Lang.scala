@@ -552,19 +552,19 @@ object Lang {
     "若美国控制英国且“北大西洋公约组织”已生效，美国在西欧的1个国家增加2点影响力并得2VP。"
   )
   addCardInfo("北美防空司令部*",
-    "若美国控制加拿大，当核战等级变为2时，美国可在有影响力的1个国家增加1点影响力。\n" +
+    "若美国控制加拿大，在某个行动轮后核战等级变为2时，美国可在已有美国影响力的1个国家增加1点影响力。\n" +
     "此效果会被“困境”取消。"
   )
   addCardInfo("切·格瓦拉",
     "苏联可用此牌的行动力在中美洲，南美洲或非洲的1个非战场国进行政变。\n" +
-    "若政变移除了美国影响力，则苏联可以在同一区域的不同非战场国进行第二次政变。"
+    "若政变移除了美国影响力，则苏联可以在这些区域的另一个非战场国进行第二次政变。"
   )
   addCardInfo("我们的人在德黑兰*",
     "若美国控制至少1个中东国家，则美国玩家从牌堆抽5张牌，" +
     "选择其中任意张展示并弃入弃牌堆，不发动事件，剩余的牌放回牌堆，并洗牌。"
   )
-  addCardInfo("尤里和萨曼莎*", "本回合的剩下的行动轮内，每当美国发动政变，苏联就得1VP。")
-  addCardInfo("出售预警机给沙特*", "美国在沙特阿拉伯增加2点行动力。\n不可作为事件打出“穆斯林革命”。")
+  addCardInfo("尤里和萨曼莎*", "本回合剩下的行动轮内，每当美国发动政变，苏联就得1VP。")
+  addCardInfo("出售预警机给沙特*", "美国在沙特阿拉伯增加2点影响力。\n不可作为事件打出“穆斯林革命”。")
 
   val flagInfo = new Array[(Map[Faction, String], String)](120)
   var flagInfoCount = 0
@@ -634,6 +634,11 @@ object Lang {
   addFlagInfo("切尔诺贝利", "苏联不能在%2$s进行增加影响力的行动。")
   addFlagInfo("推倒柏林墙", "不可作为事件打出“维利·勃兰特”。")
   addFlagInfo("奥德里奇·艾姆斯泄密", "美国公开手牌。")
+  addFlagInfo("北美防空司令部",
+      "若美国控制加拿大，在某个行动轮后核战等级变为2时，美国可在已有美国影响力的1个国家增加1点影响力。\n" +
+      "打出“困境”时，此标记失效。")
+  addFlagInfo("尤里和萨曼莎", "本回合剩下的行动轮内，每当美国发动政变，苏联就得1VP。")
+  addFlagInfo("出售预警机给沙特", "不可作为事件打出“穆斯林革命”。")
 
   val cardTips = mutable.Map.empty[Card, Array[String]]
   cardTips += Card007SocialistGovernments -> Array("请从西欧移除%s美国影响力")
@@ -679,6 +684,10 @@ object Lang {
   cardTips += Card098AldrichAmes -> Array("请弃对手一张牌")
   cardTips += Card099PershingII -> Array("请移除西欧%s国1美国影响力")
   cardTips += Card102IranIraqWar -> Array("请选择两伊战争被入侵国")
+  cardTips += Card104CambridgeFive -> Array("请选择一张计分牌", "请在相应区域增加%s影响力")
+  cardTips += Card105SpecialRelationship -> Array("请选择英国的%s个邻国", "请选择%s个西欧国家")
+  cardTips += Card107Che -> Array("请政变%1$s个国家（行动力%2$s）", "请政变%1$s个国家（行动力%2$s）")
+  cardTips += Card108OurManInTehran -> Array("请弃掉任意张牌")
 
   def toString(flagData: Any): String = {
     flagData match {

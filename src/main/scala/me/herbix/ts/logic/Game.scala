@@ -22,7 +22,7 @@ class Game {
   var playerFaction = Neutral
 
   // config
-  var extraInfluence = -2
+  var extraInfluence = 0
   var optionalCards = true
   var drawGameWinner = US
 
@@ -142,6 +142,7 @@ class Game {
       case State.selectTake8Rounds => nextStateSelectTake8Rounds(input)
       case State.quagmireDiscard => nextStateQuagmireDiscard(input)
       case State.quagmirePlayScoringCard => nextStateQuagmireScoringCard(input)
+      case State.noradInfluence => nextStateNORADInfluence(input)
       case State.EventStates(n) => nextStateCardEvent(input)
     }
     checkFlags()
@@ -470,6 +471,7 @@ class Game {
     operatingPlayer = phasingPlayer
 
     stateStack.push(nextActionState)
+    flags.setFlagData(US, Flags.NORAD, defcon)
 
     recordHistory(new HistoryTurnRound(turn, round, phasingPlayer))
   }
@@ -523,8 +525,7 @@ class Game {
     recordHistory(new HistorySpace(faction, oldSpace.level, selfSpace.level))
 
     val oppositeSpace = space(oppositeFaction)
-    addVp(faction, if (oppositeSpace.level < selfSpace.level) selfSpace.firstVp else selfSpace.secondVp)
-    checkVp()
+    addVpAndCheck(faction, if (oppositeSpace.level < selfSpace.level) selfSpace.firstVp else selfSpace.secondVp)
   }
 
   def addVp(faction: Faction, value: Int): Unit = {
@@ -652,6 +653,20 @@ class Game {
     stateStack.push(selectHeadlineCard)
   }
 
+  def tryNextRound(): Unit = {
+    if (stateStack.isEmpty) {
+      if (flags.hasFlag(US, Flags.NORAD) && worldMap.countries("Canada").getController == US &&
+        flags.getFlagData(US, Flags.NORAD) != defcon && defcon == 2) {
+        stateStack.push(noradInfluence)
+      } else if (nextRound()) {
+        stateStack.push(nextActionState)
+        flags.setFlagData(US, Flags.NORAD, defcon)
+      } else {
+        nextTurn()
+      }
+    }
+  }
+
   def nextStateSelectCardAndAction(input: Operation): Unit = {
     val op = input.asInstanceOf[OperationSelectCardAndAction]
     val oppositeCard = op.card.faction == Faction.getOpposite(op.faction)
@@ -667,8 +682,7 @@ class Game {
 
     if (flags.hasFlag(op.faction, Flags.WeWillBuryYou)) {
       if (op.action != Action.Event || op.card != Card032UNIntervention) {
-        addVp(Faction.getOpposite(op.faction), 3)
-        checkVp()
+        addVpAndCheck(Faction.getOpposite(op.faction), 3)
       }
       removeFlag(op.faction, Flags.WeWillBuryYou)
     }
@@ -688,13 +702,7 @@ class Game {
         }
         op.card.afterPlay(this, op.faction)
         stateStack.pop()
-        if (stateStack.isEmpty) {
-          if (nextRound()) {
-            stateStack.push(nextActionState)
-          } else {
-            nextTurn()
-          }
-        }
+        tryNextRound()
       case Action.Event =>
         discardCard(op.card, op.faction)
         stateStack.pop()
@@ -753,13 +761,7 @@ class Game {
         currentCard.afterPlay(this, operatingPlayer)
         currentCard = null
         stateStack.pop()
-        if (stateStack.isEmpty) {
-          if (nextRound()) {
-            stateStack.push(nextActionState)
-          } else {
-            nextTurn()
-          }
-        }
+        tryNextRound()
     }
   }
 
@@ -920,7 +922,8 @@ class Game {
     stateStack.pop()
   }
 
-  def coup(country: Country, faction: Faction, op: Int): Unit = {
+  def coup(c: Country, faction: Faction, op: Int): Int = {
+    val country = worldMap.countries(c.name)
     val rollResult = rollDice()
     val modifierSalt = if (flags.hasFlag(Flags.SALT)) -1 else 0
     val modifierDeathSquads = if (flags.hasFlag(faction, Flags.DeathSquads)) 1 else
@@ -949,6 +952,12 @@ class Game {
     if (flags.hasFlag(faction, Flags.CubaMissile)) {
       gameOver(Faction.getOpposite(faction))
     }
+
+    if (flags.hasFlag(Faction.getOpposite(faction), Flags.Samantha)) {
+      addVpAndCheck(Faction.getOpposite(faction), 1)
+    }
+
+    coupFactor
   }
 
   def nextStateCardOperation() = {
@@ -965,13 +974,7 @@ class Game {
         currentCard.afterPlay(this, operatingPlayer)
         currentCard = null
         stateStack.pop()
-        if (stateStack.isEmpty) {
-          if (nextRound()) {
-            stateStack.push(nextActionState)
-          } else {
-            nextTurn()
-          }
-        }
+        tryNextRound()
     }
   }
 
@@ -1027,17 +1030,17 @@ class Game {
     modifiedOp
   }
 
-  def war(faction: Faction, country: Country, modifier: Int, minRoll: Int, military: Int, vp: Int) = {
+  def war(faction: Faction, c: Country, modifier: Int, minRoll: Int, military: Int, vp: Int) = {
+    val country = worldMap.countries(c.name)
     val dice = rollDice()
     val modified = dice - modifier
     addMilitary(faction, military)
     recordHistory(new HistoryWar(faction, country, dice, modified))
     if (modified >= minRoll) {
-      addVp(faction, vp)
+      addVpAndCheck(faction, vp)
       val influence = country.influence(Faction.getOpposite(faction))
       modifyInfluence(Faction.getOpposite(faction), false, Map(country -> influence))
       modifyInfluence(faction, true, Map(country -> influence))
-      checkVp()
     }
   }
 
@@ -1107,6 +1110,7 @@ class Game {
     scoring(Region.Africa)
     scoring(Region.MidAmerica)
     scoring(Region.SouthAmerica)
+    checkVp()
   }
 
   def gameOver(faction: Faction): Unit = {
@@ -1168,6 +1172,17 @@ class Game {
     stateStack.push(cardEvent)
     stateStack.push(cardEventStart)
     currentCard.nextState(this, operatingPlayer, null)
+  }
+
+  def nextStateNORADInfluence(input: Operation): Unit = {
+    val op = input.asInstanceOf[OperationModifyInfluence]
+
+    modifyInfluence(op.faction, op.isAdd, op.detail)
+    stateStack.pop()
+
+    flags.setFlagData(US, Flags.NORAD, defcon)
+
+    tryNextRound()
   }
 
   def checkFlags(): Unit = {

@@ -369,7 +369,7 @@ object Card020OlympicGames extends CardNeedsSelection(20, 2, Neutral, false, car
             winner = Faction.getOpposite(game.operatingPlayer)
           }
         } while (winner == Neutral)
-        game.addVp(winner, 2)
+        game.addVpAndCheck(winner, 2)
         3
       } else {
         game.setDefcon(game.defcon - 1)
@@ -551,7 +551,7 @@ object Card032UNIntervention extends CardNeedsSelection(32, 1, Neutral, false,
   }
   override def afterPlay(game: Game, faction: Faction): Unit = {
     if (game.flags.hasFlag(USSR, Flags.U2Incident)) {
-      game.addVp(USSR, 1)
+      game.addVpAndCheck(USSR, 1)
       game.removeFlag(USSR, Flags.U2Incident)
     }
   }
@@ -672,6 +672,7 @@ object Card041NuclearSubs extends CardInstant(41, 2, US, true) {
 object Card042Quagmire extends CardInstant(42, 3, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addFlag(US, Flags.QuagmireBearTrap)
+    game.removeFlag(US, Flags.NORAD)
     true
   }
 }
@@ -724,7 +725,7 @@ object Card045Summit extends CardNeedsSelection(45, 1, Neutral, false, cardEvent
           2
         } else {
           game.operatingPlayer = targetFaction
-          game.addVp(targetFaction, 2)
+          game.addVpAndCheck(targetFaction, 2)
           1
         }
       case 1 =>
@@ -939,6 +940,7 @@ object Card056MuslimRevolution extends CardNeedsSelection(56, 4, USSR, false, ca
   val countryNames = Set("Sudan", "Iran", "Iraq", "Egypt", "Libya", "Saudi Arabia", "Syria", "Jordan")
   val checkValidFunc: Set[Country] => Boolean = _.forall(country => countryNames(country.name))
   stepMeta(0) = (2, true, checkValidFunc)
+  override def canEvent(game: Game, faction: Faction) = !game.flags.hasFlag(Flags.AwacsSale)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     if (step == 1) {
       game.modifyInfluence(US, false, input.asInstanceOf[OperationSelectCountry].detail.map(c => {
@@ -1169,7 +1171,7 @@ object Card072SadatExpelsSoviets extends CardInstant(72, 1, US, true) {
   }
 }
 
-object Card073ShuttleDiplomacy extends CardInstant(73, 3, US, true) { // TODO not finished
+object Card073ShuttleDiplomacy extends CardInstant(73, 3, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addFlag(US, Flags.ShuttleDiplomacy)
     true
@@ -1371,7 +1373,7 @@ object Card089ShootDownKAL007 extends CardNeedsSelection(89, 4, US, true,
     step match {
       case 0 =>
         game.setDefcon(game.defcon - 1)
-        game.addVp(US, 2)
+        game.addVpAndCheck(US, 2)
         if (game.worldMap.countries("S.Korea").getController == US) 1 else 4
       case 1 =>
         val op = input.asInstanceOf[OperationSelectOperation]
@@ -1400,7 +1402,7 @@ object Card090Glasnost extends CardNeedsSelection(90, 4, USSR, true,
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     step match {
       case 0 =>
-        game.addVp(USSR, 2)
+        game.addVpAndCheck(USSR, 2)
         game.setDefcon(game.defcon + 1)
         if (game.flags.hasFlag(faction, Flags.Reformer)) 1 else 4
       case 1 =>
@@ -1574,7 +1576,7 @@ object Card099PershingII extends CardNeedsSelection(99, 3, USSR, true, cardEvent
   stepMeta(0) = (3, false, false, US, checkValidFunc)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     if (step == 1) {
-      game.addVp(USSR, 1)
+      game.addVpAndCheck(USSR, 1)
       game.modifyInfluence(US, false, input.asInstanceOf[OperationModifyInfluence].detail)
     }
     step + 1
@@ -1640,14 +1642,171 @@ object Card103Defectors extends CardInstant(103, 2, US, false) {
   }
 }
 
-private class DefaultCard(id: Int, op: Int, cardType: Faction) extends CardInstant(id, op, cardType, false) {
-  override def instantEvent(game: Game, faction: Faction): Boolean = true
+object Card104CambridgeFive extends CardNeedsSelection(104, 2, USSR, false,
+  cardEventSelectCardOrCancel, cardEventInfluence) {
+  stepMeta(0) = (game: Game, card: Card) => true
+  stepMeta(1) = (1, true, true, USSR, null)
+  override def getStepMeta(game: Game): Any = {
+    val checkValidFunc: Map[Country, Int] => Boolean = _.forall(_._1.regions(game.currentCardData.asInstanceOf[Region]))
+    stepMeta(1) = (1, true, true, USSR, checkValidFunc)
+    super.getStepMeta(game)
+  }
+  override def canEvent(game: Game, faction: Faction) = game.turn <= 7
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    step match {
+      case 0 =>
+        val eventCards = new CardSet
+        game.hand(US).filter(!_.canHeld(game)).foreach(eventCards.add)
+        game.currentCardData = eventCards
+        1
+      case 1 =>
+        val card = input.asInstanceOf[OperationSelectCard].card
+        if (card == null) {
+          game.currentCardData = null
+          3
+        } else {
+          game.currentCardData = card match {
+            case c: CardScoring => c.region
+            case Card038SEAsiaScoring => Region.SouthEastAsia
+          }
+          2
+        }
+      case 2 =>
+        game.modifyInfluence(USSR, true, input.asInstanceOf[OperationModifyInfluence].detail)
+        3
+    }
+  }
+}
+
+object Card105SpecialRelationship extends CardNeedsSelection(105, 2, US, false,
+  cardEventSelectCountry, cardEventSelectCountry) {
+  val countryNames = Set("Canada", "Benelux", "France", "Norway")
+  val checkValidFunc1: Set[Country] => Boolean = _.forall(c => countryNames(c.name))
+  val checkValidFunc2: Set[Country] => Boolean = _.forall(_.regions(Region.WestEurope))
+  stepMeta(0) = (1, true, checkValidFunc1)
+  stepMeta(1) = (1, true, checkValidFunc2)
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    step match {
+      case 0 =>
+        val uk = game.worldMap.countries("UK")
+        if (uk.getController == US) {
+          if (game.flags.hasFlag(Flags.NATO)) 2 else 1
+        } else {
+          3
+        }
+      case 1 =>
+        val country = input.asInstanceOf[OperationSelectCountry].detail.head
+        game.modifyInfluence(US, true, Map(country -> 1))
+        3
+      case 2 =>
+        val country = input.asInstanceOf[OperationSelectCountry].detail.head
+        game.modifyInfluence(US, true, Map(country -> 2))
+        game.addVpAndCheck(US, 2)
+        3
+    }
+  }
+}
+
+object Card106NORAD extends CardInstant(106, 3, US, true) {
+  override def instantEvent(game: Game, faction: Faction): Boolean = {
+    game.addFlag(US, Flags.NORAD, game.defcon)
+    true
+  }
+}
+
+object Card107Che extends CardNeedsSelection(107, 3, USSR, false, cardEventSelectCountry, cardEventSelectCountry) {
+  override def getStepMeta(game: Game): Any = {
+    val checkValidFunc1: Set[Country] => Boolean =
+      _.forall(country =>
+        (country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica) || country.regions(Region.Africa)) &&
+        !country.isBattlefield && game.canCoupWithoutFlags(game.operatingPlayer, country))
+    val checkValidFunc2: Set[Country] => Boolean =
+      _.forall(country =>
+        (country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica) || country.regions(Region.Africa)) &&
+          !country.isBattlefield && country != game.currentCardData.asInstanceOf[(Int, Country)]._2 &&
+          game.canCoupWithoutFlags(game.operatingPlayer, country))
+    stepMeta(0) = (1, false, checkValidFunc1)
+    stepMeta(1) = (1, false, checkValidFunc2)
+    super.getStepMeta(game)
+  }
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    step match {
+      case 0 =>
+        game.currentCardData = game.modifyOp(faction, this.op)
+        1
+      case 1 =>
+        val modifier = game.currentCardData.asInstanceOf[Int]
+        var secondCoup = false
+        val detail = input.asInstanceOf[OperationSelectCountry].detail
+        for (country <- detail) {
+          if (game.coup(country, USSR, modifier) > 0) {
+            secondCoup = true
+          }
+          game.addMilitary(USSR, modifier)
+        }
+        if (secondCoup) {
+          game.currentCardData = (game.currentCardData, detail.head)
+          2
+        } else {
+          game.currentCardData = null
+          3
+        }
+      case 2 =>
+        val modifier = game.modifyOp(faction, this.op)
+        for (country <- input.asInstanceOf[OperationSelectCountry].detail) {
+          game.coup(country, USSR, modifier)
+          game.addMilitary(USSR, modifier)
+        }
+        game.currentCardData = null
+        3
+    }
+  }
+}
+
+object Card108OurManInTehran extends CardNeedsSelection(108, 2, US, true, cardEventSelectMultipleCards) {
+  override def canEvent(game: Game, faction: Faction) =
+    game.worldMap.countries.values.exists(c => c.getController == US && c.regions(Region.MidEast))
+  override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
+    if (step == 0) {
+      val eventCards = new CardSet
+      for (i <- 1 to 5) {
+        eventCards.add(game.pickCardFromDeck())
+      }
+      game.currentCardData = eventCards
+    } else {
+      val eventCards = game.currentCardData.asInstanceOf[CardSet]
+      for (card <- input.asInstanceOf[OperationSelectCards].cards) {
+        eventCards.remove(card)
+        game.discardCard(card, US, true, true)
+      }
+      for (card <- eventCards) {
+        game.deck.add(card)
+      }
+      game.currentCardData = null
+    }
+    step + 1
+  }
+}
+
+object Card109YuriAndSamantha extends CardInstant(109, 2, USSR, true) {
+  override def instantEvent(game: Game, faction: Faction): Boolean = {
+    game.addFlag(USSR, Flags.Samantha)
+    true
+  }
+}
+
+object Card110AwacsSale extends CardInstant(110, 3, US, true) {
+  override def instantEvent(game: Game, faction: Faction): Boolean = {
+    val saudiArabia = game.worldMap.countries("Saudi Arabia")
+    game.modifyInfluence(US, true, Map(saudiArabia -> 2))
+    game.addFlag(US, Flags.AwacsSale)
+    true
+  }
 }
 
 object Cards {
   private val cardMap = mutable.Map[Int, Card]()
 
-  def addCard(id: Int, op: Int, cardType: Faction): Unit = cardMap += id -> new DefaultCard(id, op, cardType)
   def addCard(card: Card): Unit = cardMap += card.id -> card
 
   addCard(Card000Unknown)
@@ -1754,15 +1913,13 @@ object Cards {
   addCard(Card101Solidarity)
   addCard(Card102IranIraqWar)
   addCard(Card103Defectors)
-  addCard(104, 2, USSR)
-  addCard(105, 2, US)
-  addCard(106, 3, US)
-  addCard(107, 3, USSR)
-  addCard(108, 2, US)
-  addCard(109, 2, USSR)
-  addCard(110, 3, US)
-
-  println("Featured Cards: " + (cardMap.values.count(!_.isInstanceOf[DefaultCard]) - 1))
+  addCard(Card104CambridgeFive)
+  addCard(Card105SpecialRelationship)
+  addCard(Card106NORAD)
+  addCard(Card107Che)
+  addCard(Card108OurManInTehran)
+  addCard(Card109YuriAndSamantha)
+  addCard(Card110AwacsSale)
 
   def fromId(id: Int): Card = cardMap(id)
 

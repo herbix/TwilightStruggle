@@ -80,6 +80,9 @@ class Flags {
   def hasFlag(flag: Flag): Boolean = {
     flagSets.exists(_._2(flag))
   }
+  def setFlagData(faction: Faction, flag: Flag, data: Any): Unit = {
+    if (hasFlag(faction, flag)) flagData(faction)(flag) = data
+  }
   def getFlagData(faction: Faction, flag: Flag): Any = {
     if (hasFlag(faction, flag)) flagData(faction)(flag) else null
   }
@@ -152,6 +155,9 @@ object Flags {
   val Chernobyl = Flag(ThisTurn, false)
   val TearDownThisWall = Flag(Always, true)
   val AldrichAmes = Flag(ThisTurn, false)
+  val NORAD = Flag(Always, true)
+  val Samantha = Flag(ThisTurn, true)
+  val AwacsSale = Flag(Always, true)
 
   def init(): Unit = {}
 }
