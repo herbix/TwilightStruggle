@@ -134,6 +134,20 @@ class HistoryUI(game: Game) extends JPanel {
         } else {
           String.format(Lang.historyRollDiceModified, Lang.getFactionName(h.faction), h.dice.toString, (h.dice + h.modifier).toString)
         }
+      case h: HistoryPokeChest =>
+        String.format(Lang.historyPokeChest, Lang.getFactionName(h.faction), Lang.getFactionName(Faction.getOpposite(h.faction)))
+      case h: HistoryAddFlag =>
+        if (h.faction == Faction.Neutral) {
+          String.format(Lang.historyAddFlagNeutral, Lang.flagInfo(h.flag.id)._1(h.faction))
+        } else {
+          String.format(Lang.historyAddFlag, Lang.getFactionName(h.faction), Lang.flagInfo(h.flag.id)._1(h.faction))
+        }
+      case h: HistoryRemoveFlag =>
+        if (h.faction == Faction.Neutral) {
+          String.format(Lang.historyRemoveFlagNeutral, Lang.flagInfo(h.flag.id)._1(h.faction))
+        } else {
+          String.format(Lang.historyRemoveFlag, Lang.getFactionName(h.faction), Lang.flagInfo(h.flag.id)._1(h.faction))
+        }
       case h => h.toString
     }
     var height = 25

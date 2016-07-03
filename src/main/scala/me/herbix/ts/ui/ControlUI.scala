@@ -194,6 +194,13 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
+      case State.cubaMissileRemove =>
+        if (game.flags.hasFlag(game.playerFaction, Flags.CubaMissile)) {
+          selectCountryUI(1, 0, Lang.cardTips(Card040CubaMissile)(0), false, Card040CubaMissile.getConditionByFaction(game.playerFaction))
+          uiSelectCountry.pendingCountrySelection.clear()
+        } else {
+          waitOtherUI()
+        }
       case State.cardEventInfluence =>
         if (game.playerFaction == game.operatingPlayer) {
           val card = game.currentCard.asInstanceOf[CardNeedsSelection]

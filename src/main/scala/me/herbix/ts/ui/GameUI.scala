@@ -149,6 +149,8 @@ class GameUI(playerId: Int) extends JFrame {
     history match {
       case h: HistoryCard =>
         detailUI.setCard(h.card)
+      case h: HistoryFlag =>
+        detailUI.setFlag(h.faction, h.flag, h.data)
       case _ =>
     }
   })
@@ -159,6 +161,13 @@ class GameUI(playerId: Int) extends JFrame {
 
   controlUI.uiSelectMultipleCards.updateListeners :+= (() => {
     handUI.repaint()
+  })
+
+  flagsUI.flagClickListeners :+= ((faction: Faction, flag: Flag, flagData: Any) => {
+    if (faction == game.playerFaction && flag == Flags.CubaMissile && game.stateStack.top != State.end) {
+      val op = new OperationCubaMissileRequest(game.playerId, game.playerFaction, false)
+      game.sendNextState(op)
+    }
   })
 
 

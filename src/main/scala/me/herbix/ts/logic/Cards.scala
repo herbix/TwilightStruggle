@@ -654,11 +654,17 @@ object Card039ArmsRace extends CardInstant(39, 3, Neutral, false) {
   }
 }
 
-object Card040CubaMissile extends CardInstant(40, 3, Neutral, true) {
+object Card040CubaMissile extends CardInstant(40, 3, Neutral, true) {  // TODO how to remove
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.setDefcon(2)
     game.addFlag(Faction.getOpposite(faction), Flags.CubaMissile)
     true
+  }
+  def getConditionByFaction(faction: Faction): Set[Country] => Boolean = {
+    if (faction == Faction.US)
+      _.forall(c => (c.name == "Turkey" || c.name == "W.Germany") && c.influence(faction) >= 2)
+    else
+      _.forall(c => c.name == "Cuba" && c.influence(faction) >= 2)
   }
 }
 

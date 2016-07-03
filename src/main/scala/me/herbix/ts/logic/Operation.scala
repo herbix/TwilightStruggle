@@ -30,3 +30,5 @@ class OperationIntValue(playerId: Int, faction: Faction, val value: Int) extends
 class OperationSelectRegion(playerId: Int, faction: Faction, val region: Region) extends Operation(playerId, faction)
 
 class OperationSelectCards(playerId: Int, faction: Faction, val cards: Set[Card]) extends Operation(playerId, faction)
+
+class OperationCubaMissileRequest(playerId: Int, faction: Faction, val isResponse: Boolean) extends Operation(playerId, faction)

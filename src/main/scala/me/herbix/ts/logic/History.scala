@@ -10,6 +10,7 @@ import me.herbix.ts.logic.Region.Region
 trait History
 
 abstract class HistoryCard(val card: Card) extends History
+abstract class HistoryFlag(val faction: Faction, val flag: Flag, val data: Any) extends History
 
 class HistoryStartGame extends History
 class HistoryTurnRound(val turn: Int, val round: Int, val faction: Faction) extends History
@@ -36,3 +37,5 @@ class HistoryWar(val faction: Faction, val country: Country, val dice: Int, val 
 class HistoryPokeChest(val faction: Faction) extends History
 class HistoryRollDice(val faction: Faction, val dice: Int, val modifier: Int = 0) extends History
 class HistoryRegion(val faction: Faction, val region: Region) extends History
+class HistoryAddFlag(faction: Faction, flag: Flag, data: Any) extends HistoryFlag(faction, flag, data)
+class HistoryRemoveFlag(faction: Faction, flag: Flag, data: Any) extends HistoryFlag(faction, flag, data)

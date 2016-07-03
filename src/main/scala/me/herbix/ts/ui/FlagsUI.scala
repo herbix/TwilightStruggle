@@ -1,6 +1,6 @@
 package me.herbix.ts.ui
 
-import java.awt.event.{MouseEvent, MouseMotionAdapter}
+import java.awt.event.{MouseAdapter, MouseListener, MouseEvent, MouseMotionAdapter}
 import java.awt.{Color, RenderingHints, Graphics2D, Graphics}
 import javax.swing.JPanel
 
@@ -17,6 +17,7 @@ class FlagsUI(game: Game) extends JPanel {
   val flags = new Array[(Faction, Flag)](110)
   var hoverFlag: (Faction, Flag) = null
 
+  var flagClickListeners: List[(Faction, Flag, Any) => Unit] = List()
   var flagHoverListeners: List[(Faction, Flag, Any) => Unit] = List()
 
   override def paint(graphics: Graphics): Unit = {
@@ -67,6 +68,15 @@ class FlagsUI(game: Game) extends JPanel {
             }
           }
         }
+      }
+    }
+  })
+
+  addMouseListener(new MouseAdapter {
+    override def mouseClicked(e: MouseEvent): Unit = {
+      if (hoverFlag != null) {
+        val flag = hoverFlag
+        flagClickListeners.foreach(_(flag._1, flag._2, game.flags.getFlagData(flag._1, flag._2)))
       }
     }
   })

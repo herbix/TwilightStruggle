@@ -129,6 +129,11 @@ object Lang {
   val historyWar = "%s操纵，入侵%s，掷点得%s，调整为%s"
   val historyRollDice = "%s掷出了%s"
   val historyRollDiceModified = "%s掷出了%s，调整为%s"
+  val historyPokeChest = "%s戳了%s的胸口"
+  val historyAddFlag = "%s获得了标记“%s”"
+  val historyRemoveFlag = "%s失去了标记“%s”"
+  val historyAddFlagNeutral = "双方获得了标记“%s”"
+  val historyRemoveFlagNeutral = "双方失去了标记“%s”"
 
   val countryNames = mutable.Map[String, String]()
 
@@ -584,9 +589,9 @@ object Lang {
   addFlagInfo("鹰落在月亮上", "熊落在月亮上", "鹰/熊落在月亮上", "%1$s可以弃掉1张持牌。")
   addFlagInfo("太空站", "%1$s可以进行8个行动轮。")
   addFlagInfo("面朝下的中国牌", "%1$s刚从对手接收中国牌，本回合不能使用。")
-  addFlagInfo("核战等级限制", "双方不能在欧洲调整阵营或发动政变。")
-  addFlagInfo("核战等级限制", "双方不能在亚洲调整阵营或发动政变。")
-  addFlagInfo("核战等级限制", "双方不能在中东调整阵营或发动政变。")
+  addFlagInfo("核战等级限制（欧洲）", "双方不能在欧洲调整阵营或发动政变。")
+  addFlagInfo("核战等级限制（亚洲）", "双方不能在亚洲调整阵营或发动政变。")
+  addFlagInfo("核战等级限制（中东）", "双方不能在中东调整阵营或发动政变。")
   addFlagInfo("越南起义", "在本回合内，苏联如果将行动力全和在东南亚，则可以行动力+1。")
   addFlagInfo("戴高乐领导法国", "取消“北大西洋公约组织”对法国的效果，苏联可在法国调整阵营或发动政变。")
   addFlagInfo("遏制政策", "勃列日涅夫主义", "遏制政策/勃列日涅夫主义", "本回合%s打出的所有行动牌行动力+1（上限为4）。")
@@ -597,7 +602,8 @@ object Lang {
     "美国打出中国牌时此标记失效。")
   addFlagInfo("古巴导弹危机",
     "本回合%s的任何政变将引发核战，使其输掉游戏。\n" +
-    "在任何时候，作为苏联移除古巴的2点影响力，或作为美国移除西德和土耳其之一的2点影响力，就可以使此标记失效。")
+    "在任何时候，作为苏联移除古巴的2点影响力，或作为美国移除西德和土耳其之一的2点影响力，就可以使此标记失效。\n" +
+    "点击此标记以移除影响力。")
   addFlagInfo("核潜艇", "本回合美国在战场国的政变将不会降低核战等级（不影响古巴导弹危机的效果）。")
   addFlagInfo("困境", "捕熊陷阱", "困境/捕熊陷阱",
     "在下个行动轮，%1$s玩家不能进行通常行动，而是必须弃一张2或以上行动力的牌，然后掷骰，" +
@@ -657,6 +663,7 @@ object Lang {
   cardTips += Card032UNIntervention -> Array("请选择要打出的牌")
   cardTips += Card033DeStalinization -> Array("请先移除%s苏联影响力", "请放置%s苏联影响力")
   cardTips += Card036BrushWar -> Array("请选择被入侵国")
+  cardTips += Card040CubaMissile -> Array("请选择去除影响力的国家")
   cardTips += Card043SALTNegotiations -> Array("请从弃牌中回收一张牌")
   cardTips += Card045Summit -> Array("请改变核战等级")
   cardTips += Card046HowILearnStopWorry -> Array("请改变核战等级")

@@ -115,8 +115,10 @@ class Game {
 
   def sendPendingOperations(): Unit = {
     if (anotherGame != null) {
-      pendingOperation.foreach(anotherGame.nextState)
-      pendingOperation.clear()
+      while (pendingOperation.nonEmpty) {
+        val op = pendingOperation.dequeue()
+        anotherGame.nextState(op)
+      }
     }
   }
 
@@ -143,6 +145,7 @@ class Game {
       case State.quagmireDiscard => nextStateQuagmireDiscard(input)
       case State.quagmirePlayScoringCard => nextStateQuagmireScoringCard(input)
       case State.noradInfluence => nextStateNORADInfluence(input)
+      case State.cubaMissileRemove => nextStateCubaMissileRemove(input)
       case State.EventStates(n) => nextStateCardEvent(input)
     }
     checkFlags()
@@ -155,11 +158,24 @@ class Game {
   }
 
   private def nextStateContainsException(input: Operation): Unit = {
-    stateStack.top match {
-      case State.waitOther =>
-        val top2 = stateStack(1)
-        nextState(input, top2)
-      case other => nextState(input, other)
+    input match {
+      case op: OperationCubaMissileRequest =>
+        if (stateStack.top != cubaMissileRemove) {
+          if (!op.isResponse) {
+            if (op.playerId != playerId) {
+              sendNextState(new OperationCubaMissileRequest(playerId, playerFaction, true))
+            }
+          } else {
+            stateStack.push(cubaMissileRemove)
+          }
+        }
+      case _ =>
+        stateStack.top match {
+          case State.waitOther =>
+            val top2 = stateStack(1)
+            nextState(input, top2)
+          case other => nextState(input, other)
+        }
     }
   }
 
@@ -188,10 +204,16 @@ class Game {
   }
 
   def addFlag(faction: Faction, flag: Flag, data: Any = null): Unit = {
+    if (!flags.hasFlag(faction, flag)) {
+      recordHistory(new HistoryAddFlag(faction, flag, data))
+    }
     flags.addFlag(faction, flag, data)
   }
 
   def removeFlag(faction: Faction, flag: Flag): Unit = {
+    if (flags.hasFlag(faction, flag)) {
+      recordHistory(new HistoryRemoveFlag(faction, flag, flags.getFlagData(faction, flag)))
+    }
     flags.removeFlag(faction, flag)
   }
 
@@ -286,6 +308,8 @@ class Game {
       worldMap.countries("South Africa") -> 1,
       worldMap.countries("UK") -> 5
     ))
+
+    hand(USSR).add(Card040CubaMissile)
   }
 
   def nextStatePutStartUS(input: Operation): Unit = {
@@ -580,7 +604,7 @@ class Game {
 
     if (usFail != ussrFail) {
       if (usFail) gameOver(USSR) else gameOver(US)
-    } else {
+    } else if (usFail) {
       gameOver(Neutral)
     }
 
@@ -1183,6 +1207,18 @@ class Game {
     flags.setFlagData(US, Flags.NORAD, defcon)
 
     tryNextRound()
+  }
+
+  def nextStateCubaMissileRemove(input: Operation): Unit = {
+    val op = input.asInstanceOf[OperationSelectCountry]
+    val detail = op.detail
+
+    stateStack.pop()
+
+    for (country <- detail) {
+      modifyInfluence(input.faction, false, Map(country -> 2))
+      removeFlag(input.faction, Flags.CubaMissile)
+    }
   }
 
   def checkFlags(): Unit = {
