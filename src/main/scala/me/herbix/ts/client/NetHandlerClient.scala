@@ -3,15 +3,19 @@ package me.herbix.ts.client
 import java.io.{DataOutputStream, DataInputStream}
 import java.net.Socket
 
+import scala.util.Random
+
 /**
   * Created by Chaofan on 2016/7/3.
   */
 class NetHandlerClient(socket: Socket) {
   var id = 0
-  var name: String = "Noname"
+  var name: String = "TS-" + Integer.toHexString(Random.nextInt())
 
   val in = new DataInputStream(socket.getInputStream)
   val out = new DataOutputStream(socket.getOutputStream)
+
+  sendRename(name)
 
   new Thread(){
     override def run(): Unit = {

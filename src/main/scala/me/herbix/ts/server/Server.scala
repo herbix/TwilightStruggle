@@ -15,6 +15,7 @@ object Server {
     val serverSocket = new ServerSocket(23981)
     while (true) {
       val socket = serverSocket.accept()
+      println(s"Receive connection $socket")
       new NetHandlerServer(socket)
     }
   }

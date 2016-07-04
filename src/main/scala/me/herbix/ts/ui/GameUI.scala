@@ -17,7 +17,6 @@ class GameUI(playerId: Int) extends JFrame {
   val game = new Game
 
   // UI start
-  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
   setLayout(new BorderLayout)
 
   val bgColor = getBackground // new Color(213, 189, 181)
@@ -175,6 +174,9 @@ class GameUI(playerId: Int) extends JFrame {
 
 object GameUI {
   def main(args: Array[String]) {
+
+    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
+
     val GameUI1 = new GameUI(0)
     val GameUI2 = new GameUI(1)
 
