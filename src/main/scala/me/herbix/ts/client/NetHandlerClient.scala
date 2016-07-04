@@ -2,6 +2,7 @@ package me.herbix.ts.client
 
 import java.io.{DataOutputStream, DataInputStream}
 import java.net.Socket
+import javax.swing.SwingUtilities
 
 import scala.util.Random
 
@@ -39,12 +40,33 @@ class NetHandlerClient(socket: Socket) {
   }.start()
 
   def destroyRoom(): Unit = {
-    val roomId = in.readInt()
+    val id = in.readInt()
+    println(s"destroyRoom $id")
+    SwingUtilities.invokeLater(new Runnable {
+      override def run(): Unit = {
+        val model = ClientFrame.tableModel
+        val r = (0 until model.getRowCount) find { i =>
+          val roomId = model.getValueAt(i, 0).asInstanceOf[Int]
+          roomId == id
+        }
+        for (i <- r) {
+          model.removeRow(i)
+        }
+      }
+    })
   }
 
   def newRoom(): Unit = {
     val roomId = in.readInt()
+    val creatorId = in.readInt()
     val name = in.readUTF()
+    println(s"newRoom $roomId $creatorId $name")
+    SwingUtilities.invokeLater(new Runnable {
+      override def run(): Unit = {
+        val model = ClientFrame.tableModel
+        model.addRow(Array[Object](Integer.valueOf(roomId), name))
+      }
+    })
   }
 
   def joinRoom(): Unit = {
@@ -54,10 +76,12 @@ class NetHandlerClient(socket: Socket) {
       val id = in.readInt()
       val name = in.readUTF()
     }
+    println(s"joinRoom $roomId")
   }
 
   def leaveRoom(): Unit = {
     val id = in.readInt()
+    println(s"leaveRoom $id")
   }
 
   def roomData(): Unit = {
@@ -69,6 +93,7 @@ class NetHandlerClient(socket: Socket) {
   def otherJoinRoom(): Unit = {
     val id = in.readInt()
     val name = in.readUTF()
+    println(s"otherJoinRoom $id")
   }
 
   def sendExit(): Unit = {

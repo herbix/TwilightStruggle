@@ -1,12 +1,13 @@
 package me.herbix.ts.client
 
+import java.awt.event.{ActionEvent, ActionListener}
 import java.awt.{Dimension, BorderLayout}
 import javax.swing._
 
 /**
   * Created by Chaofan on 2016/7/4.
   */
-object NewRoom extends JDialog {
+object NewRoomDialog extends JDialog {
 
   var isDone = false
 
@@ -65,9 +66,16 @@ object NewRoom extends JDialog {
 
   setLocationRelativeTo(getOwner)
 
+  done.addActionListener(new ActionListener {
+    override def actionPerformed(e: ActionEvent): Unit = {
+      isDone = true
+      NewRoomDialog.super.setVisible(false)
+    }
+  })
+
   override def setVisible(b: Boolean): Unit = {
-    super.setVisible(b)
     isDone = false
+    super.setVisible(b)
   }
 
   def label(text: String, x: Int, y: Int, w: Int, h: Int): JLabel = {

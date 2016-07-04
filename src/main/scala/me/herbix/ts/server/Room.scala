@@ -5,12 +5,14 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/7/3.
   */
-class Room {
+class Room(val creator: NetHandlerServer) {
   val id: Int = Server.nextId()
   val netHandlers = mutable.Set.empty[NetHandlerServer]
 
+  netHandlers += creator
   Server.rooms += id -> this
   Server.netHandlers.values.foreach(_.sendNewRoom(this))
+  netHandlers -= creator
 
   def leave(netHandler: NetHandlerServer): Unit = {
     netHandlers -= netHandler

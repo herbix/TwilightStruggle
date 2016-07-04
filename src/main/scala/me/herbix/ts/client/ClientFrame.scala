@@ -9,7 +9,7 @@ import javax.swing._
 /**
   * Created by Chaofan on 2016/7/3.
   */
-object Client extends JFrame {
+object ClientFrame extends JFrame {
 
   var netHandler: NetHandlerClient = null
 
@@ -29,6 +29,7 @@ object Client extends JFrame {
   tableModel.addColumn("房间号")
   tableModel.addColumn("房间名")
 
+  table.setRowHeight(25)
   table.getColumnModel.getColumn(0).setPreferredWidth(50)
   table.getColumnModel.getColumn(1).setPreferredWidth(500)
 
@@ -78,7 +79,10 @@ object Client extends JFrame {
 
   newRoom.addActionListener(new ActionListener {
     override def actionPerformed(e: ActionEvent): Unit = {
-      NewRoom.setVisible(true)
+      NewRoomDialog.setVisible(true)
+      if (NewRoomDialog.isDone) {
+        netHandler.sendNewRoom()
+      }
     }
   })
 

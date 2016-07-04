@@ -28,6 +28,7 @@ class NetHandlerServer(socket: Socket) {
       try {
         while (true) {
           val b = in.readByte()
+          println(b)
           b match {
             case 0 => exit()
             case 1 => rename()
@@ -52,7 +53,7 @@ class NetHandlerServer(socket: Socket) {
   }
 
   def newRoom(): Unit = {
-    val room = new Room
+    val room = new Room(this)
     if (this.room != null) {
       this.room.leave(this)
     }
@@ -102,6 +103,7 @@ class NetHandlerServer(socket: Socket) {
     this.synchronized {
       out.writeByte(2)
       out.writeInt(room.id)
+      out.writeInt(room.creator.id)
       out.writeUTF(room.netHandlers.head.name)
     }
   }
@@ -143,11 +145,15 @@ class NetHandlerServer(socket: Socket) {
 
   def close(): Unit = {
     Server.netHandlers -= this.id
+    if (room != null) {
+      room.leave(this)
+    }
     try {
       socket.close()
     } catch {
       case e: Throwable =>
     }
+    room = null
   }
 
   override def hashCode = id
