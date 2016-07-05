@@ -16,6 +16,11 @@ class Room(val creator: NetHandlerServer) {
 
   def leave(netHandler: NetHandlerServer): Unit = {
     netHandlers -= netHandler
+    if (netHandler == creator) {
+      for (nh <- netHandlers) {
+        leave(nh)
+      }
+    }
     if (netHandlers.isEmpty) {
       Server.rooms -= id
       Server.netHandlers.values.foreach(_.sendDestroyRoom(this))
@@ -24,6 +29,7 @@ class Room(val creator: NetHandlerServer) {
         nh.sendLeaveRoom(netHandler)
       }
     }
+    netHandler.sendLeaveRoom(netHandler)
   }
 
   def join(netHandler: NetHandlerServer): Unit = {

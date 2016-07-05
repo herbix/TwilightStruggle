@@ -6,12 +6,23 @@ import java.net.Socket
 import javax.swing.table.DefaultTableModel
 import javax.swing._
 
+import me.herbix.ts.logic.Faction
+import me.herbix.ts.util.Lang
+
+import scala.collection.mutable
+
 /**
   * Created by Chaofan on 2016/7/3.
   */
 object ClientFrame extends JFrame {
 
   var netHandler: NetHandlerClient = null
+
+  var extraInfluence = 0
+  var hasOptional = false
+  var drawWinner = Faction.Neutral
+
+  val roomCreatorMap = mutable.Map.empty[Int, Int]
 
   UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
   setLayout(new BorderLayout)
@@ -32,6 +43,7 @@ object ClientFrame extends JFrame {
   table.setRowHeight(25)
   table.getColumnModel.getColumn(0).setPreferredWidth(50)
   table.getColumnModel.getColumn(1).setPreferredWidth(500)
+  table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
 
   tableOut.setPreferredSize(new Dimension(600, 400))
 
@@ -82,6 +94,28 @@ object ClientFrame extends JFrame {
       NewRoomDialog.setVisible(true)
       if (NewRoomDialog.isDone) {
         netHandler.sendNewRoom()
+        extraInfluence = NewRoomDialog.slider.getValue
+        drawWinner = if (NewRoomDialog.us.isSelected) Faction.US else Faction.USSR
+        hasOptional = NewRoomDialog.optional.isSelected
+        showInfo()
+      }
+    }
+  })
+
+  def showInfo(): Unit = {
+    RoomDialog.info.setText("<html><body>" +
+      s"苏联让点：$extraInfluence<br/>" +
+      s"平局胜者：${Lang.getFactionName(drawWinner)}<br/>" +
+      s"可选牌：  ${if (hasOptional) "有" else "无"}<br/>" +
+      "</body></html>"
+    )
+  }
+
+  joinRoom.addActionListener(new ActionListener {
+    override def actionPerformed(e: ActionEvent): Unit = {
+      val n = table.getSelectedRow
+      if (n >= 0) {
+        netHandler.sendJoinRoom(tableModel.getValueAt(n, 0).asInstanceOf[Int])
       }
     }
   })

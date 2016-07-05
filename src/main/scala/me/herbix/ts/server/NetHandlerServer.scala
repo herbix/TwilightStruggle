@@ -28,7 +28,6 @@ class NetHandlerServer(socket: Socket) {
       try {
         while (true) {
           val b = in.readByte()
-          println(b)
           b match {
             case 0 => exit()
             case 1 => rename()
@@ -45,14 +44,17 @@ class NetHandlerServer(socket: Socket) {
   }.start()
 
   def exit(): Unit = {
+    println(s"$id exit")
     throw new Exception("exit")
   }
 
   def rename(): Unit = {
     name = in.readUTF()
+    println(s"$id rename $name")
   }
 
   def newRoom(): Unit = {
+    println(s"$id newRoom")
     val room = new Room(this)
     if (this.room != null) {
       this.room.leave(this)
@@ -64,6 +66,7 @@ class NetHandlerServer(socket: Socket) {
 
   def joinRoom(): Unit = {
     val roomId = in.readInt()
+    println(s"$id joinRoom $roomId")
     if (!Server.rooms.contains(roomId)) {
       return
     }
@@ -77,9 +80,9 @@ class NetHandlerServer(socket: Socket) {
   }
 
   def leaveRoom(): Unit = {
+    println(s"$id leaveRoom")
     if (room != null) {
       room.leave(this)
-      sendLeaveRoom(this)
     }
   }
 
@@ -157,7 +160,4 @@ class NetHandlerServer(socket: Socket) {
   }
 
   override def hashCode = id
-}
-
-object NetHandlerServer {
 }

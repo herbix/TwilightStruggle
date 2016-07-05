@@ -1,24 +1,40 @@
 package me.herbix.ts.client
 
+import java.awt.event.{WindowEvent, WindowAdapter}
 import java.io.{DataOutputStream, DataInputStream}
 import java.net.Socket
-import javax.swing.SwingUtilities
+import javax.swing.{WindowConstants, SwingUtilities}
 
+import me.herbix.ts.logic.{Operation, Game}
+import me.herbix.ts.ui.GameUI
+import me.herbix.ts.util.Serializer._
+
+import scala.collection.mutable
 import scala.util.Random
 
 /**
   * Created by Chaofan on 2016/7/3.
   */
 class NetHandlerClient(socket: Socket) {
+
   var id = 0
   var name: String = "TS-" + Integer.toHexString(Random.nextInt())
+
+  var isRoomCreator = false
 
   val in = new DataInputStream(socket.getInputStream)
   val out = new DataOutputStream(socket.getOutputStream)
 
+  val roomInReal: RoomDataInputStream = new RoomDataInputStream()
+  val roomIn = new DataInputStream(roomInReal)
+  val roomOut = new DataOutputStream(new RoomDataOutputStream(this))
+
+  val random = new Random()
+  var seed = 0l
+
   sendRename(name)
 
-  new Thread(){
+  new Thread() {
     override def run(): Unit = {
       try {
         while (true) {
@@ -39,8 +55,26 @@ class NetHandlerClient(socket: Socket) {
     }
   }.start()
 
+  new Thread() {
+    override def run(): Unit = {
+      try {
+        while (true) {
+          val b = roomIn.readByte()
+          b match {
+            case 0 => roomProperty()
+            case 1 => roomStart()
+            case 2 => roomOperation()
+          }
+        }
+      } catch {
+        case e: Throwable => close()
+      }
+    }
+  }.start()
+
   def destroyRoom(): Unit = {
     val id = in.readInt()
+    ClientFrame.roomCreatorMap -= id
     println(s"destroyRoom $id")
     SwingUtilities.invokeLater(new Runnable {
       override def run(): Unit = {
@@ -60,6 +94,7 @@ class NetHandlerClient(socket: Socket) {
     val roomId = in.readInt()
     val creatorId = in.readInt()
     val name = in.readUTF()
+    ClientFrame.roomCreatorMap += roomId -> creatorId
     println(s"newRoom $roomId $creatorId $name")
     SwingUtilities.invokeLater(new Runnable {
       override def run(): Unit = {
@@ -72,37 +107,73 @@ class NetHandlerClient(socket: Socket) {
   def joinRoom(): Unit = {
     val roomId = in.readInt()
     val roommateCount = in.readInt()
+    val info = mutable.Set.empty[(Int, String)]
     for (i <- 0 until roommateCount) {
       val id = in.readInt()
       val name = in.readUTF()
+      info += ((id, name))
     }
+    isRoomCreator = ClientFrame.roomCreatorMap(roomId) == id
+    RoomDialog.start.setEnabled(isRoomCreator)
     println(s"joinRoom $roomId")
+    SwingUtilities.invokeLater(new Runnable {
+      override def run(): Unit = {
+        RoomDialog.tableModel.setRowCount(0)
+        for ((id, name) <- info) {
+          RoomDialog.tableModel.addRow(Array[Object](Integer.valueOf(id), name))
+        }
+        RoomDialog.setVisible(true)
+      }
+    })
   }
 
   def leaveRoom(): Unit = {
     val id = in.readInt()
     println(s"leaveRoom $id")
+    SwingUtilities.invokeLater(new Runnable {
+      override def run(): Unit = {
+        if (id == NetHandlerClient.this.id) {
+          RoomDialog.setVisible(false)
+        } else {
+          val r = (0 until RoomDialog.tableModel.getRowCount).find(RoomDialog.tableModel.getValueAt(_, 0).asInstanceOf[Int] == id)
+          for (i <- r) {
+            RoomDialog.tableModel.removeRow(i)
+          }
+        }
+      }
+    })
   }
 
   def roomData(): Unit = {
     val length = in.readInt()
     val buffer = new Array[Byte](length)
     in.readFully(buffer)
+    roomInReal.fill(buffer)
   }
 
   def otherJoinRoom(): Unit = {
     val id = in.readInt()
     val name = in.readUTF()
     println(s"otherJoinRoom $id")
+    if (isRoomCreator) {
+      roomSendProperty()
+    }
+    SwingUtilities.invokeLater(new Runnable {
+      override def run(): Unit = {
+        RoomDialog.tableModel.addRow(Array[Object](Integer.valueOf(id), name))
+      }
+    })
   }
 
   def sendExit(): Unit = {
+    println("send exit")
     this.synchronized {
       out.writeByte(0)
     }
   }
 
   def sendRename(name: String): Unit = {
+    println("send rename " + name)
     this.synchronized {
       out.writeByte(1)
       out.writeUTF(name)
@@ -110,25 +181,28 @@ class NetHandlerClient(socket: Socket) {
   }
 
   def sendNewRoom(): Unit = {
+    println("send newRoom")
     this.synchronized {
       out.writeByte(2)
     }
   }
 
   def sendJoinRoom(roomId: Int): Unit = {
+    println("send joinRoom " + roomId)
     this.synchronized {
       out.writeByte(3)
-      out.writeByte(roomId)
+      out.writeInt(roomId)
     }
   }
 
   def sendLeaveRoom(): Unit = {
+    println("send leaveRoom")
     this.synchronized {
       out.writeByte(4)
     }
   }
 
-  def sendData(buffer: Array[Byte]): Unit = {
+  def sendRoomData(buffer: Array[Byte]): Unit = {
     this.synchronized {
       out.writeByte(5)
       out.writeInt(buffer.length)
@@ -136,7 +210,76 @@ class NetHandlerClient(socket: Socket) {
     }
   }
 
+  def roomProperty(): Unit = {
+    println("roomProperty")
+    ClientFrame.extraInfluence = roomIn.readInt()
+    ClientFrame.drawWinner = roomIn.readInt()
+    ClientFrame.hasOptional = roomIn.readBoolean()
+    ClientFrame.showInfo()
+  }
+
+  def roomStart(): Unit = {
+    println("roomStart")
+    seed = roomIn.readLong()
+    showGame()
+  }
+
+  def roomOperation(): Unit = {
+    val game = RoomDialog.gameUI.game
+    val input = readOperation(roomIn, game)
+    println("roomSendOperation " + input.toString)
+    SwingUtilities.invokeLater(new Runnable {
+      override def run(): Unit = {
+        game.nextState(input)
+      }
+    })
+  }
+
+  def roomSendProperty(): Unit = {
+    println("roomSendProperty")
+    roomOut.writeByte(0)
+    roomOut.writeInt(ClientFrame.extraInfluence)
+    roomOut.writeInt(ClientFrame.drawWinner)
+    roomOut.writeBoolean(ClientFrame.hasOptional)
+    roomOut.flush()
+  }
+
+  def roomSendStart(): Unit = {
+    println("roomSendStart")
+    roomOut.writeByte(1)
+    seed = random.nextLong()
+    roomOut.writeLong(seed)
+    roomOut.flush()
+    showGame()
+  }
+
+  def roomSendOperation(input: Operation): Unit = {
+    println("roomSendOperation " + input.toString)
+    roomOut.writeByte(2)
+    input.writeToStream(roomOut)
+    roomOut.flush()
+  }
+
+  def showGame(): Unit = {
+    val gameUI = new GameUI(id)
+    RoomDialog.gameUI = gameUI
+    RoomDialog.setVisible(false)
+    gameUI.game.extraInfluence = ClientFrame.extraInfluence
+    gameUI.game.optionalCards = ClientFrame.hasOptional
+    gameUI.game.drawGameWinner = ClientFrame.drawWinner
+    gameUI.game.setRandomSeed(seed)
+    gameUI.setVisible(true)
+    gameUI.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+    gameUI.addWindowListener(new WindowAdapter {
+      override def windowClosed(e: WindowEvent): Unit = {
+        RoomDialog.gameUI = null
+        RoomDialog.setVisible(true)
+      }
+    })
+  }
+
   def close(): Unit = {
+    roomIn.close()
     try {
       socket.close()
     } catch {

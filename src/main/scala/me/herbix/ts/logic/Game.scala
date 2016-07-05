@@ -12,10 +12,10 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/12.
   */
-class Game {
+class Game extends GameTrait {
 
   // other players
-  var anotherGame: Game = null
+  var anotherGame: GameTrait = null
 
   // player info
   var playerId = 0
@@ -108,6 +108,11 @@ class Game {
 
   var stateUpdateListeners: List[() => Unit] = List()
 
+  def setRandomSeed(seed: Long): Unit = {
+    randomSeed = seed
+    random.setSeed(seed)
+  }
+
   def sendNextState(input: Operation): Unit = {
     pendingOperation.enqueue(input)
     nextState(input)
@@ -179,7 +184,7 @@ class Game {
     }
   }
 
-  private def nextState(input: Operation): Unit = {
+  def nextState(input: Operation): Unit = {
     toSendPendingOperations = true
     try {
       nextStateContainsException(input)
