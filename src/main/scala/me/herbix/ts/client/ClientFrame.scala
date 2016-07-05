@@ -69,7 +69,7 @@ object ClientFrame extends JFrame {
   new Thread() {
     override def run(): Unit = {
       try {
-        val socket = new Socket("localhost", 23981)
+        val socket = new Socket("ts.herbix.me", 23981)
         netHandler = new NetHandlerClient(socket)
         SwingUtilities.invokeLater(new Runnable {
           override def run(): Unit = {

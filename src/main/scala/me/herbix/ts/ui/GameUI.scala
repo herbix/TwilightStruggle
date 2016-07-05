@@ -172,6 +172,7 @@ class GameUI(playerId: Int) extends JFrame {
 
 }
 
+/*
 object GameUI {
   def main(args: Array[String]) {
 
@@ -195,3 +196,4 @@ object GameUI {
     GameUI2.setVisible(true)
   }
 }
+*/
