@@ -38,7 +38,9 @@ class NetHandlerServer(socket: Socket) {
           }
         }
       } catch {
-        case e: Throwable => close()
+        case e: Throwable =>
+          e.printStackTrace()
+          close()
       }
     }
   }.start()

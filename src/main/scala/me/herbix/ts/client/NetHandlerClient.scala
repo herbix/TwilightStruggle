@@ -134,6 +134,10 @@ class NetHandlerClient(socket: Socket) {
       override def run(): Unit = {
         if (id == NetHandlerClient.this.id) {
           RoomDialog.setVisible(false)
+          if (RoomDialog.gameUI != null) {
+            RoomDialog.gameUI.setVisible(false)
+            RoomDialog.gameUI = null
+          }
         } else {
           val r = (0 until RoomDialog.tableModel.getRowCount).find(RoomDialog.tableModel.getValueAt(_, 0).asInstanceOf[Int] == id)
           for (i <- r) {
@@ -267,6 +271,7 @@ class NetHandlerClient(socket: Socket) {
     gameUI.game.extraInfluence = ClientFrame.extraInfluence
     gameUI.game.optionalCards = ClientFrame.hasOptional
     gameUI.game.drawGameWinner = ClientFrame.drawWinner
+    gameUI.game.anotherGame = new RemoteGame(this)
     gameUI.game.setRandomSeed(seed)
     gameUI.setVisible(true)
     gameUI.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
