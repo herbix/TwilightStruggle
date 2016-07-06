@@ -40,18 +40,18 @@ class OperationModifyInfluence(playerId: Int, faction: Faction, val isAdd: Boole
   }
 }
 
-class OperationSelectCard(playerId: Int, faction: Faction, val card: Card) extends Operation(playerId, faction) {
+class OperationSelectCard(playerId: Int, faction: Faction, val card: Option[Card]) extends Operation(playerId, faction) {
   override val opId: Byte = 2
   override def writeData(out: DataOutputStream): Unit = {
-    out.writeByte(card.id)
+    out.writeByte(card.map(_.id).getOrElse(-1))
   }
 }
 
-class OperationSelectCardAndAction(playerId: Int, faction: Faction, card: Card, val action: Action)
-  extends OperationSelectCard(playerId, faction, card) {
+class OperationSelectCardAndAction(playerId: Int, faction: Faction, val card: Card, val action: Action)
+  extends Operation(playerId, faction) {
   override val opId: Byte = 3
   override def writeData(out: DataOutputStream): Unit = {
-    super.writeData(out)
+    out.writeByte(if (card != null) card.id else -1)
     out.writeInt(action)
   }
 }

@@ -606,7 +606,7 @@ class ControlSubUISelectCard(parent: ControlUI) extends ControlSubUICard(parent,
   }
 
   override def actionPerformed(e: ActionEvent): Unit = {
-    val op = new OperationSelectCard(parent.game.playerId, parent.game.playerFaction, card)
+    val op = new OperationSelectCard(parent.game.playerId, parent.game.playerFaction, Some(card))
     parent.operationListeners.foreach(_(op))
     resetCard()
   }
@@ -775,11 +775,11 @@ class ControlSubUISelectCardOrCancel(parent: ControlUI)
   }
 
   override def actionPerformed(e: ActionEvent): Unit = {
-    val card = e.getSource match {
-      case this.buttonDone => this.card
-      case this.buttonCancel => null
+    val cardOption = e.getSource match {
+      case this.buttonDone => Some(this.card)
+      case this.buttonCancel => None
     }
-    val op = new OperationSelectCard(parent.game.playerId, parent.game.playerFaction, card)
+    val op = new OperationSelectCard(parent.game.playerId, parent.game.playerFaction, cardOption)
     parent.operationListeners.foreach(_(op))
   }
 }

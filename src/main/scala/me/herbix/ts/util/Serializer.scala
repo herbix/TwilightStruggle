@@ -90,7 +90,7 @@ object Serializer {
         }
         new OperationModifyInfluence(playerId, faction, isAdd, detail.toMap)
       case 2 =>
-        new OperationSelectCard(playerId, faction, Cards.fromId(in.readByte()))
+        new OperationSelectCard(playerId, faction, Option(Cards.fromId(in.readByte())))
       case 3 =>
         val card = Cards.fromId(in.readByte())
         new OperationSelectCardAndAction(playerId, faction, card, in.readInt())

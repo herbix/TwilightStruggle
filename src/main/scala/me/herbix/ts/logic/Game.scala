@@ -403,7 +403,7 @@ class Game extends GameTrait {
   def nextStateSelectHeadlineFirst(input: Operation): Unit = {
     val op = input.asInstanceOf[OperationSelectCard]
     pendingInput = input
-    recordHistory(new HistoryPlayHeadline(op.faction, op.card))
+    recordHistory(new HistoryPlayHeadline(op.faction, op.card.get))
     stateStack.pop()
     stateStack.push(selectHeadlineCard2)
   }
@@ -412,30 +412,36 @@ class Game extends GameTrait {
     val input1 = input.asInstanceOf[OperationSelectCard]
     val input2 = pendingInput.asInstanceOf[OperationSelectCard]
 
+    val input1Card = input1.card.get
+    val input2Card = input2.card.get
+
     val inputA = if (
       (
-        (input1.card.op > input2.card.op || (input1.card.op == input2.card.op && input1.faction == US)) &&
-        !(input2.faction == US && input2.card == Card103Defectors)
-      ) || (input1.faction == US && input1.card == Card103Defectors)
+        (input1Card.op > input2Card.op || (input1Card.op == input2Card.op && input1.faction == US)) &&
+        !(input2.faction == US && input2Card == Card103Defectors)
+      ) || (input1.faction == US && input1Card == Card103Defectors)
     ) input1 else input2
     val inputB = if (input1 == inputA) input2 else input1
 
-    hand(inputA.faction).remove(inputA.card)
-    hand(inputB.faction).remove(inputB.card)
+    val inputACard = inputA.card.get
+    val inputBCard = inputB.card.get
 
-    discardCard(inputA.card, inputA.faction)
-    discardCard(inputB.card, inputB.faction)
+    hand(inputA.faction).remove(inputACard)
+    hand(inputB.faction).remove(inputBCard)
+
+    discardCard(inputACard, inputA.faction)
+    discardCard(inputBCard, inputB.faction)
 
     if (stateStack.top == selectHeadlineCard2) {
-      recordHistory(new HistoryPlayHeadline(input1.faction, input1.card))
+      recordHistory(new HistoryPlayHeadline(input1.faction, input1Card))
     } else {
-      recordHistory(new HistoryPlayHeadline(inputA.faction, inputA.card))
-      recordHistory(new HistoryPlayHeadline(inputB.faction, inputB.card))
+      recordHistory(new HistoryPlayHeadline(inputA.faction, inputACard))
+      recordHistory(new HistoryPlayHeadline(inputB.faction, inputBCard))
     }
 
-    currentCard = inputA.card
+    currentCard = inputACard
     phasingPlayer = inputA.faction
-    operatingPlayer = inputA.card.getOperatingPlayer(inputA.faction)
+    operatingPlayer = inputACard.getOperatingPlayer(inputA.faction)
 
     pendingInput = inputB
 
@@ -457,7 +463,7 @@ class Game extends GameTrait {
     val input = pendingInput.asInstanceOf[OperationSelectCard]
 
     if (skipHeadlineCard2) {
-      discardCard(input.card, input.faction, true)
+      discardCard(input.card.get, input.faction, true)
       pendingInput = null
       currentCard = null
 
@@ -466,9 +472,9 @@ class Game extends GameTrait {
       return
     }
 
-    currentCard = input.card
+    currentCard = input.card.get
     phasingPlayer = input.faction
-    operatingPlayer = input.card.getOperatingPlayer(input.faction)
+    operatingPlayer = currentCard.getOperatingPlayer(input.faction)
 
     pendingInput = null
 
@@ -1007,9 +1013,9 @@ class Game extends GameTrait {
   def nextStateDiscardHeldCard(input: Operation) = {
     val op = input.asInstanceOf[OperationSelectCard]
 
-    if (op.card != null) {
-      hand(op.faction).remove(op.card)
-      discardCard(op.card, op.faction, true, true)
+    for (card <- op.card) {
+      hand(op.faction).remove(card)
+      discardCard(card, op.faction, true, true)
     }
 
     stateStack.pop()
@@ -1163,9 +1169,10 @@ class Game extends GameTrait {
 
   def nextStateQuagmireDiscard(input: Operation) = {
     val op = input.asInstanceOf[OperationSelectCard]
+    val card = op.card.get
 
-    hand(op.faction).remove(op.card)
-    discardCard(op.card, op.faction, true, true)
+    hand(op.faction).remove(card)
+    discardCard(card, op.faction, true, true)
 
     val dice = rollDice()
     if (dice <= 4) {
@@ -1183,13 +1190,14 @@ class Game extends GameTrait {
 
   def nextStateQuagmireScoringCard(input: Operation) = {
     val op = input.asInstanceOf[OperationSelectCard]
+    val card = op.card.get
 
-    hand(op.faction).remove(op.card)
-    discardCard(op.card, op.faction)
+    hand(op.faction).remove(card)
+    discardCard(card, op.faction)
 
-    recordHistory(new HistoryCardAction(op.faction, op.card, Action.Event, false))
+    recordHistory(new HistoryCardAction(op.faction, card, Action.Event, false))
 
-    currentCard = op.card
+    currentCard = card
 
     stateStack.pop()
     stateStack.push(cardE)

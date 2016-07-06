@@ -211,9 +211,10 @@ object Card010Blockade extends CardNeedsSelection(10, 1, USSR, true, cardEventSe
       game.operatingPlayerChange(US)
     } else {
       val op = input.asInstanceOf[OperationSelectCard]
-      if (op.card != null) {
-        game.hand(US).remove(op.card)
-        game.discardCard(op.card, US, true, true)
+      if (op.card.isDefined) {
+        val card = op.card.get
+        game.hand(US).remove(card)
+        game.discardCard(card, US, true, true)
       } else {
         val wGermany = game.worldMap.countries("W.Germany")
         game.modifyInfluence(US, false, Map(wGermany -> wGermany.influence(US)))
@@ -537,7 +538,7 @@ object Card032UNIntervention extends CardNeedsSelection(32, 1, Neutral, false,
     step match {
       case 0 =>
       case 1 =>
-        val card = input.asInstanceOf[OperationSelectCard].card
+        val card = input.asInstanceOf[OperationSelectCard].card.get
         val op = game.modifyOp(faction, card.op)
         game.hand(faction).remove(card)
         game.recordHistory(new HistoryCardAction(faction, card, Action.Operation, false))
@@ -693,8 +694,7 @@ object Card043SALTNegotiations extends CardNeedsSelection(43, 3, Neutral, true, 
       game.currentCardData = game.discards
     } else if (step == 1) {
       game.currentCardData = null
-      val card = input.asInstanceOf[OperationSelectCard].card
-      if (card != null) {
+      for (card <- input.asInstanceOf[OperationSelectCard].card) {
         game.recordHistory(new HistoryGetCard(faction, card))
         game.hand(faction).add(card)
         game.discards.remove(card)
@@ -835,7 +835,7 @@ object Card049MissileEnvy extends CardNeedsSelection(49, 2, Neutral, true, cardE
         game.operatingPlayerRollBack()
 
         val faction = game.operatingPlayer
-        val card = input.asInstanceOf[OperationSelectCard].card
+        val card = input.asInstanceOf[OperationSelectCard].card.get
 
         game.hand(opposite).remove(card)
         game.hand(opposite).add(this)
@@ -1314,7 +1314,7 @@ object Card085StarWars extends CardNeedsSelection(85, 2, US, true, cardEventSele
       1
     } else {
       game.currentCardData = null
-      val card = input.asInstanceOf[OperationSelectCard].card
+      val card = input.asInstanceOf[OperationSelectCard].card.get
 
       game.discards.remove(card)
       game.discardCard(card, US)
@@ -1493,9 +1493,10 @@ object Card095LatinAmericaDebtCrisis extends CardNeedsSelection(95, 2, USSR, fal
       case 1 =>
         game.operatingPlayerRollBack()
         val op = input.asInstanceOf[OperationSelectCard]
-        if (op.card != null) {
-          game.hand(US).remove(op.card)
-          game.discardCard(op.card, US, true, true)
+        if (op.card.isDefined) {
+          val card = op.card.get
+          game.hand(US).remove(card)
+          game.discardCard(card, US, true, true)
           3
         } else {
           2
@@ -1570,7 +1571,7 @@ object Card098AldrichAmes extends CardNeedsSelection(98, 3, USSR, true, cardEven
       game.currentCardData = eventCards
     } else {
       game.currentCardData = null
-      val card = input.asInstanceOf[OperationSelectCard].card
+      val card = input.asInstanceOf[OperationSelectCard].card.get
       game.hand(US).remove(card)
       game.discardCard(card, US, true, true)
     }
@@ -1667,17 +1668,13 @@ object Card104CambridgeFive extends CardNeedsSelection(104, 2, USSR, false,
         game.currentCardData = eventCards
         1
       case 1 =>
-        val card = input.asInstanceOf[OperationSelectCard].card
-        if (card == null) {
-          game.currentCardData = null
-          3
-        } else {
-          game.currentCardData = card match {
-            case c: CardScoring => c.region
-            case Card038SEAsiaScoring => Region.SouthEastAsia
-          }
-          2
+        val cardOption = input.asInstanceOf[OperationSelectCard].card
+        game.currentCardData = cardOption match {
+          case Some(c: CardScoring) => c.region
+          case Some(Card038SEAsiaScoring) => Region.SouthEastAsia
+          case None => null
         }
+        if (cardOption.isDefined) 2 else 3
       case 2 =>
         game.modifyInfluence(USSR, true, input.asInstanceOf[OperationModifyInfluence].detail)
         3
@@ -1929,7 +1926,7 @@ object Cards {
   addCard(Card109YuriAndSamantha)
   addCard(Card110AwacsSale)
 
-  def fromId(id: Int): Card = cardMap(id)
+  def fromId(id: Int): Card = cardMap.getOrElse(id, null)
 
   def earlyWarSet = cardMap.filter(e => (e._1 > 0 && e._1 <= 35 && e._1 != 6) || e._1 == 103).values
   def midWarSet = cardMap.filter(e => e._1 > 35 && e._1 <= 81).values
