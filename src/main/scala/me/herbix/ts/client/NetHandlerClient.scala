@@ -50,7 +50,9 @@ class NetHandlerClient(socket: Socket) {
           }
         }
       } catch {
-        case e: Throwable => close()
+        case e: Throwable =>
+          e.printStackTrace()
+          close()
       }
     }
   }.start()
@@ -67,7 +69,9 @@ class NetHandlerClient(socket: Socket) {
           }
         }
       } catch {
-        case e: Throwable => close()
+        case e: Throwable =>
+          e.printStackTrace()
+          close()
       }
     }
   }.start()

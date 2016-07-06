@@ -29,7 +29,7 @@ class RoomDataInputStream extends InputStream {
     if (closed) {
       return -1
     }
-    val r = current(offset)
+    val r = current(offset) & 0xFF
 
     offset += 1
     if (offset >= current.length) {
@@ -71,6 +71,7 @@ class RoomDataInputStream extends InputStream {
       }
     }
 
+    println(f"length=$length len=$len")
     length - len
   }
 

@@ -21,7 +21,7 @@ class Room(val creator: NetHandlerServer) {
         leave(nh)
       }
     }
-    if (netHandlers.isEmpty) {
+    if (netHandlers.isEmpty && Server.rooms.contains(id)) {
       Server.rooms -= id
       Server.netHandlers.values.foreach(_.sendDestroyRoom(this))
     } else {
