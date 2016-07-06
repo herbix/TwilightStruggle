@@ -99,7 +99,7 @@ class OperationSelectCards(playerId: Int, faction: Faction, val cards: Set[Card]
   override def writeData(out: DataOutputStream): Unit = {
     out.writeInt(cards.size)
     for (card <- cards) {
-      out.writeInt(card.id)
+      out.writeByte(card.id)
     }
   }
 }
