@@ -233,9 +233,9 @@ class NetHandlerClient(socket: Socket) {
   }
 
   def roomOperation(): Unit = {
-    val game = RoomDialog.gameUI.game
+    val game = if (RoomDialog.gameUI != null) RoomDialog.gameUI.game else null
     val input = readOperation(roomIn, game)
-    println("roomSendOperation " + input.toString)
+    println("roomOperation " + input.toString)
     SwingUtilities.invokeLater(new Runnable {
       override def run(): Unit = {
         game.nextState(input)

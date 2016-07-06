@@ -86,7 +86,7 @@ object Serializer {
         for (i <- 0 until len) {
           val name = in.readUTF()
           val v = in.readInt()
-          detail += (game.worldMap.countries(name) -> v)
+          if (game != null) detail += (game.worldMap.countries(name) -> v)
         }
         new OperationModifyInfluence(playerId, faction, isAdd, detail.toMap)
       case 2 =>
@@ -101,7 +101,7 @@ object Serializer {
         val detail = mutable.Set.empty[Country]
         for (i <- 0 until len) {
           val name = in.readUTF()
-          detail += game.worldMap.countries(name)
+          if (game != null) detail += game.worldMap.countries(name)
         }
         new OperationSelectCountry(playerId, faction, detail.toSet)
       case 6 =>

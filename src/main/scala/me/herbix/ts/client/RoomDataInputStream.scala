@@ -21,8 +21,8 @@ class RoomDataInputStream extends InputStream {
     if (closed) {
       return -1
     }
-    if (current == null) {
-      this.synchronized {
+    this.synchronized {
+      if (current == null) {
         this.wait()
       }
     }
@@ -33,10 +33,12 @@ class RoomDataInputStream extends InputStream {
 
     offset += 1
     if (offset >= current.length) {
-      if (queue.nonEmpty) {
-        current = queue.dequeue()
-      } else {
-        current = null
+      this.synchronized {
+        if (queue.nonEmpty) {
+          current = queue.dequeue()
+        } else {
+          current = null
+        }
       }
       offset = 0
     }
@@ -62,10 +64,12 @@ class RoomDataInputStream extends InputStream {
       len -= copied
       this.offset += copied
       if (this.offset >= current.length) {
-        if (queue.nonEmpty) {
-          current = queue.dequeue()
-        } else {
-          current = null
+        this.synchronized {
+          if (queue.nonEmpty) {
+            current = queue.dequeue()
+          } else {
+            current = null
+          }
         }
         this.offset = 0
       }
@@ -76,12 +80,12 @@ class RoomDataInputStream extends InputStream {
   }
 
   def fill(buffer: Array[Byte]): Unit = {
-    if (current == null) {
-      current = buffer
-    } else {
-      queue.enqueue(buffer)
-    }
     this.synchronized {
+      if (current == null) {
+        current = buffer
+      } else {
+        queue.enqueue(buffer)
+      }
       this.notify()
     }
   }
