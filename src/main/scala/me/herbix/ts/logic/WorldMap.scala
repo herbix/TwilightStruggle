@@ -43,8 +43,10 @@ class WorldMap {
     countryObj.influence(faction) = newValue
   }
 
-  addCountry(new Country("US", 50, false, Super))
-  addCountry(new Country("USSR", 50, false, Super))
+  addCountry(new Country("US", 50, false, Special))
+  addCountry(new Country("USSR", 50, false, Special))
+
+  addCountry(new Country("China", 3, false, Special), Set("USSR"))
 
   addCountry(new Country("Mexico", 2, true, MidAmerica), Set("US"))
   addCountry(new Country("Guatemala", 1, false, MidAmerica), Set("Mexico"))
@@ -139,6 +141,110 @@ class WorldMap {
   modifyInfluence("US", Faction.US, 100)
   modifyInfluence("USSR", Faction.USSR, 100)
 
-  val normalCountries = countries.filter(e => !e._2.regions(Super))
+  val normalCountries = countries.filter(e => !e._2.regions(Special))
+
+  val ussrStandardStart = Map(
+    countries("Syria") -> 1,
+    countries("Iraq") -> 1,
+    countries("N.Korea") -> 3,
+    countries("E.Germany") -> 3,
+    countries("Finland") -> 1
+  )
+
+  val usStandardStart = Map(
+    countries("Canada") -> 2,
+    countries("Iran") -> 1,
+    countries("Israel") -> 1,
+    countries("Japan") -> 1,
+    countries("Australia") -> 4,
+    countries("Philippines") -> 1,
+    countries("S.Korea") -> 1,
+    countries("Panama") -> 1,
+    countries("South Africa") -> 1,
+    countries("UK") -> 5
+  )
+
+  val ussrLateWarStart = Map(
+    countries("E.Germany") -> 3,
+    countries("Poland") -> 3,
+    countries("Hungary") -> 3,
+    countries("Czechoslovakia") -> 3,
+    countries("Bulgaria") -> 3,
+    countries("Cuba") -> 3,
+    countries("N.Korea") -> 3,
+    countries("Iraq") -> 3,
+    countries("Syria") -> 3,
+    countries("India") -> 3,
+    countries("Afghanistan") -> 2,
+    countries("Libya") -> 2,
+    countries("Algeria") -> 2,
+    countries("Ethiopia") -> 1,
+    countries("Zimbabwe") -> 1,
+    countries("Angola") -> 3,
+    countries("Laos/Cambodia") -> 2,
+    countries("Vietnam") -> 5,
+    countries("SE African States") -> 2,
+
+    countries("W.Germany") -> 1,
+    countries("Philippines") -> 1,
+    countries("Malaysia") -> 1,
+    countries("Colombia") -> 1,
+
+    countries("France") -> 1,
+    countries("Romania") -> 3,
+    countries("Jordan") -> 2,
+    countries("South Africa") -> 1,
+    countries("Finland") -> 2,
+    countries("Burma") -> 1,
+    countries("Peru") -> 1,
+    countries("Yugoslavia") -> 2
+  )
+
+  val usLateWarStart = Map(
+    countries("UK") -> 5,
+    countries("Italy") -> 2,
+    countries("Benelux") -> 3,
+    countries("W.Germany") -> 5,
+    countries("Denmark") -> 3,
+    countries("Norway") -> 3,
+    countries("Israel") -> 4,
+    countries("Iran") -> 2,
+    countries("Pakistan") -> 2,
+    countries("Turkey") -> 2,
+    countries("Zaire") -> 1,
+    countries("Somalia") -> 2,
+    countries("Kenya") -> 2,
+    countries("Nigeria") -> 1,
+    countries("Japan") -> 4,
+    countries("S.Korea") -> 3,
+    countries("Taiwan") -> 3,
+    countries("Philippines") -> 3,
+    countries("Thailand") -> 2,
+    countries("Indonesia") -> 1,
+    countries("Australia") -> 4,
+    countries("Malaysia") -> 3,
+    countries("Nicaragua") -> 1,
+    countries("Panama") -> 2,
+    countries("Haiti") -> 1,
+    countries("Honduras") -> 2,
+    countries("Venezuela") -> 2,
+    countries("Chile") -> 3,
+    countries("Argentina") -> 2,
+    countries("Colombia") -> 2,
+    countries("Dominican Rep") -> 1,
+
+    countries("Angola") -> 1,
+
+    countries("Spain/Portugal") -> 1,
+    countries("France") -> 3,
+    countries("Romania") -> 1,
+    countries("Jordan") -> 2,
+    countries("Egypt") -> 1,
+    countries("South Africa") -> 2,
+    countries("Finland") -> 1,
+    countries("Peru") -> 2,
+    countries("Yugoslavia") -> 1,
+    countries("Saudi Arabia") -> 2
+  )
 
 }

@@ -244,7 +244,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
   }
 
   def getShowCardSet: CardSet = {
-    if (game.playerFaction == Neutral) {
+    if (game.playerFaction == Neutral && !discarded.isSelected) {
       null
     } else if (selfHand.isSelected) {
       game.hand(game.playerFaction)

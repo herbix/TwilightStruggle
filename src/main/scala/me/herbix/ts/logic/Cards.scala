@@ -213,7 +213,7 @@ object Card010Blockade extends CardNeedsSelection(10, 1, USSR, true, cardEventSe
       val op = input.asInstanceOf[OperationSelectCard]
       if (op.card.isDefined) {
         val card = op.card.get
-        game.hand(US).remove(card)
+        game.handRemove(US, card)
         game.discardCard(card, US, true, true)
       } else {
         val wGermany = game.worldMap.countries("W.Germany")
@@ -540,7 +540,7 @@ object Card032UNIntervention extends CardNeedsSelection(32, 1, Neutral, false,
       case 1 =>
         val card = input.asInstanceOf[OperationSelectCard].card.get
         val op = game.modifyOp(faction, card.op)
-        game.hand(faction).remove(card)
+        game.handRemove(faction, card)
         game.recordHistory(new HistoryCardAction(faction, card, Action.Operation, false))
         game.discardCard(card, faction, true)
         game.currentCardChange(Card032UNInterventionDummy(op))
@@ -696,8 +696,8 @@ object Card043SALTNegotiations extends CardNeedsSelection(43, 3, Neutral, true, 
       game.currentCardData = null
       for (card <- input.asInstanceOf[OperationSelectCard].card) {
         game.recordHistory(new HistoryGetCard(faction, card))
-        game.hand(faction).add(card)
-        game.discards.remove(card)
+        game.handAdd(faction, card)
+        game.discardsRemove(card)
       }
     }
     step + 1
@@ -837,8 +837,8 @@ object Card049MissileEnvy extends CardNeedsSelection(49, 2, Neutral, true, cardE
         val faction = game.operatingPlayer
         val card = input.asInstanceOf[OperationSelectCard].card.get
 
-        game.hand(opposite).remove(card)
-        game.hand(opposite).add(this)
+        game.handRemove(opposite, card)
+        game.handAdd(opposite, this)
 
         game.recordHistory(new HistoryLoseCard(opposite, card))
         game.recordHistory(new HistoryGetCard(opposite, this))
@@ -870,7 +870,6 @@ object Card049MissileEnvy extends CardNeedsSelection(49, 2, Neutral, true, cardE
   override def afterPlay(game: Game, faction: Faction): Unit = {
     if (game.flags.hasFlag(faction, Flags.MissileEnvy)) {
       game.removeFlag(faction, Flags.MissileEnvy)
-      game.discardCard(this, faction, true)
     }
   }
 }
@@ -978,8 +977,8 @@ object Card058CulturalRevolution extends CardInstant(58, 3, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val chinaCard = Cards.chinaCard
     if (game.hand(US).has(chinaCard)) {
-      game.hand(US).remove(chinaCard)
-      game.hand(USSR).add(chinaCard)
+      game.handRemove(US, chinaCard)
+      game.handAdd(USSR, chinaCard)
       game.flags.removeFlag(US, Flags.CantPlayChinaCard)
       game.flags.removeFlag(USSR, Flags.CantPlayChinaCard)
       game.recordHistory(new HistoryLoseCard(US, chinaCard))
@@ -1105,7 +1104,7 @@ object Card067GrainSales extends CardNeedsSelection(67, 2, US, false,
       case 1 =>
         if (input.asInstanceOf[OperationYesNo].value) {
           val card = game.currentCardData.asInstanceOf[Card]
-          game.hand(USSR).remove(card)
+          game.handRemove(USSR, card)
           game.recordHistory(new HistoryLoseCard(USSR, card))
           game.currentCardChange(card)
           game.currentCardData = null
@@ -1155,8 +1154,8 @@ object Card071NixonPlaysTheChinaCard extends CardInstant(71, 2, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val chinaCard = Cards.chinaCard
     if (game.hand(USSR).has(chinaCard)) {
-      game.hand(USSR).remove(chinaCard)
-      game.hand(US).add(chinaCard)
+      game.handRemove(USSR, chinaCard)
+      game.handAdd(US, chinaCard)
       game.flags.removeFlag(USSR, Flags.CantPlayChinaCard)
       game.flags.addFlag(US, Flags.CantPlayChinaCard)
       game.recordHistory(new HistoryLoseCard(USSR, chinaCard))
@@ -1213,8 +1212,8 @@ object Card076UssuriRiverSkirmish extends CardNeedsSelection(76, 3, US, true, ca
     if (step == 0) {
       val chinaCard = Cards.chinaCard
       if (game.hand(USSR).has(chinaCard)) {
-        game.hand(USSR).remove(chinaCard)
-        game.hand(US).add(chinaCard)
+        game.handRemove(USSR, chinaCard)
+        game.handAdd(US, chinaCard)
         game.flags.removeFlag(USSR, Flags.CantPlayChinaCard)
         game.flags.removeFlag(US, Flags.CantPlayChinaCard)
         game.recordHistory(new HistoryLoseCard(USSR, chinaCard))
@@ -1237,13 +1236,12 @@ object Card077AskNotWhatYourCountry extends CardNeedsSelection(77, 3, US, true, 
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     if (step == 1) {
       val cards = input.asInstanceOf[OperationSelectCards].cards
-      val hand = game.hand(US)
       for (card <- cards) {
-        hand.remove(card)
+        game.handRemove(US, card)
         game.discardCard(card, US, true, true)
       }
       for (i <- 0 until cards.size) {
-        hand.add(game.pickCardFromDeck())
+        game.handAdd(US, game.pickCardFromDeck())
       }
       game.recordHistory(new HistoryPickCard(US, cards.size))
     }
@@ -1316,7 +1314,7 @@ object Card085StarWars extends CardNeedsSelection(85, 2, US, true, cardEventSele
       game.currentCardData = null
       val card = input.asInstanceOf[OperationSelectCard].card.get
 
-      game.discards.remove(card)
+      game.discardsRemove(card)
       game.discardCard(card, US)
 
       game.currentCard = card
@@ -1495,7 +1493,7 @@ object Card095LatinAmericaDebtCrisis extends CardNeedsSelection(95, 2, USSR, fal
         val op = input.asInstanceOf[OperationSelectCard]
         if (op.card.isDefined) {
           val card = op.card.get
-          game.hand(US).remove(card)
+          game.handRemove(US, card)
           game.discardCard(card, US, true, true)
           3
         } else {
@@ -1572,7 +1570,7 @@ object Card098AldrichAmes extends CardNeedsSelection(98, 3, USSR, true, cardEven
     } else {
       game.currentCardData = null
       val card = input.asInstanceOf[OperationSelectCard].card.get
-      game.hand(US).remove(card)
+      game.handRemove(US, card)
       game.discardCard(card, US, true, true)
     }
     step + 1
@@ -1672,7 +1670,7 @@ object Card104CambridgeFive extends CardNeedsSelection(104, 2, USSR, false,
         game.currentCardData = cardOption match {
           case Some(c: CardScoring) => c.region
           case Some(Card038SEAsiaScoring) => Region.SouthEastAsia
-          case None => null
+          case _ => null
         }
         if (cardOption.isDefined) 2 else 3
       case 2 =>
@@ -1785,7 +1783,7 @@ object Card108OurManInTehran extends CardNeedsSelection(108, 2, US, true, cardEv
         game.discardCard(card, US, true, true)
       }
       for (card <- eventCards) {
-        game.deck.add(card)
+        game.deckAdd(card)
       }
       game.currentCardData = null
     }
@@ -1956,4 +1954,8 @@ object Cards {
     else if (isMidWarCard(card)) 2
     else if (isLateWarCard(card)) 3
     else 4
+
+  def isCardStarred(card: Card): Boolean = {
+    card.isRemovedAfterEvent && card != Card073ShuttleDiplomacy && card != Card049MissileEnvy
+  }
 }

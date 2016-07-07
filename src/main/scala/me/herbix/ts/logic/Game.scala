@@ -4,6 +4,7 @@ import java.util.Random
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Region.Region
+import me.herbix.ts.logic.GameVariant._
 import me.herbix.ts.logic.State._
 
 import scala.annotation.tailrec
@@ -20,11 +21,13 @@ class Game extends GameTrait {
   // player info
   var playerId = 0
   var playerFaction = Neutral
+  var isSpectator = false
 
   // config
   var extraInfluence = 0
   var optionalCards = true
   var drawGameWinner = US
+  var gameVariant = Standard
 
   // game table
   val worldMap = new WorldMap
@@ -222,6 +225,26 @@ class Game extends GameTrait {
     flags.removeFlag(faction, flag)
   }
 
+  def handAdd(faction: Faction, card: Card): Unit = {
+    hand(faction).add(card)
+  }
+
+  def handRemove(faction: Faction, card: Card): Unit = {
+    hand(faction).remove(card)
+  }
+
+  def discardsAdd(card: Card): Unit = {
+    discards.add(card)
+  }
+
+  def discardsRemove(card: Card): Unit = {
+    discards.remove(card)
+  }
+
+  def discardsClear(): Unit = {
+    discards.clear()
+  }
+
   private def nextStateMayWait(input: Operation, nextStateReal: Operation => Unit): Unit = {
     if (pendingInput == null) {
       pendingInput = input
@@ -239,6 +262,10 @@ class Game extends GameTrait {
   def nextStateStart(input: Operation): Unit = {
     val input1 = input.asInstanceOf[OperationChooseFaction]
     val input2 = pendingInput.asInstanceOf[OperationChooseFaction]
+
+    if (input1.playerId != playerId && input2.playerId != playerId) {
+      isSpectator = true
+    }
 
     val myInput = if (input1.playerId == playerId) input1 else input2
     val smallInput = if (input1.playerId < input2.playerId) input1 else input2
@@ -258,10 +285,13 @@ class Game extends GameTrait {
 
     recordHistory(new HistoryStartGame)
 
+    stateStack.pop()
+
     initGame()
 
-    stateStack.pop()
-    stateStack.push(putStartUSSR)
+    if (isSpectator) {
+      playerFaction = Neutral
+    }
   }
 
   def nextStatePutExtra(input: Operation): Unit = {
@@ -271,48 +301,95 @@ class Game extends GameTrait {
 
   def pickCardFromDeck(): Card = {
     if (deck.cardCount == 0) {
-      deck.join(discards)
-      discards.clear()
+      deckJoin(discards)
+      discardsClear()
     }
     deck.pickAndRemove(random)
   }
 
+  def deckAdd(card: Card): Unit = {
+    deck.add(card)
+  }
+
+  def deckJoin(set: Iterable[Card]): Unit = {
+    deck.join(set)
+  }
+
   private def initGame(): Unit = {
-    deck.join(Cards.earlyWarSet)
+    gameVariant match {
+      case GameVariant.Standard => initGameStandard()
+      case GameVariant.ChinaCivilWar => initGameExceptChinaCard()
+      case GameVariant.LateWar => initGameLateWar()
+    }
+  }
+
+  def initGameStandard(): Unit = {
+    initGameExceptChinaCard()
+
+    handAdd(USSR, Cards.chinaCard)
+    recordHistory(new HistoryGetCard(USSR, Cards.chinaCard))
+  }
+
+  def initGameExceptChinaCard(): Unit = {
+    deckJoin(Cards.earlyWarSet)
     if (optionalCards) {
-      deck.join(Cards.earlyWarOptionalSet)
+      deckJoin(Cards.earlyWarOptionalSet)
     }
 
-    for (i <- 0 until 8) {
-      hand(US).add(pickCardFromDeck())
-      hand(USSR).add(pickCardFromDeck())
+    pickGameStartHands(8)
+
+    modifyInfluence(USSR, true, worldMap.ussrStandardStart)
+    modifyInfluence(US, true, worldMap.usStandardStart)
+
+    stateStack.push(putStartUSSR)
+  }
+
+  def pickGameStartHands(count: Int): Unit = {
+    for (i <- 0 until count) {
+      handAdd(US, pickCardFromDeck())
+      handAdd(USSR, pickCardFromDeck())
     }
     recordHistory(new HistoryPickCard(US, 8))
     recordHistory(new HistoryPickCard(USSR, 8))
+  }
 
-    hand(USSR).add(Cards.chinaCard)
+  def initGameLateWar(): Unit = {
+    turn = 8
+    setDefcon(4)
+    space(USSR) = SpaceLevel.Orbit
+    space(US) = SpaceLevel.Landed
+    addFlag(US, Flags.SpaceAwardMayDiscard)
+    vp = -4
+
+    addFlag(USSR, Flags.USJapanPact)
+    addFlag(US, Flags.MarshallPlan)
+    addFlag(USSR, Flags.NATO)
+    addFlag(US, Flags.WarsawPact)
+    addFlag(USSR, Flags.DeGaulle)
+    addFlag(US, Flags.FlowerPower)
+
+    deckJoin(Cards.earlyWarSet.filter(!Cards.isCardStarred(_)))
+    deckJoin(Cards.midWarSet.filter(!Cards.isCardStarred(_)))
+    deckJoin(Cards.lateWarSet)
+    if (optionalCards) {
+      deckJoin(Cards.earlyWarOptionalSet.filter(!Cards.isCardStarred(_)))
+      deckJoin(Cards.midWarOptionalSet.filter(!Cards.isCardStarred(_)))
+      deckJoin(Cards.lateWarOptionalSet)
+    }
+    deckAdd(Card044BearTrap)
+    deckAdd(Card065CampDavidAccords)
+    deckAdd(Card068JohnPaulII)
+    deckAdd(Card064PanamaCanalReturned)
+
+    pickGameStartHands(9)
+
+    handAdd(USSR, Cards.chinaCard)
     recordHistory(new HistoryGetCard(USSR, Cards.chinaCard))
 
-    modifyInfluence(USSR, true, Map(
-      worldMap.countries("Syria") -> 1,
-      worldMap.countries("Iraq") -> 1,
-      worldMap.countries("N.Korea") -> 3,
-      worldMap.countries("E.Germany") -> 3,
-      worldMap.countries("Finland") -> 1
-    ))
+    modifyInfluence(USSR, true, worldMap.ussrLateWarStart)
+    modifyInfluence(US, true, worldMap.usLateWarStart)
 
-    modifyInfluence(US, true, Map(
-      worldMap.countries("Canada") -> 2,
-      worldMap.countries("Iran") -> 1,
-      worldMap.countries("Israel") -> 1,
-      worldMap.countries("Japan") -> 1,
-      worldMap.countries("Australia") -> 4,
-      worldMap.countries("Philippines") -> 1,
-      worldMap.countries("S.Korea") -> 1,
-      worldMap.countries("Panama") -> 1,
-      worldMap.countries("South Africa") -> 1,
-      worldMap.countries("UK") -> 5
-    ))
+    stateStack.push(selectHeadlineCard)
   }
 
   def nextStatePutStartUS(input: Operation): Unit = {
@@ -371,11 +448,11 @@ class Game extends GameTrait {
     }
     if (card == Cards.chinaCard) {
       val opposite = Faction.getOpposite(from)
-      hand(opposite).add(card)
+      handAdd(opposite, card)
       recordHistory(new HistoryGetCard(opposite, card))
       addFlag(opposite, Flags.CantPlayChinaCard)
     } else if (force || !card.isRemovedAfterEvent) {
-      discards.add(card)
+      discardsAdd(card)
     }
   }
 
@@ -426,8 +503,8 @@ class Game extends GameTrait {
     val inputACard = inputA.card.get
     val inputBCard = inputB.card.get
 
-    hand(inputA.faction).remove(inputACard)
-    hand(inputB.faction).remove(inputBCard)
+    handRemove(inputA.faction, inputACard)
+    handRemove(inputB.faction, inputBCard)
 
     discardCard(inputACard, inputA.faction)
     discardCard(inputBCard, inputB.faction)
@@ -569,6 +646,9 @@ class Game extends GameTrait {
   }
 
   def checkVp(): Unit = {
+    if (gameVariant == LateWar) {
+      return
+    }
     if (vp >= 20) {
       vp = 20
       gameOver(US)
@@ -640,14 +720,14 @@ class Game extends GameTrait {
     recordHistory(new HistoryTurnRound(turn, -1, Neutral))
 
     if (turn == 4) {
-      deck.join(Cards.midWarSet)
+      deckJoin(Cards.midWarSet)
       if (optionalCards) {
-        deck.join(Cards.midWarOptionalSet)
+        deckJoin(Cards.midWarOptionalSet)
       }
     } else if (turn == 8) {
-      deck.join(Cards.lateWarSet)
+      deckJoin(Cards.lateWarSet)
       if (optionalCards) {
-        deck.join(Cards.lateWarOptionalSet)
+        deckJoin(Cards.lateWarOptionalSet)
       }
     }
 
@@ -657,10 +737,10 @@ class Game extends GameTrait {
     val handCount = turnRoundCount + 2
     for (i <- 0 until handCount) {
       if (hand(US).cardCountExcludingChinaCard < handCount) {
-        hand(US).add(pickCardFromDeck())
+        handAdd(US, pickCardFromDeck())
       }
       if (hand(USSR).cardCountExcludingChinaCard < handCount) {
-        hand(USSR).add(pickCardFromDeck())
+        handAdd(USSR, pickCardFromDeck())
       }
     }
 
@@ -705,7 +785,7 @@ class Game extends GameTrait {
     val oppositeCard = op.card.faction == Faction.getOpposite(op.faction)
     val alwaysTriggerEvent = oppositeCard && op.card.canEvent(this, op.faction)
 
-    hand(op.faction).remove(op.card)
+    handRemove(op.faction, op.card)
 
     currentCard = op.card
 
@@ -841,7 +921,7 @@ class Game extends GameTrait {
   }
 
   def canRealignment(faction: Faction, country: Country): Boolean = {
-    if (country.regions(Region.Super)) return false
+    if (country.regions(Region.Special)) return false
     if (modifyOp(faction, currentCard.op, currentRealignments :+ country) - currentRealignments.size - 1 < 0) {
       return false
     }
@@ -852,7 +932,7 @@ class Game extends GameTrait {
   }
 
   def canCoup(faction: Faction, country: Country): Boolean = {
-    if (country.regions(Region.Super)) return false
+    if (country.regions(Region.Special)) return false
     if (country.influence(Faction.getOpposite(faction)) <= 0) {
       return false
     }
@@ -867,7 +947,7 @@ class Game extends GameTrait {
   }
 
   def canCoupWithoutFlags(faction: Faction, country: Country): Boolean = {
-    !country.regions(Region.Super) && country.influence(Faction.getOpposite(faction)) > 0
+    !country.regions(Region.Special) && country.influence(Faction.getOpposite(faction)) > 0
   }
 
   def canCoupWithoutFlags(faction: Faction, filter: Country => Boolean = _ => true): Boolean = {
@@ -1014,7 +1094,7 @@ class Game extends GameTrait {
     val op = input.asInstanceOf[OperationSelectCard]
 
     for (card <- op.card) {
-      hand(op.faction).remove(card)
+      handRemove(op.faction, card)
       discardCard(card, op.faction, true, true)
     }
 
@@ -1130,7 +1210,7 @@ class Game extends GameTrait {
 
     if (useShuttleDiplomacy) {
       flags.removeFlag(US, Flags.ShuttleDiplomacy)
-      discards.add(Card073ShuttleDiplomacy)
+      discardCard(Card073ShuttleDiplomacy, US, true)
     }
   }
 
@@ -1171,7 +1251,7 @@ class Game extends GameTrait {
     val op = input.asInstanceOf[OperationSelectCard]
     val card = op.card.get
 
-    hand(op.faction).remove(card)
+    handRemove(op.faction, card)
     discardCard(card, op.faction, true, true)
 
     val dice = rollDice()
@@ -1192,7 +1272,7 @@ class Game extends GameTrait {
     val op = input.asInstanceOf[OperationSelectCard]
     val card = op.card.get
 
-    hand(op.faction).remove(card)
+    handRemove(op.faction, card)
     discardCard(card, op.faction)
 
     recordHistory(new HistoryCardAction(op.faction, card, Action.Event, false))

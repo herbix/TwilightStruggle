@@ -9,7 +9,7 @@ object Region extends Enumeration {
   type Region = Value
   val Europe, MidEast, Asia, Africa, MidAmerica, SouthAmerica = Value
   val EastEurope, WestEurope, SouthEastAsia = Value
-  val Super = Value
+  val Special = Value
 
   val WestEuropeSet = Set(WestEurope, Europe)
   val EastEuropeSet = Set(EastEurope, Europe)

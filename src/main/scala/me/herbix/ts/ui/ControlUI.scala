@@ -21,7 +21,9 @@ class ControlUI(val game: Game) extends JPanel {
 
   object UIType extends Enumeration {
     type UIType = Value
-    val ChooseFaction, Waiting = Value
+    val ChooseFaction = Value
+    val Waiting = Value
+    val Spectator = Value
     val Influence = Value
     val SelectCard = Value
     val SelectCardAndAction = Value
@@ -45,6 +47,7 @@ class ControlUI(val game: Game) extends JPanel {
 
   val uiChooseFaction = new ControlSubUIChooseFaction(this)
   val uiWaiting = new ControlSubUIText(this, Array("", "", Lang.waitingForOpposite))
+  val uiSpectator = new ControlSubUIText(this, Array("", "", Lang.spectator))
   val uiInfluence = new ControlSubUIModifyInfluence(this)
   val uiSelectCard = new ControlSubUISelectCard(this)
   val uiSelectCardAndAction = new ControlSubUISelectCardAndAction(this)
@@ -66,6 +69,7 @@ class ControlUI(val game: Game) extends JPanel {
   setLayout(new CardLayout)
   add(uiChooseFaction, ChooseFaction.toString)
   add(uiWaiting, Waiting.toString)
+  add(uiSpectator, Spectator.toString)
   add(uiInfluence, Influence.toString)
   add(uiSelectCard, SelectCard.toString)
   add(uiSelectCardAndAction, SelectCardAndAction.toString)
@@ -90,6 +94,10 @@ class ControlUI(val game: Game) extends JPanel {
   }
 
   def updateState(): Unit = {
+    if (game.isSpectator) {
+      spectatorUI()
+      return
+    }
     game.stateStack.top match {
       case State.start => chooseFactionUI()
       case State.waitOther => waitOtherUI()
@@ -271,7 +279,6 @@ class ControlUI(val game: Game) extends JPanel {
       case State.cardEventSpecial =>
         if (game.playerFaction == game.operatingPlayer) {
           val card = game.currentCard.asInstanceOf[CardNeedsSelection]
-          val step = card.getStep(game)
           card match {
             case Card045Summit => showSubUI(Summit)
             case Card046HowILearnStopWorry => showSubUI(StopWorry)
@@ -302,6 +309,7 @@ class ControlUI(val game: Game) extends JPanel {
 
   def chooseFactionUI(): Unit = showSubUI(ChooseFaction)
   def waitOtherUI(): Unit = showSubUI(Waiting)
+  def spectatorUI(): Unit = showSubUI(Spectator)
 
   def addInfluenceUI(point: Int, tip: String, isAdd: Boolean, ignoreControl: Boolean,
                      mustAllPoints: Boolean, modifyOp: Boolean, targetFaction: Faction, valid: Map[Country, Int] => Boolean) = {

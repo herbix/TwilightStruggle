@@ -3,7 +3,6 @@ package me.herbix.ts.util
 import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
-import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
 
 import scala.collection.mutable
@@ -29,6 +28,7 @@ object Lang {
 
   val selectFaction = "选择你的阵营"
   val waitingForOpposite = "等待对方行动"
+  val spectator = "观察者模式"
 
   val selfHand = "自己手牌"
   val oppositeHand = "对手手牌"
