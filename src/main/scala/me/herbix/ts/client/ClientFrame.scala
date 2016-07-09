@@ -17,6 +17,8 @@ import scala.collection.mutable
   */
 object ClientFrame extends JFrame {
 
+  val gameVersion = "ts-1.0.0"
+
   var netHandler: NetHandlerClient = null
 
   var extraInfluence = 0
@@ -41,10 +43,12 @@ object ClientFrame extends JFrame {
 
   tableModel.addColumn("房间号")
   tableModel.addColumn("房间名")
+  tableModel.addColumn("游戏版本")
 
   table.setRowHeight(25)
   table.getColumnModel.getColumn(0).setPreferredWidth(50)
-  table.getColumnModel.getColumn(1).setPreferredWidth(500)
+  table.getColumnModel.getColumn(1).setPreferredWidth(400)
+  table.getColumnModel.getColumn(2).setPreferredWidth(100)
   table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
 
   tableOut.setPreferredSize(new Dimension(600, 400))
@@ -64,7 +68,7 @@ object ClientFrame extends JFrame {
 
   setLocationRelativeTo(getOwner)
 
-  setTitle("冷战热斗 - 正在连接...")
+  setTitle(s"冷战热斗[$gameVersion] - 正在连接...")
   newRoom.setEnabled(false)
   joinRoom.setEnabled(false)
 
@@ -75,7 +79,7 @@ object ClientFrame extends JFrame {
         netHandler = new NetHandlerClient(socket)
         SwingUtilities.invokeLater(new Runnable {
           override def run(): Unit = {
-            setTitle("冷战热斗 - " + netHandler.name)
+            setTitle(s"冷战热斗[$gameVersion] - " + netHandler.name)
             newRoom.setEnabled(true)
             joinRoom.setEnabled(true)
           }
@@ -84,7 +88,7 @@ object ClientFrame extends JFrame {
         case e: Throwable =>
           SwingUtilities.invokeLater(new Runnable {
             override def run(): Unit = {
-              setTitle("冷战热斗 - 连接失败")
+              setTitle(s"冷战热斗[$gameVersion] - 连接失败")
             }
           })
       }

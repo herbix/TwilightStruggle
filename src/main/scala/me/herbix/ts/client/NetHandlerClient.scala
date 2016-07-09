@@ -33,6 +33,7 @@ class NetHandlerClient(socket: Socket) {
   var seed = 0l
 
   sendRename(name)
+  sendVersion(ClientFrame.gameVersion)
 
   new Thread() {
     override def run(): Unit = {
@@ -98,12 +99,13 @@ class NetHandlerClient(socket: Socket) {
     val roomId = in.readInt()
     val creatorId = in.readInt()
     val name = in.readUTF()
+    val version = in.readUTF()
     ClientFrame.roomCreatorMap += roomId -> creatorId
     println(s"newRoom $roomId $creatorId $name")
     SwingUtilities.invokeLater(new Runnable {
       override def run(): Unit = {
         val model = ClientFrame.tableModel
-        model.addRow(Array[Object](Integer.valueOf(roomId), name))
+        model.addRow(Array[Object](Integer.valueOf(roomId), name, version))
       }
     })
   }
@@ -215,6 +217,14 @@ class NetHandlerClient(socket: Socket) {
       out.writeByte(5)
       out.writeInt(buffer.length)
       out.write(buffer)
+    }
+  }
+
+  def sendVersion(version: String): Unit = {
+    println("send version " + version)
+    this.synchronized {
+      out.writeByte(6)
+      out.writeUTF(version)
     }
   }
 

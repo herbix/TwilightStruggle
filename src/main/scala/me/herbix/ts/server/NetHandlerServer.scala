@@ -9,6 +9,7 @@ import java.net.Socket
 class NetHandlerServer(socket: Socket) {
   val id = Server.nextId()
   var name = "Noname"
+  var version = "legacy"
   var room: Room = null
 
   Server.netHandlers += id -> this
@@ -35,6 +36,7 @@ class NetHandlerServer(socket: Socket) {
             case 3 => joinRoom()
             case 4 => leaveRoom()
             case 5 => roomData()
+            case 6 => changeVersion()
           }
         }
       } catch {
@@ -53,6 +55,11 @@ class NetHandlerServer(socket: Socket) {
   def rename(): Unit = {
     name = in.readUTF()
     println(s"$id rename $name")
+  }
+
+  def changeVersion(): Unit = {
+    version = in.readUTF()
+    println(s"$id changeVersion $name")
   }
 
   def newRoom(): Unit = {
@@ -110,6 +117,9 @@ class NetHandlerServer(socket: Socket) {
       out.writeInt(room.id)
       out.writeInt(room.creator.id)
       out.writeUTF(room.netHandlers.head.name)
+      if (version != "legacy") {
+        out.writeUTF(room.creator.version)
+      }
     }
   }
 
