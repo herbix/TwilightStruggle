@@ -648,9 +648,6 @@ class Game extends GameTrait {
   }
 
   def checkVp(): Unit = {
-    if (gameVariant == LateWar) {
-      return
-    }
     if (vp >= 20) {
       vp = 20
       gameOver(US)
