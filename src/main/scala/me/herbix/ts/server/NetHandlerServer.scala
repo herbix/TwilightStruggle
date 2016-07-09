@@ -8,7 +8,7 @@ import java.net.Socket
   */
 class NetHandlerServer(socket: Socket) {
   val id = Server.nextId()
-  var name = "Noname"
+  var name = "NoName"
   var version = "legacy"
   var room: Room = null
 
@@ -19,10 +19,6 @@ class NetHandlerServer(socket: Socket) {
 
   out.writeByte(0)
   out.writeInt(id)
-
-  for ((_, room) <- Server.rooms) {
-    sendNewRoom(room)
-  }
 
   new Thread(){
     override def run(): Unit = {
@@ -53,6 +49,11 @@ class NetHandlerServer(socket: Socket) {
   }
 
   def rename(): Unit = {
+    if (name == "NoName") {
+      for ((_, room) <- Server.rooms) {
+        sendNewRoom(room)
+      }
+    }
     name = in.readUTF()
     println(s"$id rename $name")
   }

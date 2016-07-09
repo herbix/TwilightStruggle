@@ -5,7 +5,7 @@ import java.io.{DataOutputStream, DataInputStream}
 import java.net.Socket
 import javax.swing.{WindowConstants, SwingUtilities}
 
-import me.herbix.ts.logic.{GameVariant, Operation, Game}
+import me.herbix.ts.logic.{Faction, GameVariant, Operation, Game}
 import me.herbix.ts.ui.GameUI
 import me.herbix.ts.util.Serializer._
 
@@ -32,8 +32,8 @@ class NetHandlerClient(socket: Socket) {
   val random = new Random()
   var seed = 0l
 
-  sendRename(name)
   sendVersion(ClientFrame.gameVersion)
+  sendRename(name)
 
   new Thread() {
     override def run(): Unit = {
@@ -231,7 +231,7 @@ class NetHandlerClient(socket: Socket) {
   def roomProperty(): Unit = {
     println("roomProperty")
     ClientFrame.extraInfluence = roomIn.readInt()
-    ClientFrame.drawWinner = roomIn.readInt()
+    ClientFrame.drawWinner = Faction(roomIn.readInt())
     ClientFrame.hasOptional = roomIn.readBoolean()
     ClientFrame.gameVariant = GameVariant(roomIn.readInt())
     ClientFrame.showInfo()
@@ -258,7 +258,7 @@ class NetHandlerClient(socket: Socket) {
     println("roomSendProperty")
     roomOut.writeByte(0)
     roomOut.writeInt(ClientFrame.extraInfluence)
-    roomOut.writeInt(ClientFrame.drawWinner)
+    roomOut.writeInt(ClientFrame.drawWinner.id)
     roomOut.writeBoolean(ClientFrame.hasOptional)
     roomOut.writeInt(ClientFrame.gameVariant.id)
     roomOut.flush()

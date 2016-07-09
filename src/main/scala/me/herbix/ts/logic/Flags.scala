@@ -17,7 +17,7 @@ object FlagType extends Enumeration {
 import FlagType._
 
 class Flag (val flagType: FlagType, val isGoodFlag: Boolean, val priority: Int = 100) extends Ordered[Flag] {
-  val id = Flag.newFlagId()
+  val id = Flags.newFlagId()
   def canRealignmentOrCoup(country: Country): Option[Boolean] = None
   def canRealignment(country: Country) = canRealignmentOrCoup(country)
   def canCoup(country: Country) = canRealignmentOrCoup(country)
@@ -26,15 +26,6 @@ class Flag (val flagType: FlagType, val isGoodFlag: Boolean, val priority: Int =
     if (priority > that.priority) -1 else if (priority < that.priority) 1 else
       if (id > that.id) 1 else if (id < that.id) -1 else 0
   override def toString = f"Flag($id)"
-}
-
-object Flag {
-  var flagId = -1
-  def newFlagId() = {
-    flagId += 1
-    flagId
-  }
-  def apply(flagType: FlagType, isGoodFlag: Boolean) = new Flag(flagType, isGoodFlag)
 }
 
 class Flags {
@@ -93,13 +84,19 @@ class Flags {
 }
 
 object Flags {
-  val Space1 = Flag(ThisTurn, false)
-  val Space2 = Flag(ThisTurn, false)
-  val SpaceAwardTwoSpace = Flag(Always, true)
-  val SpaceAwardHeadlineThen = Flag(Always, true)
-  val SpaceAwardMayDiscard = Flag(Always, true)
-  val SpaceAwardTake8Rounds = Flag(Always, true)
-  val CantPlayChinaCard = Flag(ThisTurn, false)
+  var flagId = -1
+  def newFlagId() = {
+    flagId += 1
+    flagId
+  }
+
+  val Space1 = new Flag(ThisTurn, false)
+  val Space2 = new Flag(ThisTurn, false)
+  val SpaceAwardTwoSpace = new Flag(Always, true)
+  val SpaceAwardHeadlineThen = new Flag(Always, true)
+  val SpaceAwardMayDiscard = new Flag(Always, true)
+  val SpaceAwardTake8Rounds = new Flag(Always, true)
+  val CantPlayChinaCard = new Flag(ThisTurn, false)
   val Defcon4Penalty = new Flag(Always, false) {
     override def canRealignmentOrCoup(country: Country) = if (country.regions(Region.Europe)) Some(false) else None
   }
@@ -109,55 +106,55 @@ object Flags {
   val Defcon2Penalty = new Flag(Always, false) {
     override def canRealignmentOrCoup(country: Country) = if (country.regions(Region.MidEast)) Some(false) else None
   }
-  val VietnamRevolts = Flag(ThisTurn, true)
+  val VietnamRevolts = new Flag(ThisTurn, true)
   val DeGaulle = new Flag(Always, true, 80) {
     override def canRealignmentOrCoup(country: Country) = if (country.name == "France") Some(true) else None
   }
-  val Containment = Flag(ThisTurn, true)
+  val Containment = new Flag(ThisTurn, true)
   val USJapanPact = new Flag(Always, false, 60) {
     override def canRealignmentOrCoup(country: Country) = if (country.name == "Japan") Some(false) else None
   }
-  val RedScarePurge = Flag(ThisTurn, false)
-  val Taiwan = Flag(Always, true)
-  val CubaMissile = Flag(ThisTurn, false)
-  val NuclearSubs = Flag(ThisTurn, true)
-  val QuagmireBearTrap = Flag(Always, false)
-  val WeWillBuryYou = Flag(Always, false)
+  val RedScarePurge = new Flag(ThisTurn, false)
+  val Taiwan = new Flag(Always, true)
+  val CubaMissile = new Flag(ThisTurn, false)
+  val NuclearSubs = new Flag(ThisTurn, true)
+  val QuagmireBearTrap = new Flag(Always, false)
+  val WeWillBuryYou = new Flag(Always, false)
   val WillyBrandt = new Flag(Always, true, 80) {
     override def canRealignmentOrCoup(country: Country) = if (country.name == "W.Germany") Some(true) else None
   }
-  val FlowerPower = Flag(Always, false)
-  val U2Incident = Flag(ThisTurn, true)
-  val CampDavid = Flag(Always, true)
-  val JohnPaulII = Flag(Always, true)
-  val ShuttleDiplomacy = Flag(Always, true)
-  val IranianHostage = Flag(Always, false)
-  val IronLady = Flag(Always, true)
-  val NorthSeaOil = Flag(Always, true)
-  val NorthSeaOil8Rounds = Flag(ThisTurn, true)
-  val IranContra = Flag(ThisTurn, false)
-  val EvilEmpire = Flag(Always, true)
-  val WarsawPact = Flag(Always, true)
+  val FlowerPower = new Flag(Always, false)
+  val U2Incident = new Flag(ThisTurn, true)
+  val CampDavid = new Flag(Always, true)
+  val JohnPaulII = new Flag(Always, true)
+  val ShuttleDiplomacy = new Flag(Always, true)
+  val IranianHostage = new Flag(Always, false)
+  val IronLady = new Flag(Always, true)
+  val NorthSeaOil = new Flag(Always, true)
+  val NorthSeaOil8Rounds = new Flag(ThisTurn, true)
+  val IranContra = new Flag(ThisTurn, false)
+  val EvilEmpire = new Flag(Always, true)
+  val WarsawPact = new Flag(Always, true)
   val NATO = new Flag(Always, false, 60) {
     override def canRealignmentOrCoup(country: Country) =
       if (country.regions(Region.Europe) && country.getController == US) Some(false) else None
   }
-  val MarshallPlan = Flag(Always, true)
-  val SALT = Flag(ThisTurn, false)
+  val MarshallPlan = new Flag(Always, true)
+  val SALT = new Flag(ThisTurn, false)
   val MissileEnvy = new Flag(Always, false) {
     override def canKeep(game: Game, faction: Faction) = game.hand(faction).has(Card049MissileEnvy)
   }
-  val DeathSquads = Flag(ThisTurn, true)
-  val DeathSquads2 = Flag(ThisTurn, false)
+  val DeathSquads = new Flag(ThisTurn, true)
+  val DeathSquads2 = new Flag(ThisTurn, false)
   val Reformer = new Flag(Always, true, 90) {
     override def canCoup(country: Country) = if (country.regions(Region.Europe)) Some(false) else None
   }
-  val Chernobyl = Flag(ThisTurn, false)
-  val TearDownThisWall = Flag(Always, true)
-  val AldrichAmes = Flag(ThisTurn, false)
-  val NORAD = Flag(Always, true)
-  val Samantha = Flag(ThisTurn, true)
-  val AwacsSale = Flag(Always, true)
+  val Chernobyl = new Flag(ThisTurn, false)
+  val TearDownThisWall = new Flag(Always, true)
+  val AldrichAmes = new Flag(ThisTurn, false)
+  val NORAD = new Flag(Always, true)
+  val Samantha = new Flag(ThisTurn, true)
+  val AwacsSale = new Flag(Always, true)
 
   def init(): Unit = {}
 }

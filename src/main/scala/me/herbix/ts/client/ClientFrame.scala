@@ -3,6 +3,7 @@ package me.herbix.ts.client
 import java.awt.event.{ActionEvent, ActionListener}
 import java.awt.{BorderLayout, Dimension}
 import java.net.Socket
+import java.util.Properties
 import javax.swing._
 import javax.swing.table.DefaultTableModel
 
@@ -17,7 +18,7 @@ import scala.collection.mutable
   */
 object ClientFrame extends JFrame {
 
-  val gameVersion = "ts-1.0.0"
+  val gameVersion = "ts-" + getGameVersion
 
   var netHandler: NetHandlerClient = null
 
@@ -131,13 +132,29 @@ object ClientFrame extends JFrame {
     override def actionPerformed(e: ActionEvent): Unit = {
       val n = table.getSelectedRow
       if (n >= 0) {
-        netHandler.sendJoinRoom(tableModel.getValueAt(n, 0).asInstanceOf[Int])
+        val version = tableModel.getValueAt(n, 2).toString
+        try {
+          if (version.substring(0, version.lastIndexOf('.')) == gameVersion.substring(0, gameVersion.lastIndexOf('.'))) {
+            netHandler.sendJoinRoom(tableModel.getValueAt(n, 0).asInstanceOf[Int])
+          } else {
+            throw new Exception("version check exception")
+          }
+        } catch {
+          case e: Throwable =>
+            JOptionPane.showMessageDialog(ClientFrame, "版本不同，不能加入。", "冷战热斗", JOptionPane.ERROR_MESSAGE)
+        }
       }
     }
   })
 
   def main(args: Array[String]): Unit = {
     setVisible(true)
+  }
+
+  def getGameVersion: String = {
+    val p = new Properties()
+    p.load(getClass.getResourceAsStream("/version.property"))
+    p.getProperty("version")
   }
 
 }

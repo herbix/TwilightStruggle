@@ -19,7 +19,7 @@ object Resource {
     .toMap
 
   Flags.init()
-  val flag = (0 to Flag.flagId).map(i => {
+  val flag = (0 to Flags.flagId).map(i => {
     val in = getClass.getResourceAsStream(f"/flags/$i%02d.png")
     if (in != null) {
       val img = ImageIO.read(in)

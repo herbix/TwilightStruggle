@@ -3,15 +3,6 @@ package me.herbix.ts.logic
 /**
   * Created by Chaofan on 2016/6/12.
   */
-class SpaceLevel private(val level: Int, val op: Int, val rollMax: Int, val firstVp: Int, val secondVp: Int, val flag: Flag)
-  extends Ordered[SpaceLevel] {
-  override def compare(that: SpaceLevel): Int =
-    if (level > that.level) 1
-    else if (level < that.level) -1
-    else 0
-  def nextLevel = SpaceLevel(level + 1)
-}
-
 object SpaceLevel {
   //                            |id|op|di|vp|vp|flag|
   val Start =     new SpaceLevel(0, 0, 0, 0, 0, null)
@@ -29,4 +20,13 @@ object SpaceLevel {
   )
 
   def apply(level: Int) = SpaceList(level)
+
+  class SpaceLevel(val level: Int, val op: Int, val rollMax: Int, val firstVp: Int, val secondVp: Int, val flag: Flag)
+    extends Ordered[SpaceLevel] {
+    override def compare(that: SpaceLevel): Int =
+      if (level > that.level) 1
+      else if (level < that.level) -1
+      else 0
+    def nextLevel = SpaceLevel(level + 1)
+  }
 }
