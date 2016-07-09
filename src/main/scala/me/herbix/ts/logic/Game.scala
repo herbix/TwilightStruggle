@@ -1238,12 +1238,27 @@ class Game extends GameTrait {
   }
 
   def endGameByVp(): Unit = {
+    gameVariant match {
+      case GameVariant.LateWar => endGameByVpLateWar()
+      case _ => endGameByVpStandard()
+    }
+  }
+
+  def endGameByVpStandard(): Unit = {
     if (vp < 0) {
       gameOver(USSR)
     } else if (vp > 0) {
       gameOver(US)
     } else {
       gameOver(Neutral)
+    }
+  }
+
+  def endGameByVpLateWar(): Unit = {
+    if (vp < 20) {
+      gameOver(USSR)
+    } else {
+      gameOver(US)
     }
   }
 

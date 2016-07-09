@@ -5,7 +5,7 @@ import java.io.{DataOutputStream, DataInputStream}
 import java.net.Socket
 import javax.swing.{WindowConstants, SwingUtilities}
 
-import me.herbix.ts.logic.{Operation, Game}
+import me.herbix.ts.logic.{GameVariant, Operation, Game}
 import me.herbix.ts.ui.GameUI
 import me.herbix.ts.util.Serializer._
 
@@ -223,6 +223,7 @@ class NetHandlerClient(socket: Socket) {
     ClientFrame.extraInfluence = roomIn.readInt()
     ClientFrame.drawWinner = roomIn.readInt()
     ClientFrame.hasOptional = roomIn.readBoolean()
+    ClientFrame.gameVariant = GameVariant(roomIn.readInt())
     ClientFrame.showInfo()
   }
 
@@ -249,6 +250,7 @@ class NetHandlerClient(socket: Socket) {
     roomOut.writeInt(ClientFrame.extraInfluence)
     roomOut.writeInt(ClientFrame.drawWinner)
     roomOut.writeBoolean(ClientFrame.hasOptional)
+    roomOut.writeInt(ClientFrame.gameVariant.id)
     roomOut.flush()
   }
 
@@ -275,6 +277,7 @@ class NetHandlerClient(socket: Socket) {
     gameUI.game.extraInfluence = ClientFrame.extraInfluence
     gameUI.game.optionalCards = ClientFrame.hasOptional
     gameUI.game.drawGameWinner = ClientFrame.drawWinner
+    gameUI.game.gameVariant = ClientFrame.gameVariant
     gameUI.game.anotherGame = new RemoteGame(this)
     gameUI.game.setRandomSeed(seed)
     gameUI.setVisible(true)

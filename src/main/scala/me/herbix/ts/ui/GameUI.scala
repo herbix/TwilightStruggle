@@ -171,29 +171,3 @@ class GameUI(playerId: Int) extends JFrame {
 
 
 }
-
-/*
-object GameUI {
-  def main(args: Array[String]) {
-
-    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
-
-    val GameUI1 = new GameUI(0)
-    val GameUI2 = new GameUI(1)
-
-    GameUI1.game.anotherGame = GameUI2.game
-    GameUI2.game.anotherGame = GameUI1.game
-
-    val seed = new Random().nextLong()
-    GameUI1.game.randomSeed = seed
-    GameUI2.game.randomSeed = seed
-    GameUI1.game.random.setSeed(seed)
-    GameUI2.game.random.setSeed(seed)
-
-    GameUI1.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-    GameUI2.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-    GameUI1.setVisible(true)
-    GameUI2.setVisible(true)
-  }
-}
-*/

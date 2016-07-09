@@ -1359,7 +1359,7 @@ object Card088BarracksBombing extends CardNeedsSelection(88, 2, USSR, true, card
       val lebanon = game.worldMap.countries("Lebanon")
       game.modifyInfluence(US, false, Map(lebanon -> lebanon.influence(US)))
     } else if (step == 1) {
-      game.modifyInfluence(USSR, true, input.asInstanceOf[OperationModifyInfluence].detail)
+      game.modifyInfluence(US, false, input.asInstanceOf[OperationModifyInfluence].detail)
     }
     step + 1
   }

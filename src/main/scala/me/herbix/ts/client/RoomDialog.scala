@@ -31,7 +31,7 @@ object RoomDialog extends JDialog {
   val tableOut = new JScrollPane(table)
 
   tableOut.setLocation(0, 0)
-  tableOut.setSize(400, 200)
+  tableOut.setSize(400, 180)
   panel.add(tableOut)
 
   tableModel.addColumn("玩家号")
@@ -42,12 +42,12 @@ object RoomDialog extends JDialog {
   table.getColumnModel.getColumn(1).setPreferredWidth(300)
 
   val info = new JLabel("")
-  info.setLocation(20, 210)
-  info.setSize(260, 50)
+  info.setLocation(20, 180)
+  info.setSize(260, 90)
   panel.add(info)
 
   val start = new JButton("开始")
-  start.setLocation(300, 220)
+  start.setLocation(300, 210)
   start.setSize(80, 30)
   panel.add(start)
 

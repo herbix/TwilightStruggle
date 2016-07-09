@@ -1,13 +1,14 @@
 package me.herbix.ts.client
 
 import java.awt.event.{ActionEvent, ActionListener}
-import java.awt.{Dimension, ScrollPane, BorderLayout}
+import java.awt.{BorderLayout, Dimension}
 import java.net.Socket
-import javax.swing.table.DefaultTableModel
 import javax.swing._
+import javax.swing.table.DefaultTableModel
 
-import me.herbix.ts.logic.Faction
-import me.herbix.ts.util.Lang
+import me.herbix.ts.client.NewRoomDialog.GameVariantDelegate
+import me.herbix.ts.logic.{Faction, GameVariant}
+import me.herbix.ts.util.{Lang, Resource}
 
 import scala.collection.mutable
 
@@ -21,6 +22,7 @@ object ClientFrame extends JFrame {
   var extraInfluence = 0
   var hasOptional = false
   var drawWinner = Faction.Neutral
+  var gameVariant = GameVariant.Standard
 
   val roomCreatorMap = mutable.Map.empty[Int, Int]
 
@@ -89,6 +91,14 @@ object ClientFrame extends JFrame {
     }
   }.start()
 
+  new Thread() {
+    override def run(): Unit = {
+      val time = System.nanoTime()
+      Resource.getClass
+      println("Loading Resource: " + (System.nanoTime() - time) / 1e9 + "s")
+    }
+  }.start()
+
   newRoom.addActionListener(new ActionListener {
     override def actionPerformed(e: ActionEvent): Unit = {
       NewRoomDialog.setVisible(true)
@@ -97,6 +107,7 @@ object ClientFrame extends JFrame {
         extraInfluence = NewRoomDialog.slider.getValue
         drawWinner = if (NewRoomDialog.us.isSelected) Faction.US else Faction.USSR
         hasOptional = NewRoomDialog.optional.isSelected
+        gameVariant = NewRoomDialog.variant.getSelectedItem.asInstanceOf[GameVariantDelegate].gameVariant
         showInfo()
       }
     }
@@ -104,9 +115,10 @@ object ClientFrame extends JFrame {
 
   def showInfo(): Unit = {
     RoomDialog.info.setText("<html><body>" +
+      s"游戏变体：${new GameVariantDelegate(gameVariant)}<br/>" +
       s"苏联让点：$extraInfluence<br/>" +
       s"平局胜者：${Lang.getFactionName(drawWinner)}<br/>" +
-      s"可选牌：  ${if (hasOptional) "有" else "无"}<br/>" +
+      s"可选牌：　${if (hasOptional) "有" else "无"}<br/>" +
       "</body></html>"
     )
   }

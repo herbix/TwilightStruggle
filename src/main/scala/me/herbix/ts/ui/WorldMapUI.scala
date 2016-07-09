@@ -251,7 +251,7 @@ class WorldMapUI(val game: Game) extends JPanel {
   }
 
   def drawTurnToken(g: Graphics): Unit = {
-    val (x, y) = getTokenCenter(MapValue.turnArea, 1, 10, game.turn)
+    val (x, y) = getTokenCenter(MapValue.turnArea, 1, 10, Math.min(game.turn, 10))
     drawToken(g, tokenColor, x - tokenSize / 2, y - tokenSize / 2)
     g.setFont(tokenFont)
     drawTokenString(g, x, y, "Turn")
@@ -265,7 +265,8 @@ class WorldMapUI(val game: Game) extends JPanel {
   }
 
   def drawVPToken(g: Graphics): Unit = {
-    val (x, y) = getTokenCenter(MapValue.vpUs20, MapValue.vpUssr20, MapValue.vpSize, 20, -20, game.vp)
+    val (x, y) = getTokenCenter(MapValue.vpUs20, MapValue.vpUssr20, MapValue.vpSize, 20, -20,
+      Math.max(-20, Math.min(20, game.vp)))
     drawToken(g, tokenColor, x - tokenSize / 2, y - tokenSize / 2)
     g.setFont(tokenFont2)
     drawTokenString(g, x, y, "VP")
