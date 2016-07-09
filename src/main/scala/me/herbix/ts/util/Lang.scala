@@ -135,6 +135,7 @@ object Lang {
   val historyRemoveFlag = "%s失去了标记“%s”"
   val historyAddFlagNeutral = "双方获得了标记“%s”"
   val historyRemoveFlagNeutral = "双方失去了标记“%s”"
+  val historyRegion = "%s选择了%s"
 
   val countryNames = mutable.Map[String, String]()
 

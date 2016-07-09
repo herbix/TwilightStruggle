@@ -92,6 +92,12 @@ object Resource {
   val cardDescFont = new Font(Lang.heiti, 0, 13)
 
   val selectedCountry = new Color(255, 255, 255, 192)
+  val changedCountry = Map (
+    Neutral -> new Color(255, 255, 128, 120),
+    US -> new Color(128, 128, 255, 120),
+    USSR -> new Color(255, 128, 128, 120)
+  )
+  val availableCountry = new Color(128, 255, 128, 120)
 
   val tokenFont = new Font("Arial", Font.BOLD, 18)
   val tokenFont2 = new Font("Arial", Font.BOLD, 24)

@@ -42,6 +42,11 @@ class WorldMapUI(val game: Game) extends JPanel {
 
   var pendingCountrySelection: mutable.Set[Country] = null
 
+  var changedCountries: Set[Country] = Set.empty[Country]
+  var changedCountriesFaction = Faction.US
+
+  var availableCountries: Set[Country] = Set.empty[Country]
+
   var countryHoverListeners: List[Country => Unit] = List()
   var countryClickListeners: List[(Country, Int) => Unit] = List()
 
@@ -187,6 +192,17 @@ class WorldMapUI(val game: Game) extends JPanel {
 
       val (x, y) = MapValue.countryPosMap(name)
 
+      if (pendingCountrySelection(country)) {
+        g.setColor(selectedCountry)
+        g.fillRect(x, y, MapValue.countrySize._1, MapValue.countrySize._2)
+      } else if (changedCountries.contains(country)) {
+        g.setColor(changedCountry(changedCountriesFaction))
+        g.fillRect(x, y, MapValue.countrySize._1, MapValue.countrySize._2)
+      } else if (availableCountries.contains(country)) {
+        g.setColor(availableCountry)
+        g.fillRect(x, y, MapValue.countrySize._1, MapValue.countrySize._2)
+      }
+
       if (usInfluence > 0) {
         if (usInfluence - ussrInfluence >= country.stability) {
           drawInfluenceToken(g, fm, usInfluence.toString, usDrawColor, usBgColor, x + 2, y + 18)
@@ -200,11 +216,6 @@ class WorldMapUI(val game: Game) extends JPanel {
         } else {
           drawInfluenceToken(g, fm, ussrInfluence.toString, ussrBgColor, ussrDrawColor, x + 52, y + 18)
         }
-      }
-
-      if (pendingCountrySelection(country)) {
-        g.setColor(selectedCountry)
-        g.fillRect(x, y, MapValue.countrySize._1, MapValue.countrySize._2)
       }
     }
   }

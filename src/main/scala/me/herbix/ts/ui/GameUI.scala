@@ -117,6 +117,18 @@ class GameUI(playerId: Int) extends JFrame {
   controlUI.uiInfluence.updateListeners :+= (() => {
     worldMapUI.pendingInfluenceFaction = controlUI.uiInfluence.targetFaction
     worldMapUI.pendingInfluenceIsAdd = controlUI.uiInfluence.isAdd
+
+    worldMapUI.availableCountries =
+      game.worldMap.normalCountries.values.filter(c => {
+        val pendingInfluenceChange = controlUI.uiInfluence.pendingInfluenceChange
+        val input = if (pendingInfluenceChange.contains(c)) {
+          pendingInfluenceChange + (c -> (pendingInfluenceChange(c) + 1))
+        } else {
+          pendingInfluenceChange + (c -> 1)
+        }
+        controlUI.uiInfluence.checkInfluence(input)
+      }).toSet
+
     worldMapUI.repaint()
   })
 
@@ -141,16 +153,37 @@ class GameUI(playerId: Int) extends JFrame {
   worldMapUI.pendingCountrySelection = pendingCountrySelection
 
   controlUI.uiSelectCountry.updateListeners :+= (() => {
+    worldMapUI.availableCountries =
+      game.worldMap.normalCountries.values.filter(c => {
+        controlUI.uiSelectCountry.checkSelection(pendingCountrySelection + c)
+      }).toSet
     worldMapUI.repaint()
   })
 
+  controlUI.uiUpdateListeners :+= (() => {
+    if (controlUI.uiType != controlUI.UIType.SelectCountry && controlUI.uiType != controlUI.UIType.Influence) {
+      worldMapUI.availableCountries = Set.empty
+    }
+  })
+
   historyUI.historyHoverListeners :+= ((history: History) => {
+    val hasChangedCountry = worldMapUI.changedCountries.nonEmpty
+    worldMapUI.changedCountries = Set.empty
+
     history match {
       case h: HistoryCard =>
         detailUI.setCard(h.card)
       case h: HistoryFlag =>
         detailUI.setFlag(h.faction, h.flag, h.data)
+      case h: HistoryCountry =>
+        worldMapUI.changedCountries = h.countries
+        worldMapUI.changedCountriesFaction = h.faction
+        worldMapUI.repaint()
       case _ =>
+    }
+
+    if (worldMapUI.changedCountries.nonEmpty != hasChangedCountry) {
+      worldMapUI.repaint()
     }
   })
 

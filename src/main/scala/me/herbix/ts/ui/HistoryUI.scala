@@ -1,15 +1,13 @@
 package me.herbix.ts.ui
 
 import java.awt._
-import java.awt.event.{MouseListener, MouseMotionAdapter, MouseEvent, MouseMotionListener}
+import java.awt.event.{MouseEvent, MouseListener, MouseMotionAdapter}
 import javax.swing.JPanel
 
 import me.herbix.ts.logic._
-import me.herbix.ts.util.{Resource, Lang}
+import me.herbix.ts.util.{Lang, Resource}
 
 import scala.collection.immutable.List
-
-import scala.StringBuilder
 import scala.collection.mutable
 
 /**
@@ -148,6 +146,8 @@ class HistoryUI(game: Game) extends JPanel {
         } else {
           String.format(Lang.historyRemoveFlag, Lang.getFactionName(h.faction), Lang.flagInfo(h.flag.id)._1(h.faction))
         }
+      case h: HistoryRegion =>
+        String.format(Lang.historyRegion, Lang.getFactionName(h.faction), Lang.getRegionName(h.region))
       case h => h.toString
     }
     var height = 25
@@ -253,9 +253,7 @@ class HistoryUI(game: Game) extends JPanel {
       val history = if (meta == null) null else meta.history
       if (hoverHistory != history) {
         hoverHistory = history
-        if (hoverHistory != null) {
-          historyHoverListeners.foreach(_(hoverHistory))
-        }
+        historyHoverListeners.foreach(_(hoverHistory))
         repaint()
       }
     }
@@ -264,6 +262,7 @@ class HistoryUI(game: Game) extends JPanel {
   addMouseListener(new MouseListener {
     override def mouseExited(e: MouseEvent): Unit = {
       hoverHistory = null
+      historyHoverListeners.foreach(_(hoverHistory))
       repaint()
     }
     override def mouseClicked(e: MouseEvent): Unit = {}

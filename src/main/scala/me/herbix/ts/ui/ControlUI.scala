@@ -65,6 +65,7 @@ class ControlUI(val game: Game) extends JPanel {
   val uiGrainSales = new ControlSubUIGrainSales(this)
 
   var operationListeners: List[Operation => Unit] = List()
+  var uiUpdateListeners: List[() => Unit] = List()
 
   setLayout(new CardLayout)
   add(uiChooseFaction, ChooseFaction.toString)
@@ -304,6 +305,7 @@ class ControlUI(val game: Game) extends JPanel {
       case State.end => gameOverUI()
       case _ => waitOtherUI()
     }
+    uiUpdateListeners.foreach(_())
     repaint()
   }
 
@@ -532,7 +534,7 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
       val changedValue = influence + modifyValue * (if (isAdd) 1 else -1)
       tableModel.addRow(Array[Object](new CountryDelegate(country), f"$influence -> $changedValue"))
     }
-    val rest = getPoint -
+    val rest = getPoint(pendingInfluenceChange) -
       parent.game.calculateInfluenceCost(pendingInfluenceChange, targetFaction, ignoreControl)
     text(0) = String.format(tip, rest.toString)
     buttonDone.setEnabled(rest == 0 || !mustAllPoints)
@@ -543,12 +545,12 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
     repaint()
   }
 
-  def getPoint: Int =
+  def getPoint(pendingInfluenceChange: mutable.Map[Country, Int]): Int =
     if (modifyOp) parent.game.modifyOp(parent.game.playerFaction, point, pendingInfluenceChange.keys) else point
 
-  def checkInfluence(): Boolean = {
+  def checkInfluence(pendingInfluenceChange: mutable.Map[Country, Int]): Boolean = {
     parent.game.calculateInfluenceCost(pendingInfluenceChange, parent.game.playerFaction, ignoreControl) <=
-      getPoint &&
+      getPoint(pendingInfluenceChange) &&
       validCheck(pendingInfluenceChange.toMap) &&
       (isAdd || pendingInfluenceChange.forall(e => e._1.influence(targetFaction) >= e._2))
   }
@@ -559,7 +561,7 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
     } else {
       pendingInfluenceChange += country -> value
     }
-    if (checkInfluence()) {
+    if (checkInfluence(pendingInfluenceChange)) {
       updatePendingInfluenceChange()
     } else {
       if (pendingInfluenceChange(country) == value) {
@@ -712,7 +714,7 @@ class ControlSubUISelectCountry(parent: ControlUI) extends
       val oldCountry = pendingCountrySelection.head
       pendingCountrySelection.clear()
       pendingCountrySelection += country
-      if (checkSelection()) {
+      if (checkSelection(pendingCountrySelection)) {
         updatePendingCountrySelection()
       } else {
         pendingCountrySelection.clear()
@@ -721,7 +723,7 @@ class ControlSubUISelectCountry(parent: ControlUI) extends
 
     } else {
       pendingCountrySelection += country
-      if (checkSelection()) {
+      if (checkSelection(pendingCountrySelection)) {
         updatePendingCountrySelection()
       } else {
         pendingCountrySelection -= country
@@ -729,7 +731,7 @@ class ControlSubUISelectCountry(parent: ControlUI) extends
     }
   }
 
-  def checkSelection(): Boolean = {
+  def checkSelection(pendingCountrySelection: mutable.Set[Country]): Boolean = {
     point - pendingCountrySelection.size >= 0 && validCheck(pendingCountrySelection.toSet)
   }
 

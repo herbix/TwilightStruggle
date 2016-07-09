@@ -389,6 +389,8 @@ class Game extends GameTrait {
     modifyInfluence(USSR, true, worldMap.ussrLateWarStart)
     modifyInfluence(US, true, worldMap.usLateWarStart)
 
+    recordHistory(new HistoryTurnRound(turn, -1, Neutral))
+
     stateStack.push(selectHeadlineCard)
   }
 
