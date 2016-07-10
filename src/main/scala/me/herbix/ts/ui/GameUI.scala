@@ -5,6 +5,7 @@ import java.awt.{Color, Dimension, ScrollPane, BorderLayout}
 import java.util.Random
 import javax.swing._
 
+import me.herbix.ts.client.ClientLocal
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic._
 import scala.collection.mutable
@@ -202,5 +203,79 @@ class GameUI(playerId: Int) extends JFrame {
     }
   })
 
+  // debug
+  var debugMode = false
+
+  addKeyListenerRecursion(new KeyAdapter {
+    override def keyPressed(e: KeyEvent): Unit = {
+      if (!debugMode) {
+        return
+      }
+      if (e.isControlDown && e.getKeyCode == KeyEvent.VK_D) {
+        val cmd = JOptionPane.showInputDialog(GameUI.this, "输入调试命令", "冷战热斗", JOptionPane.PLAIN_MESSAGE)
+        if (cmd != null && cmd != "") {
+          val params = cmd.substring(1).trim.split(" ")
+          cmd.charAt(0) match {
+            case 'c' =>
+              if (params.nonEmpty) {
+                debugAddCard(params(0).toInt, if (params.length > 1) params(1) else "h")
+              }
+            case 's' =>
+              if (params.nonEmpty) {
+                debugSpace(params(0).toInt)
+              }
+            case _ =>
+          }
+        }
+      }
+    }
+  })
+
+  def debugAddCard(id: Int, target: String): Unit = {
+    val card = Cards.fromId(id)
+    if (card == null) return
+
+    val game1 = game
+    val game2 = game.anotherGame.asInstanceOf[Game]
+
+    target match {
+      case "h" =>
+        game1.hand(game.playerFaction).add(card)
+        game2.hand(game.playerFaction).add(card)
+      case "d" =>
+        game1.discards.add(card)
+        game2.discards.add(card)
+      case _ => return
+    }
+
+    handUI.updateState()
+  }
+
+  def debugSpace(step: Int) = {
+    val game1 = game
+    val game2 = game.anotherGame.asInstanceOf[Game]
+    val space = game1.space(game.playerFaction)
+
+    game1.space(game.playerFaction) = SpaceLevel(space.level + step)
+    game2.space(game.playerFaction) = SpaceLevel(space.level + step)
+
+    worldMapUI.repaint()
+  }
+
+  def addKeyListenerRecursion(listener: KeyListener): Unit = {
+    addKeyListener(listener)
+    getComponents
+      .filter(_.isInstanceOf[JComponent])
+      .map(_.asInstanceOf[JComponent])
+      .foreach(c => addKeyListenerRecursion(c, listener))
+  }
+
+  def addKeyListenerRecursion(component: JComponent, listener: KeyListener): Unit = {
+    component.addKeyListener(listener)
+    component.getComponents
+      .filter(_.isInstanceOf[JComponent])
+      .map(_.asInstanceOf[JComponent])
+      .foreach(c => addKeyListenerRecursion(c, listener))
+  }
 
 }
