@@ -7,7 +7,9 @@ import me.herbix.ts.logic.Region.Region
 /**
   * Created by Chaofan on 2016/6/23.
   */
-trait History
+abstract class History {
+  var id = 0
+}
 
 abstract class HistoryCard(val card: Card) extends History
 abstract class HistoryFlag(val faction: Faction, val flag: Flag, val data: Any) extends History

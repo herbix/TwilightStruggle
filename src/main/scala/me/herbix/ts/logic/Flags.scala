@@ -18,6 +18,8 @@ import FlagType._
 
 class Flag (val flagType: FlagType, val isGoodFlag: Boolean, val priority: Int = 100) extends Ordered[Flag] {
   val id = Flags.newFlagId()
+  Flags.flags(id) = this
+
   def canRealignmentOrCoup(country: Country): Option[Boolean] = None
   def canRealignment(country: Country) = canRealignmentOrCoup(country)
   def canCoup(country: Country) = canRealignmentOrCoup(country)
@@ -88,6 +90,11 @@ object Flags {
   def newFlagId() = {
     flagId += 1
     flagId
+  }
+
+  def flags = mutable.Map.empty[Int, Flag]
+  def fromId(id: Int) = {
+    flags.getOrElse(id, null)
   }
 
   val Space1 = new Flag(ThisTurn, false)

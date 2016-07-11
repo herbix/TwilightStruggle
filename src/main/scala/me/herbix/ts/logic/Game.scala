@@ -104,6 +104,7 @@ class Game extends GameTrait {
   // other
   var currentHistory = List.empty[History]
   var oldHistory = List.empty[History]
+  var currentHistoryId = 0
   def history = currentHistory ++ oldHistory
 
   // listener
@@ -188,6 +189,8 @@ class Game extends GameTrait {
   }
 
   def recordHistory(h: History): Unit = {
+    h.id = currentHistoryId
+    currentHistoryId += 1
     if (h.isInstanceOf[HistoryTurnRound]) {
       oldHistory = currentHistory ++ oldHistory
       currentHistory = List.empty
