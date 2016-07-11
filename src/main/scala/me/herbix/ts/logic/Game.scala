@@ -29,6 +29,10 @@ class Game extends GameTrait {
   var drawGameWinner = US
   var gameVariant = Standard
 
+  // game info
+  var randomSeed = 0l
+  val random = new Random
+
   // game table
   val worldMap = new WorldMap
 
@@ -46,12 +50,8 @@ class Game extends GameTrait {
   val discards = new CardSet
 
   val flags = new Flags
-  // game table end
 
   // game states
-  var randomSeed = 0l
-  val random = new Random
-
   var pendingInput: Operation = null
   val stateStack = mutable.Stack(start)
 
@@ -106,9 +106,7 @@ class Game extends GameTrait {
   var oldHistory = List.empty[History]
   def history = currentHistory ++ oldHistory
 
-  val pendingOperation = mutable.Queue.empty[Operation]
-  var toSendPendingOperations = true
-
+  // listener
   var stateUpdateListeners: List[() => Unit] = List()
 
   def setRandomSeed(seed: Long): Unit = {
@@ -117,17 +115,8 @@ class Game extends GameTrait {
   }
 
   def sendNextState(input: Operation): Unit = {
-    pendingOperation.enqueue(input)
     nextState(input)
-  }
-
-  def sendPendingOperations(): Unit = {
-    if (anotherGame != null) {
-      while (pendingOperation.nonEmpty) {
-        val op = pendingOperation.dequeue()
-        anotherGame.nextState(op)
-      }
-    }
+    anotherGame.nextState(input)
   }
 
   @tailrec
@@ -188,17 +177,12 @@ class Game extends GameTrait {
   }
 
   def nextState(input: Operation): Unit = {
-    toSendPendingOperations = true
     try {
       nextStateContainsException(input)
     } catch {
       case e: GameOverException =>
         operatingPlayer = e.winner
-        toSendPendingOperations = true
         stateStack.push(end)
-    }
-    if (toSendPendingOperations) {
-      sendPendingOperations()
     }
     stateUpdateListeners.foreach(_())
   }
@@ -896,8 +880,6 @@ class Game extends GameTrait {
       case Action.Coup =>
         stateStack.push(cardOperationCoup)
     }
-
-    toSendPendingOperations = false
   }
 
   def canAddInfluence(faction: Faction, country: Country): Boolean = {

@@ -1,10 +1,11 @@
 package me.herbix.ts.util
 
-import java.io.DataInputStream
+import java.io.{DataOutputStream, DataInputStream}
 
 import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
+import me.herbix.ts.logic.State.State
 import me.herbix.ts.logic._
 
 import scala.collection.mutable
@@ -67,4 +68,120 @@ object Serializer {
     }
   }
 
+  def writeGameState(game: Game, out: DataOutputStream): Unit = {
+    import game._
+    import Faction._
+
+    out.writeInt(turn)
+    out.writeInt(round)
+    out.writeInt(phasingPlayer.id)
+
+    out.writeInt(military(US))
+    out.writeInt(military(USSR))
+    out.writeInt(space(US).level)
+    out.writeInt(space(USSR).level)
+
+    out.writeInt(vp)
+    out.writeInt(defcon)
+
+    val targetCountries = worldMap.countries.values
+      .filter(c => c.influence(US) != 0 || c.influence(USSR) != 0)
+    out.writeInt(targetCountries.size)
+    for (country <- targetCountries) {
+      out.writeUTF(country.name)
+      out.writeInt(country.influence(US))
+      out.writeInt(country.influence(USSR))
+    }
+
+    writeCardSet(hand(US), out)
+    writeCardSet(hand(USSR), out)
+    writeCardSet(deck, out)
+    writeCardSet(discards, out)
+
+    writeFlagSet(flags.flagSets(US), out)
+    writeFlagSet(flags.flagSets(USSR), out)
+    writeFlagSet(flags.flagSets(Neutral), out)
+
+    writeFlagData(flags.flagData(US), out)
+    writeFlagData(flags.flagData(USSR), out)
+    writeFlagData(flags.flagData(Neutral), out)
+
+    out.writeBoolean(pendingInput != null)
+    if (pendingInput != null) {
+      pendingInput.writeToStream(out)
+    }
+
+    writeStack[State](stateStack, out, s => out.writeInt(s.id))
+    writeStack[Faction](operatingPlayerStack, out, f => out.writeInt(f.id))
+    writeStack[Card](currentCardStack, out, c => out.writeInt(c.id))
+    writeStack[Any](currentCardDataStack, out, a => writeData(a, out))
+
+    out.writeInt(currentRealignments.size)
+    for (country <- currentRealignments) {
+      out.writeUTF(country.name)
+    }
+
+    out.writeBoolean(skipHeadlineCard2)
+  }
+
+  def readGameState(game: Game, in: DataInputStream): Unit = {
+
+  }
+
+  def writeCardSet(cards: CardSet, out: DataOutputStream): Unit = {
+    out.writeInt(cards.cardCount)
+    for (card <- cards) {
+      out.writeInt(card.id)
+    }
+  }
+
+  def writeFlagSet(flags: mutable.Set[Flag], out: DataOutputStream): Unit = {
+    out.writeInt(flags.size)
+    for (flag <- flags) {
+      out.writeInt(flag.id)
+    }
+  }
+
+  def writeFlagData(data: mutable.Map[Flag, Any], out: DataOutputStream): Unit = {
+    val target = data.filter(_._2 != null)
+    out.writeInt(target.size)
+    for ((flag, data) <- target) {
+      out.writeInt(flag.id)
+      writeData(data, out)
+    }
+  }
+
+  def writeStack[T](stack: mutable.Stack[T], out: DataOutputStream, cb: (T) => Unit): Unit = {
+    out.writeInt(stack.size)
+    for (item <- stack.reverseIterator) {
+      cb(item)
+    }
+  }
+
+  def writeData(data: Any, out: DataOutputStream): Unit = {
+    data match {
+      case null =>
+        out.writeByte(0)
+      case int: Int =>
+        out.writeByte(1)
+        out.writeInt(int)
+      case boolean: Boolean =>
+        out.writeByte(2)
+        out.writeBoolean(boolean)
+      case region: Region =>
+        out.writeByte(3)
+        out.writeInt(region.id)
+      case cardSet: CardSet =>
+        out.writeByte(4)
+        writeCardSet(cardSet, out)
+      case card: Card =>
+        out.writeByte(5)
+        out.writeInt(card.id)
+      case (int: Int, country: Country) =>
+        out.writeByte(6)
+        out.writeInt(int)
+        out.writeUTF(country.name)
+
+    }
+  }
 }
