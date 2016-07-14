@@ -13,13 +13,14 @@ import org.junit.Assert._
   */
 class GameSerializationTest {
 
-  val game = new Game
+  var game: Game = null
 
   def c(name: String): Country = WorldMap.countries(name)
 
   @Test
   def doTest(): Unit = {
 
+    game = new Game
     game.playerId = 0
 
     game.setRandomSeed(0L)
@@ -78,7 +79,10 @@ class GameSerializationTest {
     assertEquals(0, game.space(US).level)
     assertEquals(0, game.military(USSR))
 
-    assertFalse(game.flags.hasFlag(Flags.Defcon4Penalty))
+    assertEquals(0, game.flags.flagSets2(US).size)
+    assertEquals(0, game.flags.flagSets2(USSR).size)
+    assertFalse(game.flags.hasFlag(US, Flags.Defcon4Penalty))
+    assertFalse(game.flags.hasFlag(USSR, Flags.Defcon4Penalty))
 
     assertEquals(historyId, game.currentHistory.last.id)
 

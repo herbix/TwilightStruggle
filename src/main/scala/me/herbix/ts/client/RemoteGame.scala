@@ -9,4 +9,8 @@ class RemoteGame(netHandler: NetHandlerClient) extends GameTrait {
   override def nextState(input: Operation): Unit = {
     netHandler.roomSendOperation(input)
   }
+
+  override def rollBackBeforeHistory(historyId: Int): Unit = {
+    netHandler.roomSendRollBack(historyId)
+  }
 }

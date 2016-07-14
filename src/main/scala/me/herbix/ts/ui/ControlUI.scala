@@ -1,7 +1,7 @@
 package me.herbix.ts.ui
 
 import java.awt.event.{ActionEvent, ActionListener, MouseEvent, MouseMotionListener}
-import java.awt.{CardLayout, Graphics, Graphics2D, RenderingHints}
+import java.awt._
 import javax.swing._
 import javax.swing.table.DefaultTableModel
 
@@ -11,6 +11,7 @@ import me.herbix.ts.logic.{State, _}
 import me.herbix.ts.util.{Lang, Resource}
 
 import scala.collection.mutable
+import scala.List
 
 /**
   * Created by Chaofan on 2016/6/17.
@@ -44,6 +45,7 @@ class ControlUI(val game: Game) extends JPanel {
   import UIType._
 
   var uiType = Waiting
+  val uiMap = mutable.Map[UIType, ControlSubUIBase]()
 
   val uiChooseFaction = new ControlSubUIChooseFaction(this)
   val uiWaiting = new ControlSubUIText(this, Array("", "", Lang.waitingForOpposite))
@@ -68,30 +70,39 @@ class ControlUI(val game: Game) extends JPanel {
   var uiUpdateListeners: List[() => Unit] = List()
 
   setLayout(new CardLayout)
-  add(uiChooseFaction, ChooseFaction.toString)
-  add(uiWaiting, Waiting.toString)
-  add(uiSpectator, Spectator.toString)
-  add(uiInfluence, Influence.toString)
-  add(uiSelectCard, SelectCard.toString)
-  add(uiSelectCardAndAction, SelectCardAndAction.toString)
-  add(uiSelectOperation, SelectOperation.toString)
-  add(uiSelectCountry, SelectCountry.toString)
-  add(uiSelectCardOrCancel, SelectCardOrCancel.toString)
-  add(uiYesNo, YesNo.toString)
-  add(uiConfirm, Confirm.toString)
-  add(uiSelectRegion, SelectRegion.toString)
-  add(uiSelectMultipleCards, SelectMultipleCards.toString)
-  add(uiGameOver, GameOver.toString)
+  addUI(uiChooseFaction, ChooseFaction)
+  addUI(uiWaiting, Waiting)
+  addUI(uiSpectator, Spectator)
+  addUI(uiInfluence, Influence)
+  addUI(uiSelectCard, SelectCard)
+  addUI(uiSelectCardAndAction, SelectCardAndAction)
+  addUI(uiSelectOperation, SelectOperation)
+  addUI(uiSelectCountry, SelectCountry)
+  addUI(uiSelectCardOrCancel, SelectCardOrCancel)
+  addUI(uiYesNo, YesNo)
+  addUI(uiConfirm, Confirm)
+  addUI(uiSelectRegion, SelectRegion)
+  addUI(uiSelectMultipleCards, SelectMultipleCards)
+  addUI(uiGameOver, GameOver)
   // Special
-  add(uiSummit, Summit.toString)
-  add(uiStopWorry, StopWorry.toString)
-  add(uiGrainSales, GrainSales.toString)
+  addUI(uiSummit, Summit)
+  addUI(uiStopWorry, StopWorry)
+  addUI(uiGrainSales, GrainSales)
 
   updateState()
 
-  def showSubUI(uiType: UIType) = {
-    this.uiType = uiType
-    getLayout.asInstanceOf[CardLayout].show(this, uiType.toString)
+  def addUI(subUI: ControlSubUIBase, addedUIType: UIType): Unit = {
+    uiMap += addedUIType -> subUI
+    add(subUI, addedUIType.toString)
+  }
+
+  def showSubUI(showedUIType: UIType) = {
+    val oldUI = uiMap(uiType)
+    uiType = showedUIType
+    getLayout.asInstanceOf[CardLayout].show(this, showedUIType.toString)
+    if (uiMap(showedUIType) != oldUI) {
+      oldUI.reset()
+    }
   }
 
   def updateState(): Unit = {
@@ -408,6 +419,17 @@ class ControlUI(val game: Game) extends JPanel {
     }
   }
 
+  override def setBackground(color: Color): Unit = {
+    super.setBackground(color)
+    for (component <- this.getComponents) {
+      component match {
+        case c: ControlSubUIBase =>
+          c.setBackground(color)
+        case _ =>
+      }
+    }
+  }
+
 }
 
 abstract class ControlSubUIBase(val control: ControlUI) extends JPanel with ActionListener {
@@ -424,6 +446,8 @@ abstract class ControlSubUIBase(val control: ControlUI) extends JPanel with Acti
   }
 
   override def actionPerformed(e: ActionEvent): Unit = throw new NotImplementedError
+
+  def reset(): Unit
 }
 
 class ControlSubUIText(parent: ControlUI, val text: Array[String]) extends ControlSubUIBase(parent) {
@@ -441,6 +465,8 @@ class ControlSubUIText(parent: ControlUI, val text: Array[String]) extends Contr
       g.drawString(text(i), (getWidth - w) / 2, i * 20 + 28)
     }
   }
+
+  override def reset(): Unit = {}
 }
 
 object ControlSubUICard {
@@ -490,6 +516,8 @@ abstract class ControlSubUICard(parent: ControlUI, array: Array[String]) extends
     }
     override def mouseDragged(e: MouseEvent): Unit = {}
   })
+
+  override def reset(): Unit = resetCard()
 }
 
 class ControlSubUIChooseFaction(parent: ControlUI) extends
@@ -612,6 +640,11 @@ class ControlSubUIModifyInfluence(parent: ControlUI) extends
         pendingInfluenceChange.clear()
         parent.operationListeners.foreach(_(op))
     }
+  }
+
+  override def reset(): Unit = {
+    pendingInfluenceChange.clear()
+    updateListeners.foreach(_())
   }
 }
 
@@ -784,6 +817,11 @@ class ControlSubUISelectCountry(parent: ControlUI) extends
         parent.operationListeners.foreach(_(op))
     }
   }
+
+  override def reset(): Unit = {
+    pendingCountrySelection.clear()
+    updateListeners.foreach(_())
+  }
 }
 
 class ControlSubUISelectCardOrCancel(parent: ControlUI)
@@ -870,6 +908,11 @@ class ControlSubUISelectMultipleCards(parent: ControlUI)
     val op = new OperationSelectCards(parent.game.playerId, parent.game.playerFaction, pendingCardSelection.toSet)
     parent.operationListeners.foreach(_(op))
     pendingCardSelection.clear()
+  }
+
+  override def reset(): Unit = {
+    pendingCardSelection.clear()
+    updateListeners.foreach(_())
   }
 }
 

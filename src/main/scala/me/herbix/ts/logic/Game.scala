@@ -60,14 +60,24 @@ class Game extends GameTrait {
   val operatingPlayerStack = mutable.Stack(Neutral)
   def operatingPlayer: Faction = operatingPlayerStack.top
   def operatingPlayer_=(faction: Faction): Unit = {
+    if (faction != operatingPlayer) {
+      clearSnapshots()
+    }
     operatingPlayerStack.pop()
     operatingPlayerStack.push(faction)
   }
   def operatingPlayerChange(faction: Faction): Unit = {
+    if (faction != operatingPlayer) {
+      clearSnapshots()
+    }
     operatingPlayerStack.push(faction)
   }
   def operatingPlayerRollBack(): Unit = {
+    val oldOperatingPlayer = operatingPlayer
     operatingPlayerStack.pop()
+    if (oldOperatingPlayer != operatingPlayer) {
+      clearSnapshots()
+    }
   }
 
   val currentCardStack = mutable.Stack[Card]()
@@ -103,11 +113,14 @@ class Game extends GameTrait {
   var skipHeadlineCard2 = false
   // game states end
 
-  // other
+  // history
   var currentHistory = List.empty[History]
   var oldHistory = List.empty[History]
   var currentHistoryId = 0
   def history = currentHistory ++ oldHistory
+
+  // snapshot
+  var lastSnapshot = new Snapshot(this)
 
   // listener
   var stateUpdateListeners: List[() => Unit] = List()
@@ -163,7 +176,8 @@ class Game extends GameTrait {
         if (stateStack.top != cubaMissileRemove) {
           if (!op.isResponse) {
             if (op.playerId != playerId) {
-              sendNextState(new OperationCubaMissileRequest(playerId, playerFaction, true))
+              anotherGame.nextState(new OperationCubaMissileRequest(playerId, playerFaction, true))
+              stateStack.push(cubaMissileRemove)
             }
           } else {
             stateStack.push(cubaMissileRemove)
@@ -177,6 +191,13 @@ class Game extends GameTrait {
           case other => nextState(input, other)
         }
     }
+    if (currentHistory.nonEmpty) {
+      val newestHistory = currentHistory.last
+      if (newestHistory.snapshot == null) {
+        newestHistory.snapshot = lastSnapshot
+      }
+    }
+    lastSnapshot = new Snapshot(this)
   }
 
   def nextState(input: Operation): Unit = {
@@ -196,6 +217,7 @@ class Game extends GameTrait {
     if (h.isInstanceOf[HistoryTurnRound]) {
       oldHistory = currentHistory ++ oldHistory
       currentHistory = List.empty
+      clearSnapshots()
     }
     currentHistory :+= h
   }
@@ -293,6 +315,7 @@ class Game extends GameTrait {
       deckJoin(discards)
       discardsClear()
     }
+    clearSnapshots()
     deck.pickAndRemove(random)
   }
 
@@ -605,7 +628,10 @@ class Game extends GameTrait {
   def isAfterFinalRound = round > turnRoundCount
   def turnRoundCount = if (turn <= 3) 6 else 7
 
-  def rollDice() = random.nextInt(6) + 1
+  def rollDice() = {
+    clearSnapshots()
+    random.nextInt(6) + 1
+  }
 
   def increaseSpace(faction: Faction, value: Int) = {
     val oldSpace = space(faction)
@@ -1321,6 +1347,32 @@ class Game extends GameTrait {
         }
       }
     }
+  }
+
+  def clearSnapshots(): Unit = {
+    lastSnapshot.needApproval = true
+    for (h <- history) {
+      if (h.snapshot != null) {
+        h.snapshot.needApproval = true
+      }
+    }
+  }
+
+  def sendRollBackBeforeHistory(historyId: Int): Unit = {
+    rollBackBeforeHistory(historyId)
+    anotherGame.rollBackBeforeHistory(historyId)
+  }
+
+  override def rollBackBeforeHistory(historyId: Int): Unit = {
+    history.find(_.id == historyId) match {
+      case Some(history) =>
+        val snapshot = history.snapshot
+        if (snapshot != null && !snapshot.needApproval) {
+          snapshot.rollBack()
+        }
+      case _ =>
+    }
+    stateUpdateListeners.foreach(_())
   }
 
   class GameOverException(val winner: Faction) extends Exception

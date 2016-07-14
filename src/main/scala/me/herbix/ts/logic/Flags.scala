@@ -96,7 +96,7 @@ object Flags {
     flagId
   }
 
-  def flags = mutable.Map.empty[Int, Flag]
+  val flags = mutable.Map[Int, Flag]()
   def fromId(id: Int) = {
     flags.getOrElse(id, null)
   }

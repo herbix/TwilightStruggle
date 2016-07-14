@@ -5,4 +5,5 @@ package me.herbix.ts.logic
   */
 trait GameTrait {
   def nextState(input: Operation): Unit
+  def rollBackBeforeHistory(historyId: Int): Unit
 }

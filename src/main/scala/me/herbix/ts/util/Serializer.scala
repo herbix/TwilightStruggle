@@ -14,7 +14,7 @@ import scala.collection.mutable
   */
 object Serializer {
 
-  def readOperation(in: DataInputStream, game: Game): Operation = {
+  def readOperation(in: DataInputStream): Operation = {
     val playerId = in.readInt()
     val faction = Faction(in.readInt())
     val opId = in.readByte()
@@ -29,7 +29,7 @@ object Serializer {
         for (i <- 0 until len) {
           val id = in.readByte()
           val v = in.readInt()
-          if (game != null) detail += (WorldMap.getCountryFromId(id) -> v)
+          detail += (WorldMap.getCountryFromId(id) -> v)
         }
         new OperationModifyInfluence(playerId, faction, isAdd, detail.toMap)
       case 2 =>
@@ -44,7 +44,7 @@ object Serializer {
         val detail = mutable.Set.empty[Country]
         for (i <- 0 until len) {
           val id = in.readByte()
-          if (game != null) detail += WorldMap.getCountryFromId(id)
+          detail += WorldMap.getCountryFromId(id)
         }
         new OperationSelectCountry(playerId, faction, detail.toSet)
       case 6 =>
@@ -179,7 +179,7 @@ object Serializer {
     readFlagData(flags.flagData(Neutral), flags.flagSets(Neutral), in)
 
     if (in.readBoolean()) {
-      pendingInput = readOperation(in, game)
+      pendingInput = readOperation(in)
     }
 
     readStack[State](stateStack, in, State(in.readInt()))

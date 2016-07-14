@@ -23,7 +23,7 @@ class OperationSerializationTest {
       val out = new ByteArrayOutputStream()
       op.writeToStream(new DataOutputStream(out))
       val in = new ByteArrayInputStream(out.toByteArray)
-      val newOp = Serializer.readOperation(new DataInputStream(in), game)
+      val newOp = Serializer.readOperation(new DataInputStream(in))
 
       assertOperationEquals(op, newOp)
     }

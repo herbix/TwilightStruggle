@@ -2,7 +2,6 @@ package me.herbix.ts.logic
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Region.Region
-import me.herbix.ts.util.Lang
 
 import scala.collection.mutable
 

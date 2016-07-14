@@ -39,13 +39,18 @@ object Resource {
   val tokenActionUs = ImageIO.read(getClass.getResourceAsStream("/tokens/actionus.png"))
   val tokenActionUssr = ImageIO.read(getClass.getResourceAsStream("/tokens/actionussr.png"))
 
+  val buttonClose = ImageIO.read(getClass.getResourceAsStream("/other/close.png"))
+  val buttonCloseHover = ImageIO.read(getClass.getResourceAsStream("/other/close-hover.png"))
+
   val textFont = new Font(Lang.heiti, 0, 16)
   val textFont2 = new Font(Lang.lishu, 0, 32)
   val textColor = Color.DARK_GRAY
   val usColor = Color.BLUE
   val usColorInfluenceChange = new Color(128, 128, 255)
+  val usColorUI = new Color(230, 230, 255)
   val ussrColor = Color.RED
   val ussrColorInfluenceChange = new Color(255, 128, 128)
+  val ussrColorUI = new Color(255, 230, 230)
 
   val influenceTokenTextFont = new Font(Lang.heiti, Font.BOLD, 32)
   val tokenColor = Color.YELLOW

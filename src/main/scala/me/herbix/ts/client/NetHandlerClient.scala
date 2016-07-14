@@ -67,6 +67,7 @@ class NetHandlerClient(socket: Socket) {
             case 0 => roomProperty()
             case 1 => roomStart()
             case 2 => roomOperation()
+            case 3 => roomRollBack()
           }
         }
       } catch {
@@ -245,11 +246,22 @@ class NetHandlerClient(socket: Socket) {
 
   def roomOperation(): Unit = {
     val game = if (RoomDialog.gameUI != null) RoomDialog.gameUI.game else null
-    val input = readOperation(roomIn, game)
+    val input = readOperation(roomIn)
     println("roomOperation " + input.toString)
     SwingUtilities.invokeLater(new Runnable {
       override def run(): Unit = {
         game.nextState(input)
+      }
+    })
+  }
+
+  def roomRollBack(): Unit = {
+    val game = if (RoomDialog.gameUI != null) RoomDialog.gameUI.game else null
+    val id = roomIn.readInt()
+    println("roomRollBack " + id)
+    SwingUtilities.invokeLater(new Runnable {
+      override def run(): Unit = {
+        game.rollBackBeforeHistory(id)
       }
     })
   }
@@ -277,6 +289,13 @@ class NetHandlerClient(socket: Socket) {
     println("roomSendOperation " + input.toString)
     roomOut.writeByte(2)
     input.writeToStream(roomOut)
+    roomOut.flush()
+  }
+
+  def roomSendRollBack(historyId: Int): Unit = {
+    println("roomSendRollBack " + historyId)
+    roomOut.writeByte(3)
+    roomOut.writeInt(historyId)
     roomOut.flush()
   }
 

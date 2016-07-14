@@ -152,6 +152,12 @@ class HistoryUI(game: Game) extends JPanel {
     }
     var height = 25
 
+    var hasButton = false
+    val snapshot = history.snapshot
+    if (snapshot != null && !snapshot.needApproval && snapshot.operatingPlayer == game.playerFaction) {
+      hasButton = true
+    }
+
     val g = getGraphics
     val fm = g.getFontMetrics
     val w = getWidth
@@ -161,11 +167,14 @@ class HistoryUI(game: Game) extends JPanel {
       if (ch == '\n') {
         cx = 0
         height += 18
+        hasButton = false
       } else {
         val chw = fm.charWidth(ch)
-        if (cx + chw > w - 10) {
+        val rw = if (hasButton) w - 17 else w
+        if (cx + chw > rw - 10) {
           cx = 0
           height += 16
+          hasButton = false
         }
         cx += chw
       }
@@ -210,6 +219,14 @@ class HistoryUI(game: Game) extends JPanel {
         g.fillRect(0, top, w, historyMeta.height)
       }
 
+      var hasButton = false
+      val snapshot = historyMeta.history.snapshot
+      if (snapshot != null && !snapshot.needApproval && snapshot.operatingPlayer == game.playerFaction) {
+        val buttonImg = if (hoverHistory == historyMeta.history) Resource.buttonCloseHover else Resource.buttonClose
+        g.drawImage(buttonImg, w - 20, top + 3, null)
+        hasButton = true
+      }
+
       g.setColor(Color.GRAY)
       g.drawLine(0, top, w, top)
 
@@ -222,11 +239,14 @@ class HistoryUI(game: Game) extends JPanel {
         if (ch == '\n') {
           cx = 0
           height += 18
+          hasButton = false
         } else {
           val chw = fm.charWidth(ch)
-          if (cx + chw > w - 10) {
+          val rw = if (hasButton) w - 17 else w
+          if (cx + chw > rw - 10) {
             cx = 0
             height += 16
+            hasButton = false
           }
           chArr(0) = ch
           g.drawChars(chArr, 0, 1, cx + 5, height)
@@ -265,7 +285,11 @@ class HistoryUI(game: Game) extends JPanel {
       historyHoverListeners.foreach(_(hoverHistory))
       repaint()
     }
-    override def mouseClicked(e: MouseEvent): Unit = {}
+    override def mouseClicked(e: MouseEvent): Unit = {
+      if (hoverHistory != null) {
+        historyClickListeners.foreach(_(hoverHistory))
+      }
+    }
     override def mouseEntered(e: MouseEvent): Unit = {}
     override def mousePressed(e: MouseEvent): Unit = {}
     override def mouseReleased(e: MouseEvent): Unit = {}

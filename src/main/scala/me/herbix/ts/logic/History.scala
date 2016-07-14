@@ -9,6 +9,7 @@ import me.herbix.ts.logic.Region.Region
   */
 abstract class History {
   var id = 0
+  var snapshot: Snapshot = null
 }
 
 abstract class HistoryCard(val card: Card) extends History

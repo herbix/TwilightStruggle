@@ -8,6 +8,7 @@ import javax.swing._
 import me.herbix.ts.client.ClientLocal
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic._
+import me.herbix.ts.util.Resource
 import scala.collection.mutable
 
 /**
@@ -20,27 +21,21 @@ class GameUI(playerId: Int) extends JFrame {
   // UI start
   setLayout(new BorderLayout)
 
-  val bgColor = getBackground // new Color(213, 189, 181)
-
   val leftPanel = new JPanel
   leftPanel.setPreferredSize(new Dimension(200, 100))
-  leftPanel.setBackground(bgColor)
   leftPanel.setLayout(new BorderLayout)
   add(leftPanel, BorderLayout.WEST)
 
   val infoUI = new InfoUI(game)
   infoUI.setPreferredSize(new Dimension(200, 150))
-  infoUI.setBackground(bgColor)
   leftPanel.add(infoUI, BorderLayout.SOUTH)
 
   val controlUI = new ControlUI(game)
   controlUI.setPreferredSize(new Dimension(200, 200))
-  controlUI.setBackground(bgColor)
   controlUI.operationListeners :+= ((op: Operation) => if (op != null) game.sendNextState(op))
   leftPanel.add(controlUI, BorderLayout.NORTH)
 
   val historyUI = new HistoryUI(game)
-  historyUI.setBackground(bgColor)
   val historyUIOuter = new JScrollPane(historyUI)
   historyUIOuter.setBorder(null)
   historyUIOuter.getVerticalScrollBar.setUnitIncrement(40)
@@ -61,12 +56,10 @@ class GameUI(playerId: Int) extends JFrame {
 
   val handUI = new HandUI(game)
   handUI.setPreferredSize(new Dimension(600, 150))
-  handUI.setBackground(bgColor)
   centerPanel.add(handUI, BorderLayout.SOUTH)
 
   val rightPanel = new JPanel
   rightPanel.setPreferredSize(new Dimension(200, 100))
-  rightPanel.setBackground(bgColor)
   rightPanel.setLayout(new BorderLayout)
   add(rightPanel, BorderLayout.EAST)
 
@@ -75,7 +68,6 @@ class GameUI(playerId: Int) extends JFrame {
   rightPanel.add(detailUI, BorderLayout.NORTH)
 
   val flagsUI = new FlagsUI(game)
-  flagsUI.setBackground(bgColor)
   rightPanel.add(flagsUI)
 
   game.playerId = playerId
@@ -83,6 +75,21 @@ class GameUI(playerId: Int) extends JFrame {
 
   pack()
   // UI end
+
+  var bgSet = false
+
+  game.stateUpdateListeners :+= (() => {
+    if (!bgSet) {
+      if (game.playerFaction == Faction.US) {
+        setUIBackground(Resource.usColorUI)
+        bgSet = true
+
+      } else if (game.playerFaction == Faction.USSR) {
+        setUIBackground(Resource.ussrColorUI)
+        bgSet = true
+      }
+    }
+  })
 
   val pendingInfluenceChange: mutable.Map[Country, Int] = mutable.Map()
   controlUI.uiInfluence.pendingInfluenceChange = pendingInfluenceChange
@@ -154,11 +161,13 @@ class GameUI(playerId: Int) extends JFrame {
   worldMapUI.pendingCountrySelection = pendingCountrySelection
 
   controlUI.uiSelectCountry.updateListeners :+= (() => {
-    worldMapUI.availableCountries =
-      WorldMap.normalCountries.values.filter(c => {
-        controlUI.uiSelectCountry.checkSelection(pendingCountrySelection + c)
-      }).toSet
-    worldMapUI.repaint()
+    if (controlUI.uiType == controlUI.UIType.SelectCountry) {
+      worldMapUI.availableCountries =
+        WorldMap.normalCountries.values.filter(c => {
+          controlUI.uiSelectCountry.checkSelection(pendingCountrySelection + c)
+        }).toSet
+      worldMapUI.repaint()
+    }
   })
 
   controlUI.uiUpdateListeners :+= (() => {
@@ -185,6 +194,13 @@ class GameUI(playerId: Int) extends JFrame {
 
     if (worldMapUI.changedCountries.nonEmpty != hasChangedCountry) {
       worldMapUI.repaint()
+    }
+  })
+
+  historyUI.historyClickListeners :+= ((history: History) => {
+    val snapshot = history.snapshot
+    if (snapshot != null && !snapshot.needApproval && snapshot.operatingPlayer == game.playerFaction) {
+      game.sendRollBackBeforeHistory(history.id)
     }
   })
 
@@ -276,6 +292,15 @@ class GameUI(playerId: Int) extends JFrame {
       .filter(_.isInstanceOf[JComponent])
       .map(_.asInstanceOf[JComponent])
       .foreach(c => addKeyListenerRecursion(c, listener))
+  }
+
+  def setUIBackground(color: Color): Unit = {
+    controlUI.setBackground(color)
+    historyUI.setBackground(color)
+    infoUI.setBackground(color)
+    handUI.setBackground(color)
+    detailUI.setBackground(color)
+    flagsUI.setBackground(color)
   }
 
 }

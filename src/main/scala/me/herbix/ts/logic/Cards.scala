@@ -450,6 +450,7 @@ object Card026CIACreated extends CardNeedsSelection(26, 1, US, true, cardEventCo
     step match {
       case 0 =>
         game.currentCardData = game.hand(USSR)
+        game.clearSnapshots()
       case 1 =>
         game.currentCardData = true
       case 2 =>
@@ -598,15 +599,12 @@ object Card035Taiwan extends CardInstant(35, 2, US, true) {
 }
 
 object Card036BrushWar extends CardNeedsSelection(36, 3, Neutral, false, cardEventSelectCountry) {
-  override def getStepMeta(game: Game): Any = {
-    val checkValidFunc: Set[Country] => Boolean =
-      _.forall(country =>
-        country.stability <= 2 && !(game.flags.hasFlag(game.operatingPlayer, Flags.NATO) &&
-          country.getController(game) == Faction.getOpposite(game.operatingPlayer) && country.regions(Region.Europe))
-      )
-    stepMeta(0) = (1, true, checkValidFunc)
-    super.getStepMeta(game)
-  }
+  val checkValidFunc: (Game, Set[Country]) => Boolean = (game, detail) =>
+    detail.forall(country =>
+      country.stability <= 2 && !(game.flags.hasFlag(game.operatingPlayer, Flags.NATO) &&
+        country.getController(game) == Faction.getOpposite(game.operatingPlayer) && country.regions(Region.Europe))
+    )
+  stepMeta(0) = (1, true, checkValidFunc)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     if (step == 1) {
       val country = input.asInstanceOf[OperationSelectCountry].detail.head
@@ -752,16 +750,12 @@ object Card047Junta extends CardNeedsSelection(47, 2, Neutral, false,
   cardEventSelectCountry, cardEventSpecial, cardEventSelectCountry, cardEventSelectCountry) {
   val checkValidFunc: Set[Country] => Boolean =
     _.forall(country => country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica))
+  val checkValidFunc2: (Game, Set[Country]) => Boolean = (game, detail) =>
+    detail.forall(country => (country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica)) &&
+      game.canCoupWithoutFlags(game.operatingPlayer, country))
   stepMeta(0) = (1, true, checkValidFunc)
   stepMeta(2) = (1, false, checkValidFunc)
-  stepMeta(3) = (1, false, checkValidFunc)
-  override def getStepMeta(game: Game): Any = {
-    val checkValidFunc: Set[Country] => Boolean =
-      _.forall(country => (country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica)) &&
-        game.canCoupWithoutFlags(game.operatingPlayer, country))
-    stepMeta(3) = (1, false, checkValidFunc)
-    super.getStepMeta(game)
-  }
+  stepMeta(3) = (1, false, checkValidFunc2)
   def canCoup(game: Game): Boolean = game.canCoupWithoutFlags(game.playerFaction,
     c => c.regions(Region.MidAmerica) || c.regions(Region.SouthAmerica))
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
@@ -803,6 +797,8 @@ object Card048KitchenDebates extends CardInstant(48, 1, US, true) {
 }
 
 object Card049MissileEnvy extends CardNeedsSelection(49, 2, Neutral, true, cardEventSelectCard, cardEventOperation) {
+  stepMeta(0) = (game: Game, card: Card) =>
+    game.modifyOp(game.operatingPlayer, card.op) >= game.currentCardData.asInstanceOf[Int] && card.canDiscard(game, game.operatingPlayer)
   override def canEvent(game: Game, faction: Faction): Boolean =
     !game.flags.hasFlag(faction, Flags.MissileEnvy) && !game.hand(Faction.getOpposite(faction)).isEmptyExcludingChinaCard
   class Card049MissileEnvyDummy(tmpop: Int) extends Card(49, 2, Neutral, false) {
@@ -814,11 +810,6 @@ object Card049MissileEnvy extends CardNeedsSelection(49, 2, Neutral, true, cardE
   object Card049MissileEnvyDummy {
     val map = (0 to 4).map(i => i -> new Card049MissileEnvyDummy(i)).toMap
     def apply(op: Int) = map(op)
-  }
-  override def getStepMeta(game: Game): Any = {
-    stepMeta(0) = (game: Game, card: Card) =>
-      game.modifyOp(game.operatingPlayer, card.op) >= game.currentCardData.asInstanceOf[Int] && card.canDiscard(game, game.operatingPlayer)
-    super.getStepMeta(game)
   }
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     step match {
@@ -1028,6 +1019,7 @@ object Card062LoneGunman extends CardNeedsSelection(62, 1, USSR, true, cardEvent
     step match {
       case 0 =>
         game.currentCardData = game.hand(US)
+        game.clearSnapshots()
       case 1 =>
         game.currentCardData = true
       case 2 =>
@@ -1365,12 +1357,10 @@ object Card088BarracksBombing extends CardNeedsSelection(88, 2, USSR, true, card
 object Card089ShootDownKAL007 extends CardNeedsSelection(89, 4, US, true,
   cardEventSpecial, cardEventInfluence, cardEventSelectCountry) {
   val checkValidFunc: Set[Country] => Boolean = _ => true
-  stepMeta(1) = (4, true, true, US, checkValidFunc)
+  val checkValidFunc2: (Game, Map[Country, Int]) => Boolean = (game, detail) =>
+    game.canAddInfluence(game.operatingPlayer)(detail)
+  stepMeta(1) = (4, true, true, US, checkValidFunc2)
   stepMeta(2) = (1, true, checkValidFunc)
-  override def getStepMeta(game: Game): Any = {
-    stepMeta(1) = (4, true, true, US, game.canAddInfluence(game.operatingPlayer): Map[Country, Int] => Boolean)
-    super.getStepMeta(game)
-  }
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     step match {
       case 0 =>
@@ -1395,12 +1385,10 @@ object Card089ShootDownKAL007 extends CardNeedsSelection(89, 4, US, true,
 object Card090Glasnost extends CardNeedsSelection(90, 4, USSR, true,
   cardEventSpecial, cardEventInfluence, cardEventSelectCountry) {
   val checkValidFunc: Set[Country] => Boolean = _ => true
-  stepMeta(1) = (4, true, true, USSR, checkValidFunc)
+  val checkValidFunc2: (Game, Map[Country, Int]) => Boolean = (game, detail) =>
+    game.canAddInfluence(game.operatingPlayer)(detail)
+  stepMeta(1) = (4, true, true, USSR, checkValidFunc2)
   stepMeta(2) = (1, true, checkValidFunc)
-  override def getStepMeta(game: Game): Any = {
-    stepMeta(1) = (4, true, true, USSR, game.canAddInfluence(game.operatingPlayer): Map[Country, Int] => Boolean)
-    super.getStepMeta(game)
-  }
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     step match {
       case 0 =>
@@ -1508,15 +1496,11 @@ object Card095LatinAmericaDebtCrisis extends CardNeedsSelection(95, 2, USSR, fal
 object Card096TearDownThisWall extends CardNeedsSelection(96, 3, US, true,
   cardEventSpecial, cardEventSelectCountry, cardEventSelectCountry) {
   val checkValidFunc: Set[Country] => Boolean = _.forall(country => country.regions(Region.Europe))
+  val checkValidFunc2: (Game, Set[Country]) => Boolean = (game, detail) =>
+    detail.forall(country => country.regions(Region.Europe) && game.canCoupWithoutFlags(game.operatingPlayer, country))
   stepMeta(1) = (1, false, checkValidFunc)
-  stepMeta(2) = (1, false, checkValidFunc)
+  stepMeta(2) = (1, false, checkValidFunc2)
   def canCoup(game: Game): Boolean = game.canCoupWithoutFlags(game.playerFaction, c => c.regions(Region.Europe))
-  override def getStepMeta(game: Game): Any = {
-    val checkValidFunc: Set[Country] => Boolean =
-      _.forall(country => country.regions(Region.Europe) && game.canCoupWithoutFlags(game.operatingPlayer, country))
-    stepMeta(2) = (1, false, checkValidFunc)
-    super.getStepMeta(game)
-  }
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     step match {
       case 0 =>
@@ -1563,6 +1547,7 @@ object Card098AldrichAmes extends CardNeedsSelection(98, 3, USSR, true, cardEven
       val eventCards = new CardSet
       game.hand(US).iteratorExcludingChinaCard.foreach(eventCards.add)
       game.currentCardData = eventCards
+      game.clearSnapshots()
     } else {
       game.currentCardData = null
       val card = input.asInstanceOf[OperationSelectCard].card.get
@@ -1646,13 +1631,10 @@ object Card103Defectors extends CardInstant(103, 2, US, false) {
 
 object Card104CambridgeFive extends CardNeedsSelection(104, 2, USSR, false,
   cardEventSelectCardOrCancel, cardEventInfluence) {
+  val checkValidFunc: (Game, Map[Country, Int]) => Boolean = (game, detail) =>
+    detail.forall(_._1.regions(game.currentCardData.asInstanceOf[Region]))
   stepMeta(0) = (game: Game, card: Card) => true
-  stepMeta(1) = (1, true, true, USSR, null)
-  override def getStepMeta(game: Game): Any = {
-    val checkValidFunc: Map[Country, Int] => Boolean = _.forall(_._1.regions(game.currentCardData.asInstanceOf[Region]))
-    stepMeta(1) = (1, true, true, USSR, checkValidFunc)
-    super.getStepMeta(game)
-  }
+  stepMeta(1) = (1, true, true, USSR, checkValidFunc)
   override def canEvent(game: Game, faction: Faction) = game.turn <= 7
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     step match {
@@ -1660,6 +1642,7 @@ object Card104CambridgeFive extends CardNeedsSelection(104, 2, USSR, false,
         val eventCards = new CardSet
         game.hand(US).filter(!_.canHeld(game)).foreach(eventCards.add)
         game.currentCardData = eventCards
+        game.clearSnapshots()
         1
       case 1 =>
         val cardOption = input.asInstanceOf[OperationSelectCard].card
@@ -1713,20 +1696,17 @@ object Card106NORAD extends CardInstant(106, 3, US, true) {
 }
 
 object Card107Che extends CardNeedsSelection(107, 3, USSR, false, cardEventSelectCountry, cardEventSelectCountry) {
-  override def getStepMeta(game: Game): Any = {
-    val checkValidFunc1: Set[Country] => Boolean =
-      _.forall(country =>
-        (country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica) || country.regions(Region.Africa)) &&
+  val checkValidFunc1: (Game, Set[Country]) => Boolean = (game, detail) =>
+    detail.forall(country =>
+      (country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica) || country.regions(Region.Africa)) &&
         !country.isBattlefield && game.canCoupWithoutFlags(game.operatingPlayer, country))
-    val checkValidFunc2: Set[Country] => Boolean =
-      _.forall(country =>
-        (country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica) || country.regions(Region.Africa)) &&
-          !country.isBattlefield && country != game.currentCardData.asInstanceOf[(Int, Country)]._2 &&
-          game.canCoupWithoutFlags(game.operatingPlayer, country))
-    stepMeta(0) = (1, false, checkValidFunc1)
-    stepMeta(1) = (1, false, checkValidFunc2)
-    super.getStepMeta(game)
-  }
+  val checkValidFunc2: (Game, Set[Country]) => Boolean = (game, detail) =>
+    detail.forall(country =>
+      (country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica) || country.regions(Region.Africa)) &&
+        !country.isBattlefield && country != game.currentCardData.asInstanceOf[(Int, Country)]._2 &&
+        game.canCoupWithoutFlags(game.operatingPlayer, country))
+  stepMeta(0) = (1, false, checkValidFunc1)
+  stepMeta(1) = (1, false, checkValidFunc2)
   override def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
     step match {
       case 0 =>
