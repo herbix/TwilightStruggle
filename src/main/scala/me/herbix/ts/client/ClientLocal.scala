@@ -19,8 +19,8 @@ object ClientLocal extends App {
   var drawWinner = Faction.Neutral
   var gameVariant = GameVariant.Standard
 
-  var GameUI1: GameUI = null
-  var GameUI2: GameUI = null
+  var gameUI1: GameUI = null
+  var gameUI2: GameUI = null
 
   @volatile
   var uiInitialized = false
@@ -29,8 +29,10 @@ object ClientLocal extends App {
     override def run(): Unit = {
       val time = System.nanoTime()
       ClientLocal.synchronized {
-        GameUI1 = new GameUI(0)
-        GameUI2 = new GameUI(1)
+        gameUI1 = new GameUI(0)
+        gameUI2 = new GameUI(1)
+        gameUI1.debugMode = true
+        gameUI2.debugMode = true
         uiInitialized = true
         ClientLocal.notify()
       }
@@ -55,8 +57,8 @@ object ClientLocal extends App {
     }
   }
 
-  val game1 = GameUI1.game
-  val game2 = GameUI2.game
+  val game1 = gameUI1.game
+  val game2 = gameUI2.game
 
   game1.extraInfluence = extraInfluence
   game1.drawGameWinner = drawWinner
@@ -77,8 +79,8 @@ object ClientLocal extends App {
   game1.random.setSeed(seed)
   game2.random.setSeed(seed)
 
-  GameUI1.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-  GameUI2.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-  GameUI1.setVisible(true)
-  GameUI2.setVisible(true)
+  gameUI1.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+  gameUI2.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+  gameUI1.setVisible(true)
+  gameUI2.setVisible(true)
 }
