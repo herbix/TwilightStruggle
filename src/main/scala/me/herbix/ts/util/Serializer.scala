@@ -27,9 +27,9 @@ object Serializer {
         val len = in.readInt()
         val detail = mutable.Map.empty[Country, Int]
         for (i <- 0 until len) {
-          val name = in.readUTF()
+          val id = in.readByte()
           val v = in.readInt()
-          if (game != null) detail += (game.worldMap.countries(name) -> v)
+          if (game != null) detail += (WorldMap.getCountryFromId(id) -> v)
         }
         new OperationModifyInfluence(playerId, faction, isAdd, detail.toMap)
       case 2 =>
@@ -43,8 +43,8 @@ object Serializer {
         val len = in.readInt()
         val detail = mutable.Set.empty[Country]
         for (i <- 0 until len) {
-          val name = in.readUTF()
-          if (game != null) detail += game.worldMap.countries(name)
+          val id = in.readByte()
+          if (game != null) detail += WorldMap.getCountryFromId(id)
         }
         new OperationSelectCountry(playerId, faction, detail.toSet)
       case 6 =>
@@ -82,13 +82,13 @@ object Serializer {
     out.writeInt(vp)
     out.writeByte(defcon)
 
-    val targetCountries = worldMap.countries.values
-      .filter(c => c.influence(US) != 0 || c.influence(USSR) != 0)
+    val targetCountries = WorldMap.countries.values
+      .filter(c => influence(c, US) != 0 || influence(c, USSR) != 0)
     out.writeInt(targetCountries.size)
     for (country <- targetCountries) {
-      out.writeUTF(country.name)
-      out.writeShort(country.influence(US))
-      out.writeShort(country.influence(USSR))
+      out.writeByte(country.id)
+      out.writeShort(influence(country, US))
+      out.writeShort(influence(country, USSR))
     }
 
     writeCardSet(hand(US), out)
@@ -145,16 +145,16 @@ object Serializer {
     game.vp = in.readInt()
     game.defcon = in.readByte()
 
-    for (c <- worldMap.countries.values) {
-      c.influence(US) = 0
-      c.influence(USSR) = 0
+    for (c <- WorldMap.countries.values) {
+      game.countryInfluence(c)(US) = 0
+      game.countryInfluence(c)(USSR) = 0
     }
     val countryCount = in.readInt()
     for (i <- 1 to countryCount) {
-      val name = in.readUTF()
-      val country = worldMap.countries(name)
-      country.influence(US) = in.readShort()
-      country.influence(USSR) = in.readShort()
+      val id = in.readByte()
+      val country = WorldMap.getCountryFromId(id)
+      game.countryInfluence(country)(US) = in.readShort()
+      game.countryInfluence(country)(USSR) = in.readShort()
     }
 
     readCardSet(hand(US), in)
@@ -190,7 +190,7 @@ object Serializer {
     currentRealignments = List.empty
     val currentRealignmentSize = in.readInt()
     for (i <- 1 to currentRealignmentSize) {
-      currentRealignments :+= worldMap.countries(in.readUTF())
+      currentRealignments :+= WorldMap.countries(in.readUTF())
     }
 
     skipHeadlineCard2 = in.readBoolean()
@@ -327,7 +327,7 @@ object Serializer {
       case (int: Int, country: Country) =>
         out.writeByte(6)
         out.writeInt(int)
-        out.writeUTF(country.name)
+        out.writeByte(country.id)
     }
   }
 
@@ -344,7 +344,7 @@ object Serializer {
       case 5 => Cards.fromId(in.readByte())
       case 6 =>
         val int = in.readInt()
-        val country = game.worldMap.countries(in.readUTF())
+        val country = WorldMap.getCountryFromId(in.readByte())
         (int, country)
       case 7 => game.hand(US)
       case 8 => game.hand(USSR)

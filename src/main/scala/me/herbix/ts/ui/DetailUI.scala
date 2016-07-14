@@ -11,7 +11,7 @@ import me.herbix.ts.util.Resource._
 /**
   * Created by Chaofan on 2016/6/17.
   */
-class DetailUI extends JPanel {
+class DetailUI(game: Game) extends JPanel {
 
   object DetailMode extends Enumeration {
     type DetailMode = Value
@@ -137,8 +137,8 @@ class DetailUI extends JPanel {
     g.setFont(Resource.countryInfluenceFont)
     val fm = g.getFontMetrics
 
-    val usInfluence = country.influence(US)
-    val ussrInfluence = country.influence(USSR)
+    val usInfluence = game.influence(country, US)
+    val ussrInfluence = game.influence(country, USSR)
     val usDrawColor = usColor
     val usBgColor = Color.WHITE
     val ussrDrawColor = ussrColor

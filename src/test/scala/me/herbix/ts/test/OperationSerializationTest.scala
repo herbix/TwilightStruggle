@@ -14,7 +14,8 @@ import org.junit.Test
 class OperationSerializationTest {
 
   val game = new Game
-  val countries = game.worldMap.countries
+
+  def c(name: String): Country = WorldMap.countries(name)
 
   @Test
   def doTest(): Unit = {
@@ -40,10 +41,10 @@ class OperationSerializationTest {
     TestOperation(new OperationIntValue(7, USSR, Integer.MIN_VALUE))
 
     TestOperation(new OperationModifyInfluence(0, USSR, true, Map()))
-    TestOperation(new OperationModifyInfluence(9, USSR, true, Map(countries("Japan") -> 10)))
-    TestOperation(new OperationModifyInfluence(2, US, false, Map(countries("Cuba") -> 1, countries("Canada") -> 100)))
-    TestOperation(new OperationModifyInfluence(23, USSR, true, Map(countries("UK") -> Integer.MAX_VALUE)))
-    TestOperation(new OperationModifyInfluence(6, USSR, false, Map(countries("Panama") -> Integer.MIN_VALUE)))
+    TestOperation(new OperationModifyInfluence(9, USSR, true, Map(c("Japan") -> 10)))
+    TestOperation(new OperationModifyInfluence(2, US, false, Map(c("Cuba") -> 1, c("Canada") -> 100)))
+    TestOperation(new OperationModifyInfluence(23, USSR, true, Map(c("UK") -> Integer.MAX_VALUE)))
+    TestOperation(new OperationModifyInfluence(6, USSR, false, Map(c("Panama") -> Integer.MIN_VALUE)))
 
     TestOperation(new OperationSelectCard(0, US, None))
     TestOperation(new OperationSelectCard(12, USSR, Some(Card000Unknown)))
@@ -58,8 +59,8 @@ class OperationSerializationTest {
     TestOperation(new OperationSelectCards(0, USSR, Set(Card032UNIntervention, Card093IranContra)))
 
     TestOperation(new OperationSelectCountry(0, US, Set()))
-    TestOperation(new OperationSelectCountry(0, US, Set(countries("Japan"))))
-    TestOperation(new OperationSelectCountry(0, US, Set(countries("Panama"), countries("N.Korea"))))
+    TestOperation(new OperationSelectCountry(0, US, Set(c("Japan"))))
+    TestOperation(new OperationSelectCountry(0, US, Set(c("Panama"), c("N.Korea"))))
 
     for (action <- Action.values) TestOperation(new OperationSelectOperation(0, USSR, action))
 

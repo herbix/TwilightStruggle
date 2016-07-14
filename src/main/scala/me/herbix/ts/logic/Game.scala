@@ -34,7 +34,9 @@ class Game extends GameTrait {
   val random = new Random
 
   // game table
-  val worldMap = new WorldMap
+  val countryInfluence = WorldMap.countries.values.map(c => c -> mutable.Map(US -> 0, USSR -> 0)).toMap
+  countryInfluence(WorldMap.countryUS)(US) = 100
+  countryInfluence(WorldMap.countryUSSR)(USSR) = 100
 
   var turn = 1
   var round = 0
@@ -325,8 +327,8 @@ class Game extends GameTrait {
 
     pickGameStartHands(8)
 
-    modifyInfluence(USSR, true, worldMap.ussrStandardStart)
-    modifyInfluence(US, true, worldMap.usStandardStart)
+    modifyInfluence(USSR, true, WorldMap.ussrStandardStart)
+    modifyInfluence(US, true, WorldMap.usStandardStart)
 
     stateStack.push(putStartUSSR)
   }
@@ -373,8 +375,8 @@ class Game extends GameTrait {
     handAdd(USSR, Cards.chinaCard)
     recordHistory(new HistoryGetCard(USSR, Cards.chinaCard))
 
-    modifyInfluence(USSR, true, worldMap.ussrLateWarStart)
-    modifyInfluence(US, true, worldMap.usLateWarStart)
+    modifyInfluence(USSR, true, WorldMap.ussrLateWarStart)
+    modifyInfluence(US, true, WorldMap.usLateWarStart)
 
     recordHistory(new HistoryTurnRound(turn, -1, Neutral))
 
@@ -396,17 +398,21 @@ class Game extends GameTrait {
     stateStack.push(next)
   }
 
+  def influence(country: Country, faction: Faction): Int = {
+    countryInfluence(country)(faction)
+  }
+
   def calculateInfluenceCost(pendingInfluenceChange: mutable.Map[Country, Int], faction: Faction, ignoreControl: Boolean): Int = {
     var cost = 0
     for ((country, modifyValue) <- pendingInfluenceChange) {
-      val influence = country.influence(faction)
+      val influenceSelf = influence(country, faction)
       val c =
         if (ignoreControl)
           modifyValue
         else {
-          val influenceOpposite = country.influence(Faction.getOpposite(faction))
-          if (influenceOpposite - influence >= country.stability) {
-            modifyValue + Math.min(modifyValue, influenceOpposite - influence - country.stability + 1)
+          val influenceOpposite = influence(country, Faction.getOpposite(faction))
+          if (influenceOpposite - influenceSelf >= country.stability) {
+            modifyValue + Math.min(modifyValue, influenceOpposite - influenceSelf - country.stability + 1)
           } else {
             modifyValue
           }
@@ -419,9 +425,9 @@ class Game extends GameTrait {
   def modifyInfluence(faction: Faction, isAdd: Boolean, detail: Map[Country, Int]): Unit = {
     var detail2 = Set[(Country, Int, Int)]()
     for ((country, value) <- detail) {
-      val oldInfluence = worldMap.countries(country.name).influence(faction)
+      val oldInfluence = influence(country, faction)
       val newInfluence = Math.max(0, oldInfluence + (if (isAdd) value else -value))
-      worldMap.countries(country.name).influence(faction) = newInfluence
+      countryInfluence(country)(faction) = newInfluence
       if (oldInfluence != newInfluence) {
         detail2 += ((country, oldInfluence, newInfluence))
       }
@@ -754,7 +760,7 @@ class Game extends GameTrait {
 
   def tryNextRound(): Unit = {
     if (stateStack.isEmpty) {
-      if (flags.hasFlag(US, Flags.NORAD) && worldMap.countries("Canada").getController == US &&
+      if (flags.hasFlag(US, Flags.NORAD) && WorldMap.countries("Canada").getController(this) == US &&
         flags.getFlagData(US, Flags.NORAD) != defcon && defcon == 2) {
         stateStack.push(noradInfluence)
       } else if (nextRound()) {
@@ -890,8 +896,8 @@ class Game extends GameTrait {
       country.regions(flags.getFlagData(faction, Flags.Chernobyl).asInstanceOf[Region])) {
       return false
     }
-    country.influence(faction) > 0 ||
-      worldMap.links(country.name).exists(worldMap.countries(_).influence(faction) > 0)
+    influence(country, faction) > 0 ||
+      country.adjacentCountries.exists(influence(_, faction) > 0)
   }
 
   def canAddInfluence(faction: Faction)(targets: Map[Country, Int]): Boolean = {
@@ -909,7 +915,7 @@ class Game extends GameTrait {
     if (modifyOp(faction, currentCard.op, currentRealignments :+ country) - currentRealignments.size - 1 < 0) {
       return false
     }
-    for (Some(can) <- flags.flagSets2(faction).toStream.map(_.canRealignment(country)).find(_.isDefined)) {
+    for (Some(can) <- flags.flagSets2(faction).toStream.map(_.canRealignment(this, country)).find(_.isDefined)) {
       return can
     }
     true
@@ -917,25 +923,25 @@ class Game extends GameTrait {
 
   def canCoup(faction: Faction, country: Country): Boolean = {
     if (country.regions(Region.Special)) return false
-    if (country.influence(Faction.getOpposite(faction)) <= 0) {
+    if (influence(country, Faction.getOpposite(faction)) <= 0) {
       return false
     }
-    for (Some(can) <- flags.flagSets2(faction).toStream.map(_.canCoup(country)).find(_.isDefined)) {
+    for (Some(can) <- flags.flagSets2(faction).toStream.map(_.canCoup(this, country)).find(_.isDefined)) {
       return can
     }
     true
   }
 
   def canCoup(faction: Faction, filter: Country => Boolean = _ => true): Boolean = {
-    worldMap.countries.exists(e => filter(e._2) && canCoup(faction, e._2))
+    WorldMap.countries.exists(e => filter(e._2) && canCoup(faction, e._2))
   }
 
   def canCoupWithoutFlags(faction: Faction, country: Country): Boolean = {
-    !country.regions(Region.Special) && country.influence(Faction.getOpposite(faction)) > 0
+    !country.regions(Region.Special) && influence(country, Faction.getOpposite(faction)) > 0
   }
 
   def canCoupWithoutFlags(faction: Faction, filter: Country => Boolean = _ => true): Boolean = {
-    worldMap.countries.exists(e => filter(e._2) && canCoupWithoutFlags(faction, e._2))
+    WorldMap.countries.exists(e => filter(e._2) && canCoupWithoutFlags(faction, e._2))
   }
 
   def getCurrentRealignmentRest(faction: Faction): Int =
@@ -943,7 +949,7 @@ class Game extends GameTrait {
 
   def nextStateOperationRealignment(input: Operation) = {
     val op = input.asInstanceOf[OperationSelectCountry]
-    val country = worldMap.countries(op.detail.head.name)
+    val country = op.detail.head
     realignment(country)
     currentRealignments = currentRealignments :+ country
     if (getCurrentRealignmentRest(op.faction) <= 0) {
@@ -951,28 +957,27 @@ class Game extends GameTrait {
     }
   }
 
-  def realignment(c: Country): Unit = {
-    val country = worldMap.countries(c.name)
+  def realignment(country: Country): Unit = {
     val rollUSOriginal = rollDice()
     val rollUSSROriginal = rollDice()
     var rollUS = rollUSOriginal
     var rollUSSR = rollUSSROriginal
-    if (country.influence(US) > country.influence(USSR)) {
+    if (influence(country, US) > influence(country, USSR)) {
       rollUS += 1
-    } else if (country.influence(US) < country.influence(USSR)) {
+    } else if (influence(country, US) < influence(country, USSR)) {
       rollUSSR += 1
     }
-    rollUS += worldMap.links(country.name).count(worldMap.countries(_).getController == US)
-    rollUSSR += worldMap.links(country.name).count(worldMap.countries(_).getController == USSR)
+    rollUS += country.adjacentCountries.count(_.getController(this) == US)
+    rollUSSR += country.adjacentCountries.count(_.getController(this) == USSR)
     if (flags.hasFlag(US, Flags.IranContra)) {
       rollUS -= 1
     }
     recordHistory(new HistoryOperationRealignment(country, rollUSOriginal, rollUSSROriginal, rollUS, rollUSSR))
     if (rollUS > rollUSSR) {
-      val decreaseValue = Math.min(rollUS - rollUSSR, country.influence(USSR))
+      val decreaseValue = Math.min(rollUS - rollUSSR, influence(country, USSR))
       if (decreaseValue > 0) modifyInfluence(USSR, false, Map(country -> decreaseValue))
     } else if (rollUS < rollUSSR) {
-      val decreaseValue = Math.min(rollUSSR - rollUS, country.influence(US))
+      val decreaseValue = Math.min(rollUSSR - rollUS, influence(country, US))
       if (decreaseValue > 0) modifyInfluence(US, false, Map(country -> decreaseValue))
     }
   }
@@ -1008,7 +1013,7 @@ class Game extends GameTrait {
 
   def nextStateOperationCoup(input: Operation) = {
     val op = input.asInstanceOf[OperationSelectCountry]
-    val country = worldMap.countries(op.detail.head.name)
+    val country = op.detail.head
     val faction = op.faction
     val modifiedOp = modifyOp(faction, currentCard.op, Set(country))
 
@@ -1018,8 +1023,7 @@ class Game extends GameTrait {
     stateStack.pop()
   }
 
-  def coup(c: Country, faction: Faction, op: Int): Int = {
-    val country = worldMap.countries(c.name)
+  def coup(country: Country, faction: Faction, op: Int): Int = {
     val rollResult = rollDice()
     val modifierSalt = if (flags.hasFlag(Flags.SALT)) -1 else 0
     val modifierDeathSquads = if (flags.hasFlag(faction, Flags.DeathSquads)) 1 else
@@ -1031,7 +1035,7 @@ class Game extends GameTrait {
     val factionSelf = faction
     val factionOpposite = Faction.getOpposite(factionSelf)
 
-    val oppositeDown = Math.min(coupFactor, country.influence(factionOpposite))
+    val oppositeDown = Math.min(coupFactor, influence(country, factionOpposite))
     val selfUp = coupFactor - oppositeDown
 
     if (oppositeDown > 0) {
@@ -1126,17 +1130,16 @@ class Game extends GameTrait {
     modifiedOp
   }
 
-  def war(faction: Faction, c: Country, modifier: Int, minRoll: Int, military: Int, vp: Int) = {
-    val country = worldMap.countries(c.name)
+  def war(faction: Faction, country: Country, modifier: Int, minRoll: Int, military: Int, vp: Int) = {
     val dice = rollDice()
     val modified = dice - modifier
     addMilitary(faction, military)
     recordHistory(new HistoryWar(faction, country, dice, modified))
     if (modified >= minRoll) {
       addVpAndCheck(faction, vp)
-      val influence = country.influence(Faction.getOpposite(faction))
-      modifyInfluence(Faction.getOpposite(faction), false, Map(country -> influence))
-      modifyInfluence(faction, true, Map(country -> influence))
+      val theInfluence = influence(country, Faction.getOpposite(faction))
+      modifyInfluence(Faction.getOpposite(faction), false, Map(country -> theInfluence))
+      modifyInfluence(faction, true, Map(country -> theInfluence))
     }
   }
 
@@ -1146,17 +1149,17 @@ class Game extends GameTrait {
     val domination = info._2
     val control = info._3
 
-    val targetCountries = worldMap.countries.values.filter(_.regions(region))
+    val targetCountries = WorldMap.regionCountries(region)
     val battlefieldCount = targetCountries.count(_.isBattlefield)
-    var usBattlefield = targetCountries.count(country => country.isBattlefield && country.getController == US)
-    val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController == US)
-    var ussrBattlefield = targetCountries.count(country => country.isBattlefield && country.getController == USSR)
-    val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController == USSR)
+    var usBattlefield = targetCountries.count(country => country.isBattlefield && country.getController(this) == US)
+    val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(this) == US)
+    var ussrBattlefield = targetCountries.count(country => country.isBattlefield && country.getController(this) == USSR)
+    val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(this) == USSR)
     val usAll = usBattlefield + usNonBattlefield
     val ussrAll = ussrBattlefield + ussrNonBattlefield
 
-    val taiwan = worldMap.countries("Taiwan")
-    if (taiwan.regions(region) && taiwan.getController == US && flags.hasFlag(US, Flags.Taiwan)) {
+    val taiwan = WorldMap.countries("Taiwan")
+    if (taiwan.regions(region) && taiwan.getController(this) == US && flags.hasFlag(US, Flags.Taiwan)) {
       usBattlefield += 1
     }
 
@@ -1178,12 +1181,12 @@ class Game extends GameTrait {
     usVp += usBattlefield
     ussrVp += ussrBattlefield
 
-    usVp += targetCountries.count(country => country.getController == US && worldMap.links(country.name)("USSR"))
-    ussrVp += targetCountries.count(country => country.getController == USSR && worldMap.links(country.name)("US"))
+    usVp += targetCountries.count(country => country.getController(this) == US && country.adjacentCountries(WorldMap.countryUSSR))
+    ussrVp += targetCountries.count(country => country.getController(this) == USSR && country.adjacentCountries(WorldMap.countryUS))
 
     if (useShuttleDiplomacy) {
       ussrVp -= (if (targetCountries.exists(country => {
-        country.getController == USSR && worldMap.links(country.name)("US") && country.isBattlefield
+        country.getController(this) == USSR && country.adjacentCountries(WorldMap.countryUS) && country.isBattlefield
       })) 1 else 0)
     }
 

@@ -9,44 +9,48 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/13.
   */
-class WorldMap {
+object WorldMap {
+  var countryId = -1
+  def nextId(): Int = {
+    countryId += 1
+    countryId
+  }
 
-  val links = mutable.Map[String, Set[String]]()
+  val countryMap = mutable.Map[Int, Country]()
   val countries = mutable.Map[String, Country]()
-  val fieldCountries = mutable.Map[Region, Set[Country]]()
+  val regionCountries = mutable.Map[Region, Set[Country]]()
+
+  val countryUS = new Country("US", 50, false, Special)
+  val countryUSSR = new Country("USSR", 50, false, Special)
+  val countryChina = new Country("China", 3, false, Special)
+
+  def getCountryFromId(id: Int): Country = countryMap.getOrElse(id, null)
 
   private def addCountry(country: Country, link: Set[String] = Set()): Unit = {
     val name = country.name
     countries(name) = country
-    links(name) = link
+    countryMap(country.id) = country
+
     for (to <- link) {
-      links(to) += name
+      val targetCountry = countries(to)
+      country.adjacentCountries.add(targetCountry)
+      targetCountry.adjacentCountries.add(country)
     }
 
     val areas = country.regions
     for (area <- areas) {
-      if (fieldCountries.contains(area)) {
-        fieldCountries(area) += country
+      if (regionCountries.contains(area)) {
+        regionCountries(area) += country
       } else {
-        fieldCountries(area) = Set(country)
+        regionCountries(area) = Set(country)
       }
     }
   }
 
-  def modifyInfluence(country: String, faction: Faction, value: Int): Unit = {
-    assert(countries.contains(country))
-    val countryObj = countries(country)
-    var newValue = countryObj.influence(faction) + value
-    if (newValue < 0) {
-      newValue = 0
-    }
-    countryObj.influence(faction) = newValue
-  }
+  addCountry(countryUS)
+  addCountry(countryUSSR)
 
-  addCountry(new Country("US", 50, false, Special))
-  addCountry(new Country("USSR", 50, false, Special))
-
-  addCountry(new Country("China", 3, false, Special), Set("USSR"))
+  addCountry(countryChina, Set("USSR"))
 
   addCountry(new Country("Mexico", 2, true, MidAmerica), Set("US"))
   addCountry(new Country("Guatemala", 1, false, MidAmerica), Set("Mexico"))
@@ -137,9 +141,6 @@ class WorldMap {
   addCountry(new Country("SE African States", 1, false, Africa), Set("Kenya", "Zimbabwe"))
   addCountry(new Country("Botswana", 2, false, Africa), Set("Angola", "Zimbabwe"))
   addCountry(new Country("South Africa", 3, true, Africa), Set("Angola", "Botswana"))
-
-  modifyInfluence("US", Faction.US, 100)
-  modifyInfluence("USSR", Faction.USSR, 100)
 
   val normalCountries = countries.filter(e => !e._2.regions(Special))
 
@@ -246,5 +247,4 @@ class WorldMap {
     countries("Yugoslavia") -> 1,
     countries("Saudi Arabia") -> 2
   )
-
 }

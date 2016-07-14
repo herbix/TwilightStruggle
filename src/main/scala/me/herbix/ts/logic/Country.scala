@@ -11,14 +11,15 @@ import scala.collection.mutable
   */
 class Country(val name: String, val stability: Int, val isBattlefield: Boolean, val regions: Set[Region]) {
 
+  val id = WorldMap.nextId()
+  val adjacentCountries = mutable.Set.empty[Country]
+
   def this(name: String, stability: Int, isBattlefield: Boolean, region: Region) =
     this(name, stability, isBattlefield, Set(region))
 
-  val influence = mutable.Map(US -> 0, USSR -> 0)
-
-  def getController = {
-    val influenceUS = influence(US)
-    val influenceUSSR = influence(USSR)
+  def getController(game: Game) = {
+    val influenceUS = game.countryInfluence(this)(US)
+    val influenceUSSR = game.countryInfluence(this)(USSR)
     if (influenceUS - influenceUSSR >= stability)
       US
     else if (influenceUSSR - influenceUS >= stability)
@@ -27,9 +28,9 @@ class Country(val name: String, val stability: Int, val isBattlefield: Boolean, 
       Neutral
   }
 
-  override def hashCode: Int = name.hashCode
+  override def hashCode: Int = id
   override def equals(that: Any) = {
-    if (that != null && that.isInstanceOf[Country]) that.asInstanceOf[Country].name == name else false
+    if (that != null && that.isInstanceOf[Country]) that.asInstanceOf[Country].id == id else false
   }
   override def toString = name
 }

@@ -69,7 +69,7 @@ class GameUI(playerId: Int) extends JFrame {
   rightPanel.setLayout(new BorderLayout)
   add(rightPanel, BorderLayout.EAST)
 
-  val detailUI = new DetailUI
+  val detailUI = new DetailUI(game)
   detailUI.setPreferredSize(new Dimension(200, 300))
   rightPanel.add(detailUI, BorderLayout.NORTH)
 
@@ -119,7 +119,7 @@ class GameUI(playerId: Int) extends JFrame {
     worldMapUI.pendingInfluenceIsAdd = controlUI.uiInfluence.isAdd
 
     worldMapUI.availableCountries =
-      game.worldMap.normalCountries.values.filter(c => {
+      WorldMap.normalCountries.values.filter(c => {
         val pendingInfluenceChange = controlUI.uiInfluence.pendingInfluenceChange
         val input = if (pendingInfluenceChange.contains(c)) {
           pendingInfluenceChange + (c -> (pendingInfluenceChange(c) + 1))
@@ -154,7 +154,7 @@ class GameUI(playerId: Int) extends JFrame {
 
   controlUI.uiSelectCountry.updateListeners :+= (() => {
     worldMapUI.availableCountries =
-      game.worldMap.normalCountries.values.filter(c => {
+      WorldMap.normalCountries.values.filter(c => {
         controlUI.uiSelectCountry.checkSelection(pendingCountrySelection + c)
       }).toSet
     worldMapUI.repaint()

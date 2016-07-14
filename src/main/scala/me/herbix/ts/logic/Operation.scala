@@ -32,7 +32,7 @@ class OperationModifyInfluence(playerId: Int, faction: Faction, val isAdd: Boole
     out.writeBoolean(isAdd)
     out.writeInt(detail.size)
     for ((c, i) <- detail) {
-      out.writeUTF(c.name)
+      out.writeByte(c.id)
       out.writeInt(i)
     }
   }
@@ -66,7 +66,7 @@ class OperationSelectCountry(playerId: Int, faction: Faction, val detail: Set[Co
   override protected def writeData(out: DataOutputStream): Unit = {
     out.writeInt(detail.size)
     for (c <- detail) {
-      out.writeUTF(c.name)
+      out.writeByte(c.id)
     }
   }
 }

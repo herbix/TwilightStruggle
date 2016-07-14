@@ -34,12 +34,12 @@ object Region extends Enumeration {
   import RegionState._
 
   def getRegionState(game: Game, region: Region): Map[Faction, RegionState] = {
-    val targetCountries = game.worldMap.countries.values.filter(_.regions(region))
+    val targetCountries = WorldMap.regionCountries(region)
     val battlefieldCount = targetCountries.count(_.isBattlefield)
-    val usBattlefield = targetCountries.count(country => country.isBattlefield && country.getController == US)
-    val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController == US)
-    val ussrBattlefield = targetCountries.count(country => country.isBattlefield && country.getController == USSR)
-    val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController == USSR)
+    val usBattlefield = targetCountries.count(country => country.isBattlefield && country.getController(game) == US)
+    val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(game) == US)
+    val ussrBattlefield = targetCountries.count(country => country.isBattlefield && country.getController(game) == USSR)
+    val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(game) == USSR)
     val usAll = usBattlefield + usNonBattlefield
     val ussrAll = ussrBattlefield + ussrNonBattlefield
 

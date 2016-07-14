@@ -20,9 +20,13 @@ class Flag (val flagType: FlagType, val isGoodFlag: Boolean, val priority: Int =
   val id = Flags.newFlagId()
   Flags.flags(id) = this
 
-  def canRealignmentOrCoup(country: Country): Option[Boolean] = None
-  def canRealignment(country: Country) = canRealignmentOrCoup(country)
-  def canCoup(country: Country) = canRealignmentOrCoup(country)
+  def canRealignmentOrCoup(game: Game, country: Country): Option[Boolean] = canRealignmentOrCoup(country)
+  def canRealignment(game: Game, country: Country): Option[Boolean] = canRealignment(country)
+  def canCoup(game: Game, country: Country): Option[Boolean] = canCoup(country)
+
+  protected def canRealignmentOrCoup(country: Country): Option[Boolean] = None
+  protected def canRealignment(country: Country): Option[Boolean] = canRealignmentOrCoup(country)
+  protected def canCoup(country: Country): Option[Boolean] = canRealignmentOrCoup(country)
   def canKeep(game: Game, faction: Faction) = true
   override def compare(that: Flag): Int =
     if (priority > that.priority) -1 else if (priority < that.priority) 1 else
@@ -143,8 +147,8 @@ object Flags {
   val EvilEmpire = new Flag(Always, true)
   val WarsawPact = new Flag(Always, true)
   val NATO = new Flag(Always, false, 60) {
-    override def canRealignmentOrCoup(country: Country) =
-      if (country.regions(Region.Europe) && country.getController == US) Some(false) else None
+    override def canRealignmentOrCoup(game: Game, country: Country) =
+      if (country.regions(Region.Europe) && country.getController(game) == US) Some(false) else None
   }
   val MarshallPlan = new Flag(Always, true)
   val SALT = new Flag(ThisTurn, false)

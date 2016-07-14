@@ -5,7 +5,7 @@ import java.awt.event._
 import java.awt.image.BufferedImage
 import javax.swing.{JPanel, JScrollPane, SwingUtilities}
 
-import me.herbix.ts.logic.{Country, Faction, Game}
+import me.herbix.ts.logic.{WorldMap, Country, Faction, Game}
 import me.herbix.ts.util.MapValue
 import me.herbix.ts.util.Resource._
 
@@ -134,7 +134,7 @@ class WorldMapUI(val game: Game) extends JPanel {
         val cy = e._2._2
         nx >= cx && nx < cx + 101 && ny >= cy && ny < cy + 67
       }) match {
-        case Some(e) => game.worldMap.countries(e._1)
+        case Some(e) => WorldMap.countries(e._1)
         case None => null
       }
   }
@@ -174,15 +174,15 @@ class WorldMapUI(val game: Game) extends JPanel {
     g.setFont(influenceTokenTextFont)
     val fm = g.getFontMetrics
 
-    for ((name, country) <- game.worldMap.normalCountries) {
+    for ((name, country) <- WorldMap.normalCountries) {
       val influenceChanged = pendingInfluenceChange.contains(country)
       val usInfluenceChanged = influenceChanged && pendingInfluenceFaction == US
       val ussrInfluenceChanged = influenceChanged && pendingInfluenceFaction == USSR
       val factor = if (pendingInfluenceIsAdd) 1 else -1
 
-      val usInfluence = country.influence(US) + factor *
+      val usInfluence = game.influence(country, US) + factor *
         (if (usInfluenceChanged) pendingInfluenceChange(country) else 0)
-      val ussrInfluence = country.influence(USSR) + factor *
+      val ussrInfluence = game.influence(country, USSR) + factor *
         (if (ussrInfluenceChanged) pendingInfluenceChange(country) else 0)
 
       val usDrawColor = if (usInfluenceChanged) usColorInfluenceChange else usColor
