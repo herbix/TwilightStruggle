@@ -1,3 +1,5 @@
+/src/main/resources/config.property
+
 # Built application files
 *.apk
 *.ap_

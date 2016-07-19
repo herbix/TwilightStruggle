@@ -1,6 +1,10 @@
 package me.herbix.ts.server
 
+import java.io.FileWriter
+import java.lang.management.ManagementFactory
 import java.net.ServerSocket
+
+import me.herbix.ts.util.Config
 
 import scala.collection.mutable
 
@@ -12,7 +16,11 @@ object Server {
   val rooms = mutable.Map.empty[Int, Room]
 
   def main(args: Array[String]): Unit = {
-    val serverSocket = new ServerSocket(23981)
+    if (Config.pidFile != null) {
+      savePidFile()
+    }
+
+    val serverSocket = new ServerSocket(Config.port)
     while (true) {
       val socket = serverSocket.accept()
       println(s"Receive connection $socket")
@@ -24,5 +32,19 @@ object Server {
   def nextId(): Int = {
     id += 1
     id
+  }
+
+  private def savePidFile() {
+    try {
+      val fw = new FileWriter(Config.pidFile)
+      fw.write(getPid)
+      fw.close()
+    } catch {
+      case e: Exception => println("Cannot create pid file '" + Config.pidFile + "'")
+    }
+  }
+
+  private def getPid: String = {
+    ManagementFactory.getRuntimeMXBean.getName.split("@")(0)
   }
 }

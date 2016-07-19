@@ -9,7 +9,7 @@ import javax.swing.table.DefaultTableModel
 
 import me.herbix.ts.client.NewRoomDialog.GameVariantDelegate
 import me.herbix.ts.logic.{Faction, GameVariant}
-import me.herbix.ts.util.{Lang, Resource}
+import me.herbix.ts.util.{Config, Lang, Resource}
 
 import scala.collection.mutable
 
@@ -76,7 +76,7 @@ object ClientFrame extends JFrame {
   new Thread() {
     override def run(): Unit = {
       try {
-        val socket = new Socket("ts.herbix.me", 23981)
+        val socket = new Socket(Config.host, Config.port)
         netHandler = new NetHandlerClient(socket)
         SwingUtilities.invokeLater(new Runnable {
           override def run(): Unit = {

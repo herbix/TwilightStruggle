@@ -1,0 +1,4 @@
+# Rename this file to config.property
+host=localhost
+port=23981
+pid-file=/var/run/ts-server.pid
