@@ -15,8 +15,8 @@ object Config {
     case e: Throwable => e.printStackTrace()
   }
 
-  val host = properties.getOrDefault("host", "localhost").asInstanceOf[String]
-  val port = properties.getOrDefault("port", "23981").asInstanceOf[String].toInt
-  val pidFile = properties.getOrDefault("pid-file", null).asInstanceOf[String]
+  val host = properties.getProperty("host", "localhost")
+  val port = properties.getProperty("port", "23981").toInt
+  val pidFile = properties.getProperty("pid-file", null)
 
 }
