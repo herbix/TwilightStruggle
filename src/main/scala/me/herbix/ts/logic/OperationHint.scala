@@ -20,8 +20,17 @@ object OperationHint {
             ignoreControl: Boolean = true,
             mustAllPoints: Boolean = false,
             modifyOp: Boolean = false
-           ) =
-    new OperationModifyInfluenceHint(point, isAdd, targetFaction, valid, ignoreControl, mustAllPoints, modifyOp)
+           ) = {
+    def realValid(game: Game, detail: Map[Country, Int]): Boolean = {
+      game.calculateInfluenceCost(detail, game.playerFaction, ignoreControl) <= getPoint(game, detail) &&
+        valid(game, detail) && (isAdd || detail.forall(e => game.influence(e._1, targetFaction) >= e._2))
+    }
+
+    def getPoint(game: Game, pendingInfluenceChange: Map[Country, Int]): Int =
+      if (modifyOp) game.modifyOp(game.playerFaction, point, pendingInfluenceChange.keys) else point
+
+    new OperationModifyInfluenceHint(point, isAdd, targetFaction, realValid, ignoreControl, mustAllPoints, modifyOp)
+  }
 
   def apply(operationType: Class[OperationSelectCard],
             canNull: Boolean,
@@ -55,8 +64,14 @@ object OperationHint {
             countSecondary: Int,
             valid: (Game, Set[Country]) => Boolean,
             mustAllPoints: Boolean
-           ) =
-    new OperationSelectCountryHint(count, countSecondary, valid, mustAllPoints)
+           ) = {
+
+    def realValid(game: Game, detail: Set[Country]): Boolean = {
+      count - detail.size >= 0 && valid(game, detail)
+    }
+
+    new OperationSelectCountryHint(count, countSecondary, realValid, mustAllPoints)
+  }
 
   def apply(operationType: Class[OperationYesNo], isConfirm: Boolean) =
     new OperationYesNoHint(isConfirm)

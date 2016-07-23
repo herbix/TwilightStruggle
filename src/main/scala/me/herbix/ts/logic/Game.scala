@@ -430,6 +430,10 @@ class Game extends GameTrait {
   }
 
   def calculateInfluenceCost(pendingInfluenceChange: mutable.Map[Country, Int], faction: Faction, ignoreControl: Boolean): Int = {
+    calculateInfluenceCost(pendingInfluenceChange.toMap, faction, ignoreControl)
+  }
+
+  def calculateInfluenceCost(pendingInfluenceChange: Map[Country, Int], faction: Faction, ignoreControl: Boolean): Int = {
     var cost = 0
     for ((country, modifyValue) <- pendingInfluenceChange) {
       val influenceSelf = influence(country, faction)
@@ -1390,14 +1394,14 @@ class Game extends GameTrait {
       case State.start => OperationHint.CHOOSE_FACTION
       case State.putStartUSSR =>
         if (playerFaction == USSR) {
-          OperationHint(classOf[OperationModifyInfluence], 7, true, USSR, (game, detail) =>
+          OperationHint(classOf[OperationModifyInfluence], 6, true, USSR, (game, detail) =>
             detail.forall(_._1.regions(Region.EastEurope)), true, true, false)
         } else {
           OperationHint.NOP
         }
       case State.putStartUS =>
         if (playerFaction == US) {
-          OperationHint(classOf[OperationModifyInfluence], 6, true, US, (game, detail) =>
+          OperationHint(classOf[OperationModifyInfluence], 7, true, US, (game, detail) =>
             detail.forall(_._1.regions(Region.WestEurope)), true, true, false)
         } else {
           OperationHint.NOP
