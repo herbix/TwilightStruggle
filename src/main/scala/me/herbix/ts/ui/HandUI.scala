@@ -154,48 +154,11 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
 
   def getCardEnabled(card: Card): Boolean = {
     if (selfHand.isSelected || eventCards.isSelected) {
-      game.stateStack.top match {
-        case State.selectHeadlineCard =>
-          if (!game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardHeadlineThen)) {
-            card.canHeadline(game, game.playerFaction)
-          } else {
-            true
-          }
-        case State.selectHeadlineCard2 =>
-          if (game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardHeadlineThen)) {
-            card.canHeadline(game, game.playerFaction)
-          } else {
-            true
-          }
-        case State.selectCardAndAction | State.quagmirePlayScoringCard =>
-          if (game.operatingPlayer == game.playerFaction) {
-            card.canPlay(game, game.playerFaction)
-          } else {
-            true
-          }
-        case State.quagmireDiscard =>
-          if (game.phasingPlayer == game.playerFaction) {
-            card.canPlay(game, game.playerFaction) && card.canDiscard(game, game.playerFaction)
-          } else {
-            true
-          }
-        case State.discardHeldCard =>
-          if (game.phasingPlayer == game.playerFaction) {
-            card.canDiscard(game, game.playerFaction)
-          } else {
-            true
-          }
-        case State.cardEventSelectCardOrCancel | State.cardEventSelectCard | State.cardEventSelectMultipleCards =>
-          if (game.operatingPlayer == game.playerFaction) {
-            val currentCard = game.currentCard.asInstanceOf[CardNeedsSelection]
-            val step = currentCard.getStep(game)
-            val stepMeta = currentCard.getStepMeta(game).asInstanceOf[(Game, Card) => Boolean]
-            stepMeta(game, card)
-          } else {
-            true
-          }
-        case _ =>
-          true
+      game.getOperationHint match {
+        case oh: OperationSelectCardAndActionHint => oh.canPlay(game, card)
+        case oh: OperationSelectCardHint => oh.valid(game, card)
+        case oh: OperationSelectCardsHint => oh.valid(game, card)
+        case _ => true
       }
     } else {
       true

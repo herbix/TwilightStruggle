@@ -36,6 +36,8 @@ abstract class Card(val id: Int, val op: Int, val faction: Faction, val isRemove
   def modifyOp(game: Game, faction: Faction, originalOp: Int): Int = originalOp
   def getOperatingPlayer(operatingPlayer: Faction): Faction = if (faction == Neutral) operatingPlayer else faction
 
+  def getOperationHint(game: Game): OperationHint = OperationHint.NOP
+
   def nextState(game: Game, faction: Faction, input: Operation): Unit
 
   override def toString: String = f"Card($id)"
@@ -88,6 +90,7 @@ abstract class CardNeedsSelection(id: Int, op: Int, faction: Faction, isRemovedA
     val cardEventStep(step) = game.stateStack.elems(1)
     stepMeta(step - 1)
   }
+
   def nextState(game: Game, faction: Faction, input: Operation): Unit = {
     val cardEventStep(step) = game.stateStack.top
     game.stateStack.pop()
@@ -106,6 +109,51 @@ abstract class CardNeedsSelection(id: Int, op: Int, faction: Faction, isRemovedA
       }
     }
   }
+
+  override def getOperationHint(game: Game): OperationHint = {
+    game.stateStack.top match {
+      case State.cardEventConfirm =>
+        OperationHint(classOf[OperationYesNo], true)
+      case State.cardEventInfluence =>
+        val stepMeta = getStepMeta(game).asInstanceOf[(Int, Boolean, Boolean, Faction, Any)]
+        val validCheck: (Game, Map[Country, Int]) => Boolean = stepMeta._5 match {
+          case f: (Map[Country, Int] => Boolean) => (game, detail) => f(detail)
+          case f: ((Game, Map[Country, Int]) => Boolean) => f
+        }
+        OperationHint(classOf[OperationModifyInfluence], stepMeta._1, stepMeta._2, stepMeta._4,
+          validCheck, true, stepMeta._3)
+      case State.cardEventSelectCard =>
+        val stepMeta = getStepMeta(game).asInstanceOf[(Game, Card) => Boolean]
+        OperationHint(classOf[OperationSelectCard], false, stepMeta)
+      case State.cardEventSelectCardOrCancel =>
+        val stepMeta = getStepMeta(game).asInstanceOf[(Game, Card) => Boolean]
+        OperationHint(classOf[OperationSelectCard], true, stepMeta)
+      case State.cardEventSelectCountry =>
+        val rest = game.currentCardData match {
+          case null => 0
+          case i: Int => i
+          case (i: Int, _) => i
+          case _ => 0
+        }
+        val stepMeta = getStepMeta(game).asInstanceOf[(Int, Boolean, Any)]
+        val validCheck: (Game, Set[Country]) => Boolean = stepMeta._3 match {
+          case f: (Set[Country] => Boolean) => (game, detail) => f(detail)
+          case f: ((Game, Set[Country]) => Boolean) => f
+        }
+        OperationHint(classOf[OperationSelectCountry], stepMeta._1, rest, validCheck, stepMeta._2)
+      case State.cardEventSelectMultipleCards =>
+        val stepMeta = getStepMeta(game).asInstanceOf[(Game, Card) => Boolean]
+        OperationHint(classOf[OperationSelectCards], stepMeta)
+      case State.cardEventSpecial =>
+        getSpecialOperationHint(game)
+      case State.cardEventYesNo =>
+        OperationHint(classOf[OperationYesNo], false)
+      case _ =>
+        OperationHint.NOP
+    }
+  }
+
+  def getSpecialOperationHint(game: Game): OperationHint = OperationHint.NOP
 }
 
 class CardScoring(id: Int, val region: Region)
@@ -734,6 +782,8 @@ object Card045Summit extends CardNeedsSelection(45, 1, Neutral, false, cardEvent
         2
     }
   }
+
+  override def getSpecialOperationHint(game: Game): OperationHint = OperationHint(classOf[OperationIntValue], -1, 1)
 }
 
 object Card046HowILearnStopWorry extends CardNeedsSelection(46, 2, Neutral, true, cardEventSpecial) {
@@ -744,6 +794,8 @@ object Card046HowILearnStopWorry extends CardNeedsSelection(46, 2, Neutral, true
     }
     step + 1
   }
+
+  override def getSpecialOperationHint(game: Game): OperationHint = OperationHint(classOf[OperationIntValue], 1, 5)
 }
 
 object Card047Junta extends CardNeedsSelection(47, 2, Neutral, false,
@@ -781,6 +833,9 @@ object Card047Junta extends CardNeedsSelection(47, 2, Neutral, false,
         5
     }
   }
+
+  override def getSpecialOperationHint(game: Game): OperationHint =
+    OperationHint(classOf[OperationSelectOperation], _ => false, _ => true, canCoup)
 }
 
 object Card048KitchenDebates extends CardInstant(48, 1, US, true) {
@@ -1106,6 +1161,8 @@ object Card067GrainSales extends CardNeedsSelection(67, 2, US, false,
         4
     }
   }
+
+  override def getSpecialOperationHint(game: Game): OperationHint = OperationHint(classOf[OperationYesNo], false)
 }
 
 object Card068JohnPaulII extends CardInstant(68, 2, US, true) {
@@ -1380,6 +1437,9 @@ object Card089ShootDownKAL007 extends CardNeedsSelection(89, 4, US, true,
         if (Card.realignment(game, input)) 4 else 3
     }
   }
+
+  override def getSpecialOperationHint(game: Game): OperationHint =
+    OperationHint(classOf[OperationSelectOperation], _ => true, _ => true, _ => false)
 }
 
 object Card090Glasnost extends CardNeedsSelection(90, 4, USSR, true,
@@ -1408,6 +1468,9 @@ object Card090Glasnost extends CardNeedsSelection(90, 4, USSR, true,
         if (Card.realignment(game, input)) 4 else 3
     }
   }
+
+  override def getSpecialOperationHint(game: Game): OperationHint =
+    OperationHint(classOf[OperationSelectOperation], _ => true, _ => true, _ => false)
 }
 
 object Card091OrtegaInNicaragua extends CardNeedsSelection(91, 2, USSR, true, cardEventSelectCountry) {
@@ -1461,6 +1524,9 @@ object Card094Chernobyl extends CardNeedsSelection(94, 3, US, true, cardEventSpe
     }
     step + 1
   }
+
+  override def getSpecialOperationHint(game: Game): OperationHint =
+    OperationHint.SELECT_REGION
 }
 
 object Card095LatinAmericaDebtCrisis extends CardNeedsSelection(95, 2, USSR, false,
@@ -1525,6 +1591,9 @@ object Card096TearDownThisWall extends CardNeedsSelection(96, 3, US, true,
         4
     }
   }
+
+  override def getSpecialOperationHint(game: Game): OperationHint =
+    OperationHint(classOf[OperationSelectOperation], _ => false, _ => true, canCoup)
 }
 
 object Card097EvilEmpire extends CardInstant(97, 3, US, true) {

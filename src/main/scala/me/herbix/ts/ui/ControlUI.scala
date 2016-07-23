@@ -7,7 +7,7 @@ import javax.swing.table.DefaultTableModel
 
 import me.herbix.ts.logic
 import me.herbix.ts.logic.Faction.Faction
-import me.herbix.ts.logic.{State, _}
+import me.herbix.ts.logic._
 import me.herbix.ts.util.{Lang, Resource}
 
 import scala.collection.mutable
@@ -110,222 +110,65 @@ class ControlUI(val game: Game) extends JPanel {
       spectatorUI()
       return
     }
-    game.stateStack.top match {
-      case State.start => chooseFactionUI()
-      case State.waitOther => waitOtherUI()
-      case State.putStartUSSR =>
-        if (game.playerFaction == Faction.USSR) {
-          addInfluenceUI(6, Lang.putEastEurope, true, true, true, false, game.playerFaction, (game, detail) =>
-            detail.forall(_._1.regions(Region.EastEurope)))
+
+    val state = game.stateStack.top
+    val tip = state match {
+      case State.putStartUSSR => Lang.putEastEurope
+      case State.putStartUS => Lang.putWestEurope
+      case State.putStartExtra | State.noradInfluence => Lang.putExtra
+      case State.cardOperationAddInfluence => Lang.operationAddInfluence
+      case State.selectHeadlineCard | State.selectHeadlineCard2 => Lang.selectHeadline
+      case State.discardHeldCard => Lang.discardHeldCard
+      case State.quagmireDiscard => Lang.selectQuagmireDiscard
+      case State.quagmirePlayScoringCard => Lang.selectQuagmireScoringCard
+      case State.cardOperationRealignment => Lang.operationRealignment
+      case State.cardOperationCoup => Lang.operationCoup
+      case State.cubaMissileRemove => Lang.cardTips(Card040CubaMissile)(0)
+      case State.selectTake8Rounds => Lang.take8rounds
+      case State.EventStates(_) =>
+        val card = game.currentCard.asInstanceOf[CardNeedsSelection]
+        val step = card.getStep(game)
+        Lang.cardTips(card)(step-1)
+      case _ => ""
+    }
+
+    game.getOperationHint match {
+      case OperationHint.NOP =>
+        if (state == State.end) {
+          gameOverUI()
         } else {
           waitOtherUI()
         }
-      case State.putStartUS =>
-        if (game.playerFaction == Faction.US) {
-          addInfluenceUI(7, Lang.putWestEurope, true, true, true, false, game.playerFaction, (game, detail) =>
-            detail.forall(_._1.regions(Region.WestEurope)))
+      case OperationHint.CHOOSE_FACTION => chooseFactionUI()
+      case OperationHint.SELECT_REGION => selectRegionUI()
+      case oh: OperationModifyInfluenceHint =>
+        addInfluenceUI(oh.point, tip, oh.isAdd, oh.ignoreControl, oh.mustAllPoints, oh.modifyOp, oh.targetFaction, oh.valid)
+      case oh: OperationSelectCardHint =>
+        if (oh.canNull) {
+          selectCardOrCancelUI(tip)
         } else {
-          waitOtherUI()
+          selectCardUI(tip)
         }
-      case State.putStartExtra =>
-        if (game.playerFaction == Faction.US && game.extraInfluence > 0) {
-          addInfluenceUI(game.extraInfluence, Lang.putExtra, true, true, true, false, game.playerFaction,
-            (game, detail) => detail.forall(e => game.influence(e._1, Faction.US) > 0))
-        } else if (game.playerFaction == Faction.USSR && game.extraInfluence < 0) {
-          addInfluenceUI(-game.extraInfluence, Lang.putExtra, true, true, true, false, game.playerFaction,
-            (game, detail) => detail.forall(e => game.influence(e._1, Faction.USSR) > 0))
+      case oh: OperationSelectCardAndActionHint =>
+        selectCardAndActionUI(oh.canSpace, oh.canEvent, oh.canOperation, oh.presetCard)
+      case oh: OperationSelectOperationHint =>
+        selectOperationUI(oh.canInfluence(game), oh.canRealignment(game), oh.canCoup(game))
+      case oh: OperationSelectCountryHint =>
+        selectCountryUI(oh.count, oh.countSecondary, tip, oh.mustAllPoints, oh.valid)
+      case oh: OperationYesNoHint =>
+        if (oh.isConfirm) {
+          confirmUI(tip)
         } else {
-          waitOtherUI()
+          yesNoUI(tip)
         }
-      case State.selectHeadlineCard =>
-        if (!game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardHeadlineThen)) {
-          selectCardUI(Lang.selectHeadline)
-        } else {
-          waitOtherUI()
+      case oh: OperationIntValueHint =>
+        game.currentCard match {
+          case Card045Summit => showSubUI(Summit)
+          case Card046HowILearnStopWorry => showSubUI(StopWorry)
         }
-      case State.selectHeadlineCard2 =>
-        if (game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardHeadlineThen)) {
-          selectCardUI(Lang.selectHeadline)
-        } else {
-          waitOtherUI()
-        }
-      case State.selectCardAndAction =>
-        if (game.playerFaction == game.operatingPlayer) {
-          selectCardAndActionUI()
-        } else {
-          waitOtherUI()
-        }
-      case State.selectAction =>
-        if (game.playerFaction == game.operatingPlayer) {
-          selectCardAndActionUI(game.currentCard)
-        } else {
-          waitOtherUI()
-        }
-      case State.cardOperationSelect =>
-        if (game.playerFaction == game.operatingPlayer) {
-          selectOperationUI(Lang.operationSelect)
-        } else {
-          waitOtherUI()
-        }
-      case State.cardOperationAddInfluence =>
-        if (game.playerFaction == game.operatingPlayer) {
-          addInfluenceUI(game.currentCard.op, Lang.operationAddInfluence, true, false, true, true, game.playerFaction,
-            (game, detail) => game.canAddInfluence(game.playerFaction)(detail))
-        } else {
-          waitOtherUI()
-        }
-      case State.cardOperationRealignment =>
-        if (game.playerFaction == game.operatingPlayer) {
-          selectCountryUI(1, game.getCurrentRealignmentRest(game.playerFaction), Lang.operationRealignment, true,
-            (game, detail) => detail.forall(game.canRealignment(game.playerFaction, _)))
-        } else {
-          waitOtherUI()
-        }
-      case State.cardOperationCoup =>
-        if (game.playerFaction == game.operatingPlayer) {
-          selectCountryUI(1, game.currentCard.op, Lang.operationCoup, true,
-            (game, detail) => detail.forall(game.canCoup(game.playerFaction, _)))
-        } else {
-          waitOtherUI()
-        }
-      case State.discardHeldCard =>
-        if (game.flags.hasFlag(game.playerFaction, Flags.SpaceAwardMayDiscard)) {
-          selectCardOrCancelUI(Lang.discardHeldCard)
-        } else {
-          waitOtherUI()
-        }
-      case State.selectTake8Rounds =>
-        if (game.playerFaction == game.phasingPlayer) {
-          yesNoUI(Lang.take8rounds)
-        } else {
-          waitOtherUI()
-        }
-      case State.quagmireDiscard =>
-        if (game.playerFaction == game.phasingPlayer) {
-          selectCardUI(Lang.selectQuagmireDiscard)
-        } else {
-          waitOtherUI()
-        }
-      case State.quagmirePlayScoringCard =>
-        if (game.playerFaction == game.phasingPlayer) {
-          selectCardUI(Lang.selectQuagmireScoringCard)
-        } else {
-          waitOtherUI()
-        }
-      case State.noradInfluence =>
-        if (game.playerFaction == Faction.US) {
-          addInfluenceUI(1, Lang.putExtra, true, true, true, false, Faction.US, (game, detail) =>
-            detail.forall(e => game.influence(e._1, Faction.US) > 0))
-        } else {
-          waitOtherUI()
-        }
-      case State.cubaMissileRemove =>
-        if (game.flags.hasFlag(game.playerFaction, Flags.CubaMissile)) {
-          selectCountryUI(1, 0, Lang.cardTips(Card040CubaMissile)(0), false, Card040CubaMissile.getConditionByFaction(game.playerFaction))
-          uiSelectCountry.pendingCountrySelection.clear()
-        } else {
-          waitOtherUI()
-        }
-      case State.cardEventInfluence =>
-        if (game.playerFaction == game.operatingPlayer) {
-          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
-          val step = card.getStep(game)
-          val stepMeta = card.getStepMeta(game).asInstanceOf[(Int, Boolean, Boolean, Faction, Any)]
-          val validCheck: (Game, Map[Country, Int]) => Boolean = stepMeta._5 match {
-            case f: (Map[Country, Int] => Boolean) => (game, detail) => f(detail)
-            case f: ((Game, Map[Country, Int]) => Boolean) => f
-          }
-          addInfluenceUI(stepMeta._1, Lang.cardTips(card)(step-1), stepMeta._2, true, stepMeta._3, false, stepMeta._4, validCheck)
-        } else {
-          waitOtherUI()
-        }
-      case State.cardEventSelectCardOrCancel =>
-        if (game.playerFaction == game.operatingPlayer) {
-          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
-          val step = card.getStep(game)
-          selectCardOrCancelUI(Lang.cardTips(card)(step-1))
-        } else {
-          waitOtherUI()
-        }
-      case State.cardEventYesNo =>
-        if (game.playerFaction == game.operatingPlayer) {
-          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
-          val step = card.getStep(game)
-          yesNoUI(Lang.cardTips(card)(step-1))
-        } else {
-          waitOtherUI()
-        }
-      case State.cardEventSelectCountry =>
-        if (game.playerFaction == game.operatingPlayer) {
-          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
-          val step = card.getStep(game)
-          val rest = game.currentCardData match {
-            case null => 0
-            case i: Int => i
-            case (i: Int, _) => i
-            case _ => 0
-          }
-          val stepMeta = card.getStepMeta(game).asInstanceOf[(Int, Boolean, Any)]
-          val validCheck: (Game, Set[Country]) => Boolean = stepMeta._3 match {
-            case f: (Set[Country] => Boolean) => (game, detail) => f(detail)
-            case f: ((Game, Set[Country]) => Boolean) => f
-          }
-          selectCountryUI(stepMeta._1, rest, Lang.cardTips(card)(step-1), stepMeta._2, validCheck)
-        } else {
-          waitOtherUI()
-        }
-      case State.cardEventConfirm =>
-        if (game.playerFaction == game.operatingPlayer) {
-          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
-          val step = card.getStep(game)
-          confirmUI(Lang.cardTips(card)(step-1))
-        } else {
-          waitOtherUI()
-        }
-      case State.cardEventSelectCard =>
-        if (game.playerFaction == game.operatingPlayer) {
-          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
-          val step = card.getStep(game)
-          selectCardUI(Lang.cardTips(card)(step-1))
-        } else {
-          waitOtherUI()
-        }
-      case State.cardEventSelectMultipleCards =>
-        if (game.playerFaction == game.operatingPlayer) {
-          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
-          val step = card.getStep(game)
-          selectMultipleCardsUI(Lang.cardTips(card)(step-1))
-        } else {
-          waitOtherUI()
-        }
-      case State.cardEventSpecial =>
-        if (game.playerFaction == game.operatingPlayer) {
-          val card = game.currentCard.asInstanceOf[CardNeedsSelection]
-          card match {
-            case Card045Summit => showSubUI(Summit)
-            case Card046HowILearnStopWorry => showSubUI(StopWorry)
-            case Card047Junta =>
-              selectOperationUI(Lang.operationSelect)
-              uiSelectOperation.influence.setEnabled(false)
-              uiSelectOperation.coup.setEnabled(Card047Junta.canCoup(game))
-            case Card067GrainSales =>
-              showSubUI(GrainSales)
-              uiGrainSales.setCard(game.currentCardData.asInstanceOf[Card])
-            case Card089ShootDownKAL007 | Card090Glasnost =>
-              selectOperationUI(Lang.operationSelect)
-              uiSelectOperation.coup.setEnabled(false)
-            case Card094Chernobyl => selectRegionUI()
-            case Card096TearDownThisWall =>
-              selectOperationUI(Lang.operationSelect)
-              uiSelectOperation.influence.setEnabled(false)
-              uiSelectOperation.coup.setEnabled(Card096TearDownThisWall.canCoup(game))
-          }
-        } else {
-          waitOtherUI()
-        }
-      case State.end => gameOverUI()
       case _ => waitOtherUI()
     }
+
     uiUpdateListeners.foreach(_())
     repaint()
   }
@@ -360,7 +203,8 @@ class ControlUI(val game: Game) extends JPanel {
     uiSelectMultipleCards.text(2) = tip
   }
 
-  def selectCardAndActionUI(card: Card = null) = {
+  def selectCardAndActionUI(canSpace: (Game, Card) => Boolean, canEvent: (Game, Card) => Boolean,
+                            canOperation: (Game, Card) => Boolean, card: Card = null) = {
     showSubUI(SelectCardAndAction)
     if (card == null) {
       uiSelectCardAndAction.isLocked = false
@@ -369,14 +213,17 @@ class ControlUI(val game: Game) extends JPanel {
       uiSelectCardAndAction.setCard(card)
       uiSelectCardAndAction.isLocked = true
     }
+    uiSelectCardAndAction.canSpace = canSpace
+    uiSelectCardAndAction.canEvent = canEvent
+    uiSelectCardAndAction.canOperation = canOperation
   }
 
-  def selectOperationUI(tip: String) = {
+  def selectOperationUI(canInfluence: Boolean, canRealignment: Boolean, canCoup: Boolean) = {
     showSubUI(SelectOperation)
-    uiSelectOperation.text(1) = String.format(tip, game.modifyOp(game.playerFaction, game.currentCard.op).toString)
-    uiSelectOperation.influence.setEnabled(true)
-    uiSelectOperation.realignment.setEnabled(true)
-    uiSelectOperation.coup.setEnabled(game.canCoup(game.playerFaction))
+    uiSelectOperation.text(1) = String.format(Lang.operationSelect, game.modifyOp(game.playerFaction, game.currentCard.op).toString)
+    uiSelectOperation.influence.setEnabled(canInfluence)
+    uiSelectOperation.realignment.setEnabled(canRealignment)
+    uiSelectOperation.coup.setEnabled(canCoup)
   }
 
   def selectCountryUI(point: Int, point2: Int, tip: String, mustAllPoints: Boolean,
@@ -671,16 +518,20 @@ class ControlSubUISelectCard(parent: ControlUI) extends ControlSubUICard(parent,
 class ControlSubUISelectCardAndAction(parent: ControlUI)
   extends ControlSubUICard(parent, Array(Lang.selectCardAndAction)) {
 
+  var canSpace: (Game, Card) => Boolean = (_, _) => true
+  var canEvent: (Game, Card) => Boolean = (_, _) => true
+  var canOperation: (Game, Card) => Boolean = (_, _) => true
+
   val buttonSpace = addButton(Lang.space, 120, 50, 70, 30)
   val buttonEvent = addButton(Lang.event, 120, 100, 70, 30)
   val buttonOperation = addButton(Lang.operation, 120, 150, 70, 30)
 
   override def updateCard(): Unit = {
-    val eventEnabled = parent.game.canCardEvent(card, parent.game.playerFaction)
+    val eventEnabled = canEvent(parent.game, card)
 
-    buttonSpace.setEnabled(parent.game.canCardSpace(card, parent.game.playerFaction))
+    buttonSpace.setEnabled(canSpace(parent.game, card))
     buttonEvent.setEnabled(eventEnabled)
-    buttonOperation.setEnabled(parent.game.canCardOperation(card, parent.game.playerFaction))
+    buttonOperation.setEnabled(canOperation(parent.game, card))
 
     if (card.faction == Faction.getOpposite(parent.game.playerFaction) && eventEnabled) {
       buttonEvent.setText(Lang.eventFirst)

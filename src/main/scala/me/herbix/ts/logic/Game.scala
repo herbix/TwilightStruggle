@@ -3,8 +3,8 @@ package me.herbix.ts.logic
 import java.util.Random
 
 import me.herbix.ts.logic.Faction._
-import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.GameVariant._
+import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.State._
 
 import scala.annotation.tailrec
@@ -122,6 +122,9 @@ class Game extends GameTrait {
   // snapshot
   var lastSnapshot = new Snapshot(this)
 
+  // operation hint
+  var currentOperationHint = createOperationHint()
+
   // listener
   var stateUpdateListeners: List[() => Unit] = List()
 
@@ -208,6 +211,7 @@ class Game extends GameTrait {
         operatingPlayer = e.winner
         stateStack.push(end)
     }
+    currentOperationHint = createOperationHint()
     stateUpdateListeners.foreach(_())
   }
 
@@ -1372,7 +1376,151 @@ class Game extends GameTrait {
         }
       case _ =>
     }
+    currentOperationHint = createOperationHint()
     stateUpdateListeners.foreach(_())
+  }
+
+  def getOperationHint: OperationHint = currentOperationHint
+
+  def createOperationHint(): OperationHint = {
+    if (isSpectator) {
+      return OperationHint.NOP
+    }
+    stateStack.top match {
+      case State.start => OperationHint.CHOOSE_FACTION
+      case State.putStartUSSR =>
+        if (playerFaction == USSR) {
+          OperationHint(classOf[OperationModifyInfluence], 7, true, USSR, (game, detail) =>
+            detail.forall(_._1.regions(Region.EastEurope)), true, true, false)
+        } else {
+          OperationHint.NOP
+        }
+      case State.putStartUS =>
+        if (playerFaction == US) {
+          OperationHint(classOf[OperationModifyInfluence], 6, true, US, (game, detail) =>
+            detail.forall(_._1.regions(Region.WestEurope)), true, true, false)
+        } else {
+          OperationHint.NOP
+        }
+      case State.putStartExtra =>
+        if ((playerFaction == US && extraInfluence > 0) || (playerFaction == USSR && extraInfluence < 0)) {
+          OperationHint(classOf[OperationModifyInfluence], Math.abs(extraInfluence), true, playerFaction,
+            (game, detail) => detail.forall(e => influence(e._1, playerFaction) > 0), true, true, false)
+        } else {
+          OperationHint.NOP
+        }
+      case State.selectHeadlineCard =>
+        if (!flags.hasFlag(playerFaction, Flags.SpaceAwardHeadlineThen)) {
+          OperationHint(classOf[OperationSelectCard], false, (game, card) => card.canHeadline(this, playerFaction))
+        } else {
+          OperationHint.NOP
+        }
+      case State.selectHeadlineCard2 =>
+        if (flags.hasFlag(playerFaction, Flags.SpaceAwardHeadlineThen)) {
+          OperationHint(classOf[OperationSelectCard], false, (game, card) => card.canHeadline(this, playerFaction))
+        } else {
+          OperationHint.NOP
+        }
+      case State.selectCardAndAction =>
+        if (playerFaction == operatingPlayer) {
+          OperationHint(classOf[OperationSelectCardAndAction], null,
+            (game, card) => card.canPlay(this, playerFaction),
+            (game, card) => canCardSpace(card, playerFaction),
+            (game, card) => canCardEvent(card, playerFaction),
+            (game, card) => canCardOperation(card, playerFaction)
+          )
+        } else {
+          OperationHint.NOP
+        }
+      case State.selectAction =>
+        if (playerFaction == operatingPlayer) {
+          OperationHint(classOf[OperationSelectCardAndAction], currentCard,
+            (game, card) => card.canPlay(this, playerFaction),
+            (game, card) => canCardSpace(card, playerFaction),
+            (game, card) => canCardEvent(card, playerFaction),
+            (game, card) => canCardOperation(card, playerFaction)
+          )
+        } else {
+          OperationHint.NOP
+        }
+      case State.cardOperationSelect =>
+        if (playerFaction == operatingPlayer) {
+          OperationHint(classOf[OperationSelectOperation],
+            _ => true,
+            _ => true,
+            _ => canCoup(playerFaction)
+          )
+        } else {
+          OperationHint.NOP
+        }
+      case State.cardOperationAddInfluence =>
+        if (playerFaction == operatingPlayer) {
+          OperationHint(classOf[OperationModifyInfluence], currentCard.op, true, playerFaction,
+            (game, detail) => canAddInfluence(playerFaction)(detail), false, true, true)
+        } else {
+          OperationHint.NOP
+        }
+      case State.cardOperationRealignment =>
+        if (playerFaction == operatingPlayer) {
+          OperationHint(classOf[OperationSelectCountry], 1, getCurrentRealignmentRest(playerFaction),
+            (game: Game, detail: Set[Country]) => detail.forall(canRealignment(playerFaction, _)), true)
+        } else {
+          OperationHint.NOP
+        }
+      case State.cardOperationCoup =>
+        if (playerFaction == operatingPlayer) {
+          OperationHint(classOf[OperationSelectCountry], 1, currentCard.op,
+            (game: Game, detail: Set[Country]) => detail.forall(canCoup(playerFaction, _)), true)
+        } else {
+          OperationHint.NOP
+        }
+      case State.discardHeldCard =>
+        if (flags.hasFlag(playerFaction, Flags.SpaceAwardMayDiscard)) {
+          OperationHint(classOf[OperationSelectCard], true, (game, card) => card.canDiscard(this, playerFaction))
+        } else {
+          OperationHint.NOP
+        }
+      case State.selectTake8Rounds =>
+        if (playerFaction == phasingPlayer) {
+          OperationHint(classOf[OperationYesNo], false)
+        } else {
+          OperationHint.NOP
+        }
+      case State.quagmireDiscard =>
+        if (phasingPlayer == playerFaction) {
+          OperationHint(classOf[OperationSelectCard], false, (game, card) =>
+            card.canPlay(this, playerFaction) && card.canDiscard(this, playerFaction))
+        } else {
+          OperationHint.NOP
+        }
+      case State.quagmirePlayScoringCard =>
+        if (phasingPlayer == playerFaction) {
+          OperationHint(classOf[OperationSelectCard], false, (game, card) => card.canPlay(this, playerFaction))
+        } else {
+          OperationHint.NOP
+        }
+      case State.noradInfluence =>
+        if (playerFaction == US) {
+          OperationHint(classOf[OperationModifyInfluence], 1, true, playerFaction,
+            (game, detail) => detail.forall(e => influence(e._1, Faction.US) > 0), true, true)
+        } else {
+          OperationHint.NOP
+        }
+      case State.cubaMissileRemove =>
+        if (flags.hasFlag(playerFaction, Flags.CubaMissile)) {
+          OperationHint(classOf[OperationSelectCountry], 1, 0,
+            Card040CubaMissile.getConditionByFaction(playerFaction), false)
+        } else {
+          OperationHint.NOP
+        }
+      case EventStates(_) =>
+        if (operatingPlayer == playerFaction) {
+          currentCard.getOperationHint(this)
+        } else {
+          OperationHint.NOP
+        }
+      case _ => OperationHint.NOP
+    }
   }
 
   class GameOverException(val winner: Faction) extends Exception
