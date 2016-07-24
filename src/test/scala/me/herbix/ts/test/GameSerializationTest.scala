@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, DataInputStream, DataOutputStream, ByteArr
 
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.Faction._
+import me.herbix.ts.logic.card._
 import me.herbix.ts.util.Serializer
 import org.junit.Test
 import org.junit.Assert._

@@ -6,6 +6,7 @@ import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.State.State
 import me.herbix.ts.logic._
+import me.herbix.ts.logic.card.{Cards, Card}
 
 import scala.collection.mutable
 

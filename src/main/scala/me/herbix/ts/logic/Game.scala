@@ -6,6 +6,7 @@ import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.GameVariant._
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.State._
+import me.herbix.ts.logic.card._
 
 import scala.annotation.tailrec
 import scala.collection.mutable

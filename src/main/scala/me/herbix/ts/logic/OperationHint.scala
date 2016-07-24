@@ -2,6 +2,7 @@ package me.herbix.ts.logic
 
 
 import me.herbix.ts.logic.Faction._
+import me.herbix.ts.logic.card.Card
 
 /**
   * Created by Chaofan on 2016/7/20.

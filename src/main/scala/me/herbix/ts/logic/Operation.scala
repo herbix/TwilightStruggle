@@ -5,6 +5,7 @@ import java.io.DataOutputStream
 import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
+import me.herbix.ts.logic.card.Card
 
 /**
   * Created by Chaofan on 2016/6/18.

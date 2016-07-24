@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, Da
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic._
+import me.herbix.ts.logic.card._
 import me.herbix.ts.util.Serializer
 import org.junit.Assert._
 import org.junit.Test
@@ -47,7 +48,7 @@ class OperationSerializationTest {
     TestOperation(new OperationModifyInfluence(6, USSR, false, Map(c("Panama") -> Integer.MIN_VALUE)))
 
     TestOperation(new OperationSelectCard(0, US, None))
-    TestOperation(new OperationSelectCard(12, USSR, Some(Card000Unknown)))
+    TestOperation(new OperationSelectCard(12, USSR, Some(CardUnknown)))
     TestOperation(new OperationSelectCard(98, USSR, Some(Card110AwacsSale)))
     TestOperation(new OperationSelectCard(32, US, Some(Card006ChinaCard)))
 

@@ -5,7 +5,7 @@ import java.awt.{Color, RenderingHints, Graphics2D, Graphics}
 import javax.swing.JPanel
 
 import me.herbix.ts.logic.Faction.Faction
-import me.herbix.ts.logic.{Flag, Card, Game}
+import me.herbix.ts.logic.{Flag, Game}
 import me.herbix.ts.util.Resource
 
 /**

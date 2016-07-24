@@ -5,6 +5,7 @@ import javax.swing.JPanel
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic._
+import me.herbix.ts.logic.card.{Cards, Card}
 import me.herbix.ts.util.{Lang, MapValue, Resource}
 import me.herbix.ts.util.Resource._
 

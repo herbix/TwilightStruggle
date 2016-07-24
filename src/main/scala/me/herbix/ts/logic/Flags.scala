@@ -3,6 +3,7 @@ package me.herbix.ts.logic
 import me.herbix.ts.logic.FlagType.FlagType
 
 import me.herbix.ts.logic.Faction._
+import me.herbix.ts.logic.card.Card049MissileEnvy
 
 import scala.collection.mutable
 

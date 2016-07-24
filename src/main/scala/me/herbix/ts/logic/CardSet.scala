@@ -3,6 +3,7 @@ package me.herbix.ts.logic
 import java.util.Random
 
 import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic.card.{Cards, Card}
 
 import scala.collection.mutable
 

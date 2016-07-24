@@ -8,6 +8,7 @@ import javax.swing._
 import me.herbix.ts.client.ClientLocal
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic._
+import me.herbix.ts.logic.card.{Cards, Card}
 import me.herbix.ts.util.Resource
 import scala.collection.mutable
 
