@@ -72,6 +72,8 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <outputDirectory>../target</outputDirectory>
+                    <finalName>twilightstruggle</finalName>
                 </configuration>
                 <executions>
                     <execution>
