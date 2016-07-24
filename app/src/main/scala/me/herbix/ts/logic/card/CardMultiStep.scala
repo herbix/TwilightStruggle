@@ -3,6 +3,7 @@ package me.herbix.ts.logic.card
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
+import me.herbix.ts.util.{CardCondition, CountryCondition, InfluenceCondition, Condition}
 
 import scala.collection.mutable
 
@@ -12,15 +13,16 @@ import scala.collection.mutable
 abstract class CardMultiStep(id: Int, op: Int, faction: Faction, isRemovedAfterEvent: Boolean)
   extends Card(id, op, faction, isRemovedAfterEvent) {
 
-  val (
-    steps: Array[State],
-    stepMeta: Array[Seq[Any]],
-    stepMethods: Array[(Game, Faction, Operation) => Int]
-    ) = initSteps()
+  val stepInfo = mutable.Map.empty[Int, (State, Seq[Any], (Game, Faction, Operation) => Int)]
+  var maxStep = 0
+
+  stepInfo(0) = (null, null, (_, _, _) => 1)
+
+  def getStep(game: Game): Int = cardEventStep.unapply(game.stateStack.elems(1)).get
 
   def getMetaItem[T](id: Int)(implicit game: Game): T = {
     val cardEventStep(step) = game.stateStack.elems(1)
-    val meta = stepMeta(step)
+    val meta = stepInfo(step)._2
     meta(id) match {
       case e: T => e
       case e: (Game => T) => e(game)
@@ -34,12 +36,13 @@ abstract class CardMultiStep(id: Int, op: Int, faction: Faction, isRemovedAfterE
     game.stateStack.pop()
     val nextStep = eventStepDone(step, game, faction, input)
 
-    if (nextStep > steps.length - 1) {
+    if (nextStep > maxStep) {
       game.stateStack.push(cardEventEnd)
     } else if (nextStep != -1) {
+      val state = stepInfo(nextStep)._1
       game.stateStack.push(cardEventStep(nextStep))
-      game.stateStack.push(steps(nextStep))
-      steps(nextStep) match {
+      game.stateStack.push(state)
+      state match {
         case State.cardEventOperation =>
           game.stateStack.push(cardOperationSelect)
         case State.cardEventAnotherCard =>
@@ -57,20 +60,28 @@ abstract class CardMultiStep(id: Int, op: Int, faction: Faction, isRemovedAfterE
         val validCheck: (Game, Map[Country, Int]) => Boolean = getMetaItem[Any](4) match {
           case f: (Map[Country, Int] => Boolean) => (game, detail) => f(detail)
           case f: ((Game, Map[Country, Int]) => Boolean) => f
+          case f: InfluenceCondition => f.build
         }
         OperationHint(classOf[OperationModifyInfluence], getMetaItem(0), getMetaItem(1), getMetaItem(3),
           validCheck, true, getMetaItem(2))
       case State.cardEventSelectCard =>
-        val stepMeta = getMetaItem[(Game, Card) => Boolean](0)
+        val stepMeta = getMetaItem[Any](0) match {
+          case f: ((Game, Card) => Boolean) => f
+          case f: CardCondition => f.build
+        }
         OperationHint(classOf[OperationSelectCard], false, stepMeta)
       case State.cardEventSelectCardOrCancel =>
-        val stepMeta = getMetaItem[(Game, Card) => Boolean](0)
+        val stepMeta = getMetaItem[Any](0) match {
+          case f: ((Game, Card) => Boolean) => f
+          case f: CardCondition => f.build
+        }
         OperationHint(classOf[OperationSelectCard], true, stepMeta)
       case State.cardEventSelectCountry =>
         val rest = if (game.currentCardData == null) 0 else game.currentCardData.asInstanceOf[Int]
         val validCheck: (Game, Set[Country]) => Boolean = getMetaItem[Any](2) match {
           case f: (Set[Country] => Boolean) => (game, detail) => f(detail)
           case f: ((Game, Set[Country]) => Boolean) => f
+          case f: CountryCondition => f.build
         }
         OperationHint(classOf[OperationSelectCountry], getMetaItem(0), rest, validCheck, getMetaItem(1))
       case State.cardEventSelectMultipleCards =>
@@ -88,52 +99,15 @@ abstract class CardMultiStep(id: Int, op: Int, faction: Faction, isRemovedAfterE
   def getSpecialOperationHint(game: Game): OperationHint = OperationHint.NOP
 
   def eventStepDone(step: Int, game: Game, faction: Faction, input: Operation): Int = {
-    stepMethods(step)(game, faction, input)
+    stepInfo(step)._3(game, faction, input)
   }
 
-  private def initSteps(): (Array[State], Array[Seq[Any]], Array[(Game, Faction, Operation) => Int]) = {/*
-    val targets =
-      getClass.getMethods
-          .toStream
-          .filter(m => m.getDeclaredAnnotations.exists(_.isInstanceOf[StepAnnotation]))
-          .filter(m => m.getParameterTypes.equals(Array[Class[_]](classOf[Game], classOf[Faction], classOf[Operation])))
-          .map(m => (m, m.getDeclaredAnnotations.find(_.isInstanceOf[StepAnnotation]).get.asInstanceOf[StepAnnotation]))
-          .toList
-
-    println(getClass.getMethods.find(_.getName == "step1").get.getAnnotations.toList)
-    println(targets)
-
-    val methodMap = mutable.Map.empty[Int, (State, Seq[Any], (Game, Faction, Operation) => Int)]
-
-    for ((method, annotation) <- targets) {
-      val step = annotation.step
-      val state = annotation.state
-      val meta = annotation.meta
-      def callbackInt(game: Game, faction: Faction, operation: Operation): Int = {
-        method.invoke(this, game, faction, operation).asInstanceOf[Int]
-      }
-      def callbackUnit(game: Game, faction: Faction, operation: Operation): Int = {
-        method.invoke(this, game, faction, operation)
-        step + 1
-      }
-      if (method.getReturnType == classOf[Int]) {
-        methodMap(step) = (state, meta, callbackInt)
-      } else {
-        methodMap(step) = (state, meta, callbackUnit)
-      }
+  def addStepInfo(step: Int, method: (Game, Faction, Operation) => Int, state: State, meta: Any*): Unit = {
+    stepInfo(step) = (state, meta, method)
+    if (step > maxStep) {
+      maxStep = step
     }
-
-    def callbackPrepare(game: Game, faction: Faction, operation: Operation): Int = 1
-
-    if (!methodMap.contains(0)) {
-      methodMap(0) = (null, Seq.empty[Any], callbackPrepare)
-    }
-
-    assert(0 until methodMap.size forall methodMap.contains)
-*/
-  val methodMap = mutable.Map.empty[Int, (State, Seq[Any], (Game, Faction, Operation) => Int)]
-    val methodList = methodMap.toList.sortBy(_._1)
-
-    (methodList.map(_._2._1).toArray, methodList.map(_._2._2).toArray, methodList.map(_._2._3).toArray)
   }
+
+  def addStepInfo(step: Int, method: (Game, Faction, Operation) => Int): Unit = addStepInfo(step, method, null)
 }

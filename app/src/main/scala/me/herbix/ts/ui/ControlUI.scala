@@ -125,8 +125,11 @@ class ControlUI(val game: Game) extends JPanel {
       case State.cubaMissileRemove => Lang.cardTips(Card040CubaMissile)(0)
       case State.selectTake8Rounds => Lang.take8rounds
       case State.EventStates(_) =>
-        val card = game.currentCard.asInstanceOf[CardNeedsSelection]
-        val step = card.getStep(game)
+        val card = game.currentCard
+        val step = card match {
+          case c: CardNeedsSelection => c.getStep(game)
+          case c: CardMultiStep => c.getStep(game)
+        }
         Lang.cardTips(card)(step-1)
       case _ => ""
     }
