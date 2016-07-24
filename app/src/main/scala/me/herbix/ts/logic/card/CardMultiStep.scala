@@ -3,9 +3,10 @@ package me.herbix.ts.logic.card
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
-import me.herbix.ts.util.{CardCondition, CountryCondition, InfluenceCondition, Condition}
+import me.herbix.ts.util.{CardCondition, CountryCondition, InfluenceCondition}
 
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 /**
   * Created by Chaofan on 2016/7/23.
@@ -29,6 +30,17 @@ abstract class CardMultiStep(id: Int, op: Int, faction: Faction, isRemovedAfterE
       case _ => null.asInstanceOf[T]
     }
   }
+
+  def getMetaItemAsInt(id: Int)(implicit game: Game): Int = {
+    val cardEventStep(step) = game.stateStack.elems(1)
+    val meta = stepInfo(step)._2
+    meta(id) match {
+      case e: Int => e
+      case e: (Game => Int) => e(game)
+      case _ => 0
+    }
+  }
+
 
   def nextState(game: Game, faction: Faction, input: Operation): Unit = {
     val cardEventStep(step) = game.stateStack.top
@@ -62,7 +74,7 @@ abstract class CardMultiStep(id: Int, op: Int, faction: Faction, isRemovedAfterE
           case f: ((Game, Map[Country, Int]) => Boolean) => f
           case f: InfluenceCondition => f.build
         }
-        OperationHint(classOf[OperationModifyInfluence], getMetaItem(0), getMetaItem(1), getMetaItem(3),
+        OperationHint(classOf[OperationModifyInfluence], getMetaItemAsInt(0), getMetaItem(1), getMetaItem(3),
           validCheck, true, getMetaItem(2))
       case State.cardEventSelectCard =>
         val stepMeta = getMetaItem[Any](0) match {
@@ -83,7 +95,7 @@ abstract class CardMultiStep(id: Int, op: Int, faction: Faction, isRemovedAfterE
           case f: ((Game, Set[Country]) => Boolean) => f
           case f: CountryCondition => f.build
         }
-        OperationHint(classOf[OperationSelectCountry], getMetaItem(0), rest, validCheck, getMetaItem(1))
+        OperationHint(classOf[OperationSelectCountry], getMetaItemAsInt(0), rest, validCheck, getMetaItem(1))
       case State.cardEventSelectMultipleCards =>
         val stepMeta = getMetaItem[(Game, Card) => Boolean](0)
         OperationHint(classOf[OperationSelectCards], stepMeta)

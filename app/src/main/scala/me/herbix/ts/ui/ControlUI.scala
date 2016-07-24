@@ -126,10 +126,7 @@ class ControlUI(val game: Game) extends JPanel {
       case State.selectTake8Rounds => Lang.take8rounds
       case State.EventStates(_) =>
         val card = game.currentCard
-        val step = card match {
-          case c: CardNeedsSelection => c.getStep(game)
-          case c: CardMultiStep => c.getStep(game)
-        }
+        val step = card.asInstanceOf[CardMultiStep].getStep(game)
         Lang.cardTips(card)(step-1)
       case _ => ""
     }
@@ -171,7 +168,7 @@ class ControlUI(val game: Game) extends JPanel {
       case _ => waitOtherUI()
     }
 
-    if (game.pendingInput == null || oldUI != uiMap(uiType)) {
+    if (state != State.selectHeadlineCard || oldUI != uiMap(uiType)) {
       oldUI.reset()
     }
 
