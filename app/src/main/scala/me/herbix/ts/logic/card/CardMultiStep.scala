@@ -97,7 +97,10 @@ abstract class CardMultiStep(id: Int, op: Int, faction: Faction, isRemovedAfterE
         }
         OperationHint(classOf[OperationSelectCountry], getMetaItemAsInt(0), rest, validCheck, getMetaItem(1))
       case State.cardEventSelectMultipleCards =>
-        val stepMeta = getMetaItem[(Game, Card) => Boolean](0)
+        val stepMeta = getMetaItem[Any](0) match {
+          case f: ((Game, Card) => Boolean) => f
+          case f: CardCondition => f.build
+        }
         OperationHint(classOf[OperationSelectCards], stepMeta)
       case State.cardEventSpecial =>
         getSpecialOperationHint(game)

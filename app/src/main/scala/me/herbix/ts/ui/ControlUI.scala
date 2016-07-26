@@ -155,7 +155,10 @@ class ControlUI(val game: Game) extends JPanel {
       case oh: OperationSelectCountryHint =>
         selectCountryUI(oh.count, oh.countSecondary, tip, oh.mustAllPoints, oh.valid)
       case oh: OperationYesNoHint =>
-        if (oh.isConfirm) {
+        if (state == State.cardEventSpecial && game.currentCard == Card067GrainSales) {
+          showSubUI(GrainSales)
+          uiGrainSales.setCard(game.currentCardData.asInstanceOf[Card])
+        } else if (oh.isConfirm) {
           confirmUI(tip)
         } else {
           yesNoUI(tip)
