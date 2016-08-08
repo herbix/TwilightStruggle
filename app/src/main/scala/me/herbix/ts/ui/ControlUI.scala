@@ -534,9 +534,9 @@ class ControlSubUISelectCardAndAction(parent: ControlUI)
   override def updateCard(): Unit = {
     val eventEnabled = canEvent(parent.game, card)
 
-    buttonSpace.setEnabled(canSpace(parent.game, card))
-    buttonEvent.setEnabled(eventEnabled)
-    buttonOperation.setEnabled(canOperation(parent.game, card))
+    buttonSpace.setEnabled(canSpace(parent.game, card) && card.id != 0)
+    buttonEvent.setEnabled(eventEnabled && card.id != 0)
+    buttonOperation.setEnabled(canOperation(parent.game, card) && card.id != 0)
 
     if (card.faction == Faction.getOpposite(parent.game.playerFaction) && eventEnabled) {
       buttonEvent.setText(Lang.eventFirst)

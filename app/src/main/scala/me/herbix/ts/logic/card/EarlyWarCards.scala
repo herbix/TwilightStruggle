@@ -116,7 +116,8 @@ object Card011KoreanWar extends CardInstant(11, 2, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val southKorea = WorldMap.countries("S.Korea")
     val modifier = southKorea.adjacentCountries.count(_.getController(game) == US)
-    game.war(USSR, southKorea, modifier, 4, 2, 2)
+    val modifier2 = if (game.flags.hasFlag(Flags.ChineseCivilWar)) 1 else 0
+    game.war(USSR, southKorea, modifier + modifier2, 4, 2, 2)
     true
   }
   override def afterPlay(game: Game, faction: Faction): Unit = {
@@ -360,6 +361,8 @@ object Card030Decolonization extends CardMultiStep(30, 2, USSR, false) {
 }
 
 object Card031RedScarePurge extends CardInstant(31, 4, Neutral, false) {
+  override def canEvent(game: Game, faction: Faction): Boolean =
+    !game.flags.hasFlag(Flags.ChineseCivilWar) || faction != USSR
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addFlag(Faction.getOpposite(faction), Flags.RedScarePurge)
     true
@@ -429,6 +432,7 @@ object Card034NuclearTestBan extends CardInstant(34, 4, Neutral, false) {
 }
 
 object Card035Taiwan extends CardInstant(35, 2, US, true) {
+  override def canEvent(game: Game, faction: Faction): Boolean = !game.flags.hasFlag(Flags.ChineseCivilWar)
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addFlag(Faction.US, Flags.Taiwan)
     true

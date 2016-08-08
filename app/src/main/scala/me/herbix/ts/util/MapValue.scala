@@ -1,5 +1,7 @@
 package me.herbix.ts.util
 
+import me.herbix.ts.logic.Country
+
 import scala.collection.mutable
 
 /**
@@ -99,6 +101,20 @@ object MapValue {
   countryPosMap += "SE African States" -> (1358, 1082)
   countryPosMap += "Botswana" -> (1211, 1221)
   countryPosMap += "South Africa" -> (1158, 1306)
+
+  def getCountryPosSize(country: Country): (Int, Int, Int, Int) = {
+    country.name match {
+      case "China" => (2074, 545, 134, 106)
+      case n: String =>
+        val pos = countryPosMap.getOrElse(n, null)
+        if (pos == null) {
+          (0, 0, -1, -1)
+        } else {
+          (pos._1, pos._2, countrySize._1, countrySize._2)
+        }
+      case _ => null
+    }
+  }
 
   val turnArea = (1799, 49, 2472, 125)
 

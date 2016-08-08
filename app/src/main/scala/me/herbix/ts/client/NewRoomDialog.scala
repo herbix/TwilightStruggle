@@ -6,7 +6,6 @@ import javax.swing._
 
 import me.herbix.ts.logic.GameVariant
 import me.herbix.ts.logic.GameVariant.GameVariant
-import me.herbix.ts.logic.GameVariant.GameVariant
 
 /**
   * Created by Chaofan on 2016/7/4.
@@ -39,7 +38,7 @@ object NewRoomDialog extends JDialog {
   val variant = new JComboBox[GameVariantDelegate]()
   variant.addItem(new GameVariantDelegate(GameVariant.Standard))
   variant.addItem(new GameVariantDelegate(GameVariant.LateWar))
-  //variant.addItem(new GameVariantDelegate(GameVariant.ChinaCivilWar))
+  variant.addItem(new GameVariantDelegate(GameVariant.ChineseCivilWar))
   variant.setLocation(125, 30)
   variant.setSize(100, 20)
   variant.setFocusable(false)
@@ -103,7 +102,7 @@ object NewRoomDialog extends JDialog {
     override def toString = gameVariant match {
       case GameVariant.Standard => "标准"
       case GameVariant.LateWar => "冷战后期"
-      case GameVariant.ChinaCivilWar => "中国内战"
+      case GameVariant.ChineseCivilWar => "中国内战"
     }
   }
 }

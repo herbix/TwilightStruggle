@@ -4,8 +4,9 @@ import java.util.Random
 import javax.swing.{UIManager, WindowConstants}
 
 import me.herbix.ts.client.NewRoomDialog.GameVariantDelegate
-import me.herbix.ts.logic.{Faction, GameVariant}
+import me.herbix.ts.logic.{Faction, GameFactory, GameVariant}
 import me.herbix.ts.ui.GameUI
+import me.herbix.ts.util.Resource
 
 /**
   * Created by Chaofan on 2016/7/9.
@@ -29,6 +30,7 @@ object ClientLocal extends App {
     override def run(): Unit = {
       val time = System.nanoTime()
       ClientLocal.synchronized {
+        Resource.getClass
         gameUI1 = new GameUI(0)
         gameUI2 = new GameUI(1)
         gameUI1.debugMode = true
@@ -57,18 +59,19 @@ object ClientLocal extends App {
     }
   }
 
+  gameUI1.init(GameFactory.createGameByVariant(gameVariant))
+  gameUI2.init(GameFactory.createGameByVariant(gameVariant))
+
   val game1 = gameUI1.game
   val game2 = gameUI2.game
 
   game1.extraInfluence = extraInfluence
   game1.drawGameWinner = drawWinner
   game1.optionalCards = hasOptional
-  game1.gameVariant = gameVariant
 
   game2.extraInfluence = extraInfluence
   game2.drawGameWinner = drawWinner
   game2.optionalCards = hasOptional
-  game2.gameVariant = gameVariant
 
   game1.anotherGame = game2
   game2.anotherGame = game1

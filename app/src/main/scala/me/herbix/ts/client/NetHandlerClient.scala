@@ -5,7 +5,7 @@ import java.io.{DataOutputStream, DataInputStream}
 import java.net.Socket
 import javax.swing.{WindowConstants, SwingUtilities}
 
-import me.herbix.ts.logic.{Faction, GameVariant, Operation, Game}
+import me.herbix.ts.logic._
 import me.herbix.ts.ui.GameUI
 import me.herbix.ts.util.Serializer._
 
@@ -18,7 +18,7 @@ import scala.util.Random
 class NetHandlerClient(socket: Socket) {
 
   var id = 0
-  var name: String = "TS-" + Integer.toHexString(Random.nextInt())
+  var name: String = System.getProperty("user.name", "TS-" + Integer.toHexString(Random.nextInt()))
 
   var isRoomCreator = false
 
@@ -301,12 +301,12 @@ class NetHandlerClient(socket: Socket) {
 
   def showGame(): Unit = {
     val gameUI = new GameUI(id)
+    gameUI.init(GameFactory.createGameByVariant(ClientFrame.gameVariant))
     RoomDialog.gameUI = gameUI
     RoomDialog.setVisible(false)
     gameUI.game.extraInfluence = ClientFrame.extraInfluence
     gameUI.game.optionalCards = ClientFrame.hasOptional
     gameUI.game.drawGameWinner = ClientFrame.drawWinner
-    gameUI.game.gameVariant = ClientFrame.gameVariant
     gameUI.game.anotherGame = new RemoteGame(this)
     gameUI.game.setRandomSeed(seed)
     gameUI.setVisible(true)

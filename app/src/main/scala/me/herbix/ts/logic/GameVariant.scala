@@ -6,6 +6,6 @@ package me.herbix.ts.logic
 object GameVariant extends Enumeration {
   type GameVariant = Value
   val Standard = Value
-  val ChinaCivilWar = Value
+  val ChineseCivilWar = Value
   val LateWar = Value
 }

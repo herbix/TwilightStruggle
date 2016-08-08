@@ -127,16 +127,14 @@ class WorldMapUI(val game: Game) extends JPanel {
       }
     }
     def findCountry(x: Int, y: Int): Country =
-      MapValue.countryPosMap.find(e => {
+      WorldMap.countries.values.find(c => {
+        val rect = MapValue.getCountryPosSize(c)
         val nx = x / scale
         val ny = y / scale
-        val cx = e._2._1
-        val cy = e._2._2
-        nx >= cx && nx < cx + 101 && ny >= cy && ny < cy + 67
-      }) match {
-        case Some(e) => WorldMap.countries(e._1)
-        case None => null
-      }
+        val cx = rect._1
+        val cy = rect._2
+        nx >= cx && nx < cx + rect._3 && ny >= cy && ny < cy + rect._4
+      }).orNull
   }
 
   addMouseListener(mouseAdapter)
@@ -190,17 +188,17 @@ class WorldMapUI(val game: Game) extends JPanel {
       val ussrDrawColor = if (ussrInfluenceChanged) ussrColorInfluenceChange else ussrColor
       val ussrBgColor = if (ussrInfluenceChanged) new Color(255, 255, 255, 128) else Color.WHITE
 
-      val (x, y) = MapValue.countryPosMap(name)
+      val (x, y, w, h) = MapValue.getCountryPosSize(country)
 
       if (pendingCountrySelection(country)) {
         g.setColor(selectedCountry)
-        g.fillRect(x, y, MapValue.countrySize._1, MapValue.countrySize._2)
+        g.fillRect(x, y, w, h)
       } else if (changedCountries.contains(country)) {
         g.setColor(changedCountry(changedCountriesFaction))
-        g.fillRect(x, y, MapValue.countrySize._1, MapValue.countrySize._2)
+        g.fillRect(x, y, w, h)
       } else if (availableCountries.contains(country)) {
         g.setColor(availableCountry)
-        g.fillRect(x, y, MapValue.countrySize._1, MapValue.countrySize._2)
+        g.fillRect(x, y, w, h)
       }
 
       if (usInfluence > 0) {
@@ -216,6 +214,38 @@ class WorldMapUI(val game: Game) extends JPanel {
         } else {
           drawInfluenceToken(g, fm, ussrInfluence.toString, ussrBgColor, ussrDrawColor, x + 52, y + 18)
         }
+      }
+    }
+
+    val country = WorldMap.countryChina
+    val influenceChanged = pendingInfluenceChange.contains(country)
+    val ussrInfluenceChanged = influenceChanged && pendingInfluenceFaction == USSR
+    val factor = if (pendingInfluenceIsAdd) 1 else -1
+
+    val ussrInfluence = game.influence(country, USSR) + factor *
+      (if (ussrInfluenceChanged) pendingInfluenceChange(country) else 0)
+
+    val ussrDrawColor = if (ussrInfluenceChanged) ussrColorInfluenceChange else ussrColor
+    val ussrBgColor = if (ussrInfluenceChanged) new Color(255, 255, 255, 128) else Color.WHITE
+
+    val (x, y, w, h) = MapValue.getCountryPosSize(country)
+
+    if (pendingCountrySelection(country)) {
+      g.setColor(selectedCountry)
+      g.fillRect(x, y, w, h)
+    } else if (changedCountries.contains(country)) {
+      g.setColor(changedCountry(changedCountriesFaction))
+      g.fillRect(x, y, w, h)
+    } else if (availableCountries.contains(country)) {
+      g.setColor(availableCountry)
+      g.fillRect(x, y, w, h)
+    }
+
+    if (ussrInfluence > 0) {
+      if (ussrInfluence >= country.stability) {
+        drawInfluenceToken(g, fm, ussrInfluence.toString, ussrDrawColor, ussrBgColor, x + 8, y + 8)
+      } else {
+        drawInfluenceToken(g, fm, ussrInfluence.toString, ussrBgColor, ussrDrawColor, x + 8, y + 8)
       }
     }
   }

@@ -167,6 +167,7 @@ object Flags {
   val NORAD = new Flag(Always, true)
   val Samantha = new Flag(ThisTurn, true)
   val AwacsSale = new Flag(Always, true)
+  val ChineseCivilWar = new Flag(Always, false)
 
   def init(): Unit = {}
 }

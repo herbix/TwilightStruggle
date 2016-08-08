@@ -102,6 +102,8 @@ object Lang {
   val winnerIs = "胜利者是%s"
   val drawGame = "平局"
 
+  val chineseCivilWar = "中国内战"
+
   val historyStartGame = "开始游戏"
   val historyTurnStart = "第%s回合开始"
   val historyTurnHeadline = "第%s回合头条"
@@ -140,6 +142,7 @@ object Lang {
 
   val countryNames = mutable.Map[String, String]()
 
+  countryNames += "China" -> "中国"
   countryNames += "Mexico" -> "墨西哥"
   countryNames += "Guatemala" -> "危地马拉"
   countryNames += "El Salvador" -> "萨尔瓦多"
@@ -648,6 +651,12 @@ object Lang {
       "打出“困境”时，此标记失效。")
   addFlagInfo("尤里和萨曼莎", "本回合剩下的行动轮内，每当美国发动政变，苏联就得1VP。")
   addFlagInfo("出售预警机给沙特", "不可作为事件打出“穆斯林革命”。")
+  addFlagInfo("中国内战",
+      "双方不持有“中国牌”。\n" +
+      "“文化大革命”，“台湾决议”不可作为事件打出。\n" +
+      "“红色恐慌/党内清洗”不可被苏联作为事件打出。\n" +
+      "“乌苏里江冲突”，“尼克松打出中国牌”视作美国持有“中国牌”。\n" +
+      "“朝鲜战争”掷骰得点-1。")
 
   val cardTips = mutable.Map.empty[Card, Array[String]]
   cardTips += Card007SocialistGovernments -> Array("请从西欧移除%s美国影响力")

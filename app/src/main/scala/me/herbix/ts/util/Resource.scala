@@ -42,6 +42,8 @@ object Resource {
   val buttonClose = ImageIO.read(getClass.getResourceAsStream("/other/close.png"))
   val buttonCloseHover = ImageIO.read(getClass.getResourceAsStream("/other/close-hover.png"))
 
+  val chineseCivilWarBg = ImageIO.read(getClass.getResourceAsStream("/other/ccw-bg.png"))
+
   val textFont = new Font(Lang.heiti, 0, 16)
   val textFont2 = new Font(Lang.lishu, 0, 32)
   val textColor = Color.DARK_GRAY

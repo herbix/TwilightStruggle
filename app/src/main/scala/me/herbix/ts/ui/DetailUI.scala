@@ -74,6 +74,64 @@ class DetailUI(game: Game) extends JPanel {
   val countryTriangleY = Array(120, 30, 120)
 
   def paintCountry(g: Graphics2D): Unit = {
+    country match {
+      case WorldMap.countryChina => paintChina(g)
+      case _ => paintOtherCountry(g)
+    }
+  }
+
+  def paintChina(g: Graphics2D): Unit = {
+    g.translate(10, 20)
+    g.scale(1 / 1.35, 1 / 1.35)
+
+    g.drawImage(Resource.chineseCivilWarBg, 0, 0, 243, 182, null)
+
+    g.setStroke(stroke1)
+    g.setColor(Color.BLACK)
+    g.drawRect(0, 0, 243, 182)
+
+    g.setColor(Resource.countryCriticalTextColor)
+    g.fillRect(202, 11, 30, 30)
+    g.setColor(Color.BLACK)
+    g.drawRect(202, 11, 30, 30)
+
+    g.setColor(Resource.regionColor(Region.Asia))
+    g.fillRect(11, 11, 90, 90)
+    g.setColor(Color.BLACK)
+    g.drawRect(11, 11, 90, 90)
+
+    g.setStroke(stroke3)
+    g.setFont(Resource.textFont2)
+    g.setColor(Color.WHITE)
+    val fm1 = g.getFontMetrics
+    val str1 = Lang.chineseCivilWar
+    val w1 = fm1.stringWidth(str1)
+    g.drawString(str1, (243-w1)/2, 175)
+
+    g.setFont(Resource.countryStabilityFont)
+    g.setColor(Resource.countryCriticalStabilityColor)
+    val fm2 = g.getFontMetrics
+    val str2 = country.stability.toString
+    val w2 = fm2.stringWidth(str2)
+    g.drawString(str2, 201+(30-w2)/2, 36)
+
+    g.setFont(Resource.countryInfluenceFont)
+    val fm = g.getFontMetrics
+
+    val ussrInfluence = game.influence(country, USSR)
+    val ussrDrawColor = ussrColor
+    val ussrBgColor = Color.WHITE
+
+    if (ussrInfluence > 0) {
+      if (ussrInfluence >= country.stability) {
+        drawInfluenceToken(g, fm, ussrInfluence.toString, ussrDrawColor, ussrBgColor, 15, 15)
+      } else {
+        drawInfluenceToken(g, fm, ussrInfluence.toString, ussrBgColor, ussrDrawColor, 15, 15)
+      }
+    }
+  }
+
+  def paintOtherCountry(g: Graphics2D): Unit = {
     val colorTitle = if (country.isBattlefield) Resource.countryCriticalTitleColor else Resource.countryTitleColor
     val colorStability = if (country.isBattlefield) Resource.countryCriticalStabilityColor else Resource.countryStabilityColor
     val colorText = if (country.isBattlefield) Resource.countryCriticalTextColor else Resource.countryTextColor

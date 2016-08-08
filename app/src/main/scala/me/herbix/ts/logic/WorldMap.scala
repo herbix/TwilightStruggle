@@ -1,8 +1,6 @@
 package me.herbix.ts.logic
 
-import me.herbix.ts.logic.Faction.Faction
-import me.herbix.ts.logic.Region.Region
-import me.herbix.ts.logic.Region._
+import me.herbix.ts.logic.Region.{Region, _}
 
 import scala.collection.mutable
 
@@ -22,7 +20,7 @@ object WorldMap {
 
   val countryUS = new Country("US", 50, false, Special)
   val countryUSSR = new Country("USSR", 50, false, Special)
-  val countryChina = new Country("China", 3, false, Special)
+  val countryChina = new Country("China", 3, false, Set(Special, Asia))
 
   def getCountryFromId(id: Int): Country = countryMap.getOrElse(id, null)
 
@@ -103,7 +101,7 @@ object WorldMap {
   addCountry(new Country("Iran", 2, true, MidEast), Set("Iraq"))
   addCountry(new Country("Libya", 2, true, MidEast))
   addCountry(new Country("Egypt", 2, true, MidEast), Set("Libya", "Israel"))
-  addCountry(new Country("Jordan", 2, false, MidEast), Set("Israel", "Iraq"))
+  addCountry(new Country("Jordan", 2, false, MidEast), Set("Israel", "Iraq", "Lebanon"))
   addCountry(new Country("Gulf States", 3, false, MidEast), Set("Iraq"))
   addCountry(new Country("Saudi Arabia", 3, true, MidEast), Set("Jordan", "Iraq", "Gulf States"))
 

@@ -370,6 +370,7 @@ object Card057ABMTreaty extends CardMultiStep(57, 4, Neutral, false) {
 }
 
 object Card058CulturalRevolution extends CardInstant(58, 3, USSR, true) {
+  override def canEvent(game: Game, faction: Faction): Boolean = !game.flags.hasFlag(Flags.ChineseCivilWar)
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val chinaCard = Cards.chinaCard
     if (game.hand(US).has(chinaCard)) {

@@ -3,7 +3,6 @@ package me.herbix.ts.logic
 import java.util.Random
 
 import me.herbix.ts.logic.Faction._
-import me.herbix.ts.logic.GameVariant._
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic.card._
@@ -28,7 +27,6 @@ class Game extends GameTrait {
   var extraInfluence = 0
   var optionalCards = true
   var drawGameWinner = US
-  var gameVariant = Standard
 
   // game info
   var randomSeed = 0l
@@ -332,15 +330,7 @@ class Game extends GameTrait {
     deck.join(set)
   }
 
-  private def initGame(): Unit = {
-    gameVariant match {
-      case GameVariant.Standard => initGameStandard()
-      case GameVariant.ChinaCivilWar => initGameExceptChinaCard()
-      case GameVariant.LateWar => initGameLateWar()
-    }
-  }
-
-  def initGameStandard(): Unit = {
+  protected def initGame(): Unit = {
     initGameExceptChinaCard()
 
     handAdd(USSR, Cards.chinaCard)
@@ -368,47 +358,6 @@ class Game extends GameTrait {
     }
     recordHistory(new HistoryPickCard(US, 8))
     recordHistory(new HistoryPickCard(USSR, 8))
-  }
-
-  def initGameLateWar(): Unit = {
-    turn = 8
-    setDefcon(4)
-    space(USSR) = SpaceLevel.Orbit
-    space(US) = SpaceLevel.Landed
-    addFlag(US, Flags.SpaceAwardMayDiscard)
-    vp = -4
-
-    addFlag(USSR, Flags.USJapanPact)
-    addFlag(US, Flags.MarshallPlan)
-    addFlag(USSR, Flags.NATO)
-    addFlag(US, Flags.WarsawPact)
-    addFlag(USSR, Flags.DeGaulle)
-    addFlag(US, Flags.FlowerPower)
-
-    deckJoin(Cards.earlyWarSet.filter(!Cards.isCardStarred(_)))
-    deckJoin(Cards.midWarSet.filter(!Cards.isCardStarred(_)))
-    deckJoin(Cards.lateWarSet)
-    if (optionalCards) {
-      deckJoin(Cards.earlyWarOptionalSet.filter(!Cards.isCardStarred(_)))
-      deckJoin(Cards.midWarOptionalSet.filter(!Cards.isCardStarred(_)))
-      deckJoin(Cards.lateWarOptionalSet)
-    }
-    deckAdd(Card044BearTrap)
-    deckAdd(Card065CampDavidAccords)
-    deckAdd(Card068JohnPaulII)
-    deckAdd(Card064PanamaCanalReturned)
-
-    pickGameStartHands(9)
-
-    handAdd(USSR, Cards.chinaCard)
-    recordHistory(new HistoryGetCard(USSR, Cards.chinaCard))
-
-    modifyInfluence(USSR, true, WorldMap.ussrLateWarStart)
-    modifyInfluence(US, true, WorldMap.usLateWarStart)
-
-    recordHistory(new HistoryTurnRound(turn, -1, Neutral))
-
-    stateStack.push(selectHeadlineCard)
   }
 
   def nextStatePutStartUS(input: Operation): Unit = {
@@ -1184,7 +1133,7 @@ class Game extends GameTrait {
     val domination = info._2
     val control = info._3
 
-    val targetCountries = WorldMap.regionCountries(region)
+    val targetCountries = WorldMap.regionCountries(region) - WorldMap.countryChina
     val battlefieldCount = targetCountries.count(_.isBattlefield)
     var usBattlefield = targetCountries.count(country => country.isBattlefield && country.getController(this) == US)
     val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(this) == US)
@@ -1260,27 +1209,12 @@ class Game extends GameTrait {
   }
 
   def endGameByVp(): Unit = {
-    gameVariant match {
-      case GameVariant.LateWar => endGameByVpLateWar()
-      case _ => endGameByVpStandard()
-    }
-  }
-
-  def endGameByVpStandard(): Unit = {
     if (vp < 0) {
       gameOver(USSR)
     } else if (vp > 0) {
       gameOver(US)
     } else {
       gameOver(Neutral)
-    }
-  }
-
-  def endGameByVpLateWar(): Unit = {
-    if (vp < 20) {
-      gameOver(USSR)
-    } else {
-      gameOver(US)
     }
   }
 
@@ -1527,6 +1461,9 @@ class Game extends GameTrait {
       case _ => OperationHint.NOP
     }
   }
+
+  def excludeChina(set: Set[Country]): Boolean = !set(WorldMap.countryChina)
+  def excludeChina(map: Map[Country, Int]): Boolean = !map.contains(WorldMap.countryChina)
 
   class GameOverException(val winner: Faction) extends Exception
 
