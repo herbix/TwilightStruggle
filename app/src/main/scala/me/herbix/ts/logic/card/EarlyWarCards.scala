@@ -1,13 +1,9 @@
 package me.herbix.ts.logic.card
 
 import me.herbix.ts.logic.Faction.{Faction, _}
-import me.herbix.ts.logic.Region.{Region, RegionState}
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
-
 import me.herbix.ts.util.ConditionBuilder._
-
-import scala.collection.mutable
 
 /**
   * Created by Chaofan on 2016/7/24.
@@ -167,7 +163,9 @@ object Card015Nasser extends CardInstant(15, 1, USSR, true) {
 object Card016WarsawPact extends CardMultiStep(16, 3, USSR, true) {
   @step1(cardEventYesNo)
   def removeUSOrAddUSSR(game: Game, input: Operation): Int = {
-    if (input.asInstanceOf[OperationYesNo].value) 2 else 3
+    val op = input.asInstanceOf[OperationYesNo]
+    game.recordHistory(new HistoryYesNo(USSR, this, op.value))
+    if (op.value) 2 else 3
   }
 
   @step2(cardEventSelectCountry, 4, false, selectCountry.inRegion(Region.EastEurope))
@@ -221,12 +219,15 @@ object Card020OlympicGames extends CardMultiStep(20, 2, Neutral, false) {
   }
 
   @prepare
-  def changeOperatingPlayer(game: Game): Unit = game.operatingPlayerChange(Faction.getOpposite(faction))
+  def changeOperatingPlayer(game: Game, faction: Faction): Unit =
+    game.operatingPlayerChange(Faction.getOpposite(faction))
 
   @step1(cardEventYesNo)
-  def decideAttendance(game: Game, input: Operation): Int = {
+  def decideAttendance(game: Game, faction: Faction, input: Operation): Int = {
     game.operatingPlayerRollBack()
-    if (input.asInstanceOf[OperationYesNo].value) {
+    val op = input.asInstanceOf[OperationYesNo]
+    game.recordHistory(new HistoryYesNo(faction, this, op.value))
+    if (op.value) {
       var winner = Neutral
       do {
         val myDice = game.rollDice()

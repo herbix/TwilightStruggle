@@ -1,4 +1,4 @@
-/src/main/resources/config.property
+/app/src/main/resources/config.property
 
 # Built application files
 *.apk

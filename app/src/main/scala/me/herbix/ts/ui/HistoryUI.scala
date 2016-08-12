@@ -5,6 +5,7 @@ import java.awt.event.{MouseEvent, MouseListener, MouseMotionAdapter}
 import javax.swing.JPanel
 
 import me.herbix.ts.logic._
+import me.herbix.ts.logic.card.{Card016WarsawPact, Card020OlympicGames, Card067GrainSales}
 import me.herbix.ts.util.{Lang, Resource}
 
 import scala.collection.immutable.List
@@ -148,6 +149,14 @@ class HistoryUI(game: Game) extends JPanel {
         }
       case h: HistoryRegion =>
         String.format(Lang.historyRegion, Lang.getFactionName(h.faction), Lang.getRegionName(h.region))
+      case h: HistoryYesNo =>
+        val value = h.fromCard match {
+          case Card016WarsawPact => if(h.value) Lang.yes else Lang.no
+          case Card020OlympicGames => if(h.value) Lang.yes else Lang.no
+          case Card067GrainSales => if(h.value) Lang.play else Lang.giveBack
+          case _ => if(h.value) Lang.yes else Lang.no
+        }
+        String.format(Lang.historyYesNo, Lang.getFactionName(h.faction), value)
       case h => h.toString
     }
     var height = 25

@@ -495,7 +495,9 @@ object Card067GrainSales extends CardMultiStep(67, 2, US, false) {
 
   @step1(cardEventSpecial)
   def playOrReturn(game: Game, input: Operation): Int = {
-    if (input.asInstanceOf[OperationYesNo].value) {
+    val op = input.asInstanceOf[OperationYesNo]
+    game.recordHistory(new HistoryYesNo(US, this, op.value))
+    if (op.value) {
       val card = game.currentCardData.asInstanceOf[Card]
       game.handRemove(USSR, card)
       game.recordHistory(new HistoryLoseCard(USSR, card))

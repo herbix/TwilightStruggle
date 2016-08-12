@@ -1,4 +1,0 @@
-# Rename this file to config.property
-host=ts.herbix.me
-port=23981
-pid-file=/var/run/ts-server.pid

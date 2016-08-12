@@ -45,3 +45,4 @@ class HistoryRollDice(val faction: Faction, val dice: Int, val modifier: Int = 0
 class HistoryRegion(val faction: Faction, val region: Region) extends History
 class HistoryAddFlag(faction: Faction, flag: Flag, data: Any) extends HistoryFlag(faction, flag, data)
 class HistoryRemoveFlag(faction: Faction, flag: Flag, data: Any) extends HistoryFlag(faction, flag, data)
+class HistoryYesNo(val faction: Faction, val fromCard: Card, val value: Boolean) extends History

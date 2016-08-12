@@ -87,10 +87,18 @@ object StepAnnotationMacro {
               ..${if (returnType.toString != "Int") Seq(q"${step + 1}") else Seq()}
             }
             """
+        case q"def $name($game: Game, $faction: Faction): $returnType = { ..$body }" =>
+          q"""
+            addStepInfo($step, $name, ..$annotationParams)
+            def $name($game: Game, $faction: Faction, input: Operation): Int = {
+              ..$body
+              ..${if (returnType.toString != "Int") Seq(q"${step + 1}") else Seq()}
+            }
+            """
         case q"def $name($game: Game, $input: Operation): $returnType = { ..$body }" =>
           q"""
             addStepInfo($step, $name, ..$annotationParams)
-            def $name($game: Game, faction: Faction, input: Operation): Int = {
+            def $name($game: Game, faction: Faction, $input: Operation): Int = {
               ..$body
               ..${if (returnType.toString != "Int") Seq(q"${step + 1}") else Seq()}
             }
