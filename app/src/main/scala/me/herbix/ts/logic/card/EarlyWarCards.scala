@@ -125,7 +125,7 @@ object Card012RomanianAbdication extends CardInstant(12, 1, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val romania = WorldMap.countries("Romania")
     game.modifyInfluence(US, false, Map(romania -> game.influence(romania, US)))
-    game.modifyInfluence(USSR, true, Map(romania -> romania.stability))
+    game.modifyInfluence(USSR, true, Map(romania -> Math.max(0, romania.stability - game.influence(romania, USSR))))
     true
   }
 }

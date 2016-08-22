@@ -87,7 +87,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
 
     for (card <- hand) {
       val l = cardpos(n)
-      val img = if (otherHand.isSelected && !showOppositeHand) Resource.card(0) else Resource.card(card.id)
+      val img = if (shouldNotShowCards) Resource.card(0) else Resource.card(card.id)
       val t = if (n == hoverCardId || pendingCardSelection(cards(n))) 0 else 10
       g.drawImage(img, l, t, cardWidth, img.getHeight * cardWidth / img.getWidth, null)
       g.setColor(Resource.textColor)
@@ -191,7 +191,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
         100 + (w - cardWidth) * n / (c - 1)
       else
         100 + (w - cardWidth) * (n - 1) / (c - 1) + cardWidth
-      cards(n) = if (otherHand.isSelected) Cards.fromId(0) else card
+      cards(n) = if (shouldNotShowCards) Cards.fromId(0) else card
       cardsEnabled(n) = getCardEnabled(card)
       n += 1
     }
@@ -201,6 +201,8 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       cards(i) = null
     }
   }
+
+  def shouldNotShowCards: Boolean = otherHand.isSelected && !showOppositeHand
 
   def hasEventCards: Boolean = {
     val data = game.currentCardData
