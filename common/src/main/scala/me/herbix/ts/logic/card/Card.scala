@@ -46,6 +46,7 @@ abstract class Card(val id: Int, val op: Int, val faction: Faction, val isRemove
 
   /**
     * transfer to next state
+ *
     * @param game game instance
     * @param faction US or USSR
     * @param input the operation

@@ -13,6 +13,7 @@ abstract class CardInstant(id: Int, op: Int, faction: Faction, isRemovedAfterEve
 
   /**
     * do instant event
+ *
     * @param game game instance
     * @param faction US or USSR
     * @return true if event ends normally

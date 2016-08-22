@@ -1,4 +1,4 @@
-package me.herbix.ts.test
+package test
 
 import java.io.{ByteArrayInputStream, DataInputStream, DataOutputStream, ByteArrayOutputStream}
 
