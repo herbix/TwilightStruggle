@@ -168,6 +168,8 @@ class ControlUI(val game: Game) extends JPanel {
           case Card045Summit => showSubUI(Summit)
           case Card046HowILearnStopWorry => showSubUI(StopWorry)
         }
+      case oh: OperationSelectCardsHint =>
+        selectMultipleCardsUI(tip);
       case _ => waitOtherUI()
     }
 
