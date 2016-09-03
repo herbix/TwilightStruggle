@@ -8,6 +8,7 @@ import scala.collection.mutable
 class Room(val creator: NetHandlerServer) {
   val id: Int = Server.nextId()
   val netHandlers = mutable.Set.empty[NetHandlerServer]
+  var enableJoin = true
 
   netHandlers += creator
   Server.rooms += id -> this

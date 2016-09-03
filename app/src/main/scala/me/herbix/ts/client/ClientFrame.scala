@@ -78,10 +78,8 @@ object ClientFrame extends JFrame {
   newRoom.setEnabled(false)
   joinRoom.setEnabled(false)
 
-
   new Thread() {
     override def run(): Unit = {
-
       val workGroup = new NioEventLoopGroup()
 
       try {

@@ -11,16 +11,24 @@ import io.netty.handler.codec.{ByteToMessageCodec, MessageToMessageCodec}
   */
 class NetCodec extends ByteToMessageCodec[Packet] {
 
-  override def encode(ctx: ChannelHandlerContext, msg: Packet, buffer: ByteBuf): Unit = {
-    buffer.writeByte(Packet.getIdByInstance(msg))
-    msg.encode(buffer)
+  override def encode(ctx: ChannelHandlerContext, packet: Packet, buffer: ByteBuf): Unit = {
+    buffer.writeByte(Packet.getIdByInstance(packet))
+    packet.encode(buffer)
   }
 
-  override def decode(ctx: ChannelHandlerContext, msg: ByteBuf, out: util.List[AnyRef]): Unit = {
-    val id = msg.readByte()
+  override def decode(ctx: ChannelHandlerContext, buffer: ByteBuf, out: util.List[AnyRef]): Unit = {
+    buffer.markReaderIndex()
+
+    val id = buffer.readByte()
     val packet = Packet.getInstanceById(id)
-    packet.decode(msg)
-    out.add(packet)
+
+    try {
+      packet.decode(buffer)
+      out.add(packet)
+    } catch {
+      case ex: IndexOutOfBoundsException =>
+        buffer.resetReaderIndex()
+    }
   }
 
 }

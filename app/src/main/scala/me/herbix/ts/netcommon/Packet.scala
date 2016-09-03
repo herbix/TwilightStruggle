@@ -26,6 +26,7 @@ object Packet {
   registerPacketType(classOf[SPacketOtherJoinRoom])
   registerPacketType(classOf[SPacketLeaveRoom])
   registerPacketType(classOf[SPacketDestroyRoom])
+  registerPacketType(classOf[SPacketEnableJoin])
 
   id = 40
   registerPacketType(classOf[CPacketVersion])
@@ -34,6 +35,7 @@ object Packet {
   registerPacketType(classOf[CPacketJoinRoom])
   registerPacketType(classOf[CPacketLeaveRoom])
   registerPacketType(classOf[CPacketExit])
+  registerPacketType(classOf[CPacketEnableJoin])
 
   private def registerPacketType(classType: Class[_ <: Packet]): Int = {
     val typeId = id

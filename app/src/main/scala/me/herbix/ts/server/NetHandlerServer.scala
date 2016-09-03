@@ -30,6 +30,7 @@ class NetHandlerServer extends SimpleChannelInboundHandler[Packet]  {
       case p: CPacketLeaveRoom => leaveRoom(p)
       case p: PacketRoomData => roomData(p)
       case p: CPacketExit => exit(p)
+      case p: CPacketEnableJoin => enableJoin(p)
     }
   }
 
@@ -52,6 +53,9 @@ class NetHandlerServer extends SimpleChannelInboundHandler[Packet]  {
     if (version == "NoVersion") {
       for ((_, room) <- Server.rooms) {
         sendNewRoom(room)
+        if (!room.enableJoin) {
+          sendEnableJoin(room, room.enableJoin)
+        }
       }
     }
     version = packet.version
@@ -76,6 +80,9 @@ class NetHandlerServer extends SimpleChannelInboundHandler[Packet]  {
       return
     }
     val room = Server.rooms(roomId)
+    if (!room.enableJoin) {
+      return
+    }
     if (this.room != null) {
       this.room.leave(this)
     }
@@ -95,6 +102,15 @@ class NetHandlerServer extends SimpleChannelInboundHandler[Packet]  {
     val buffer = packet.bytes
     if (room != null) {
       room.roomDataExcept(buffer, this)
+    }
+  }
+
+  def enableJoin(packet: CPacketEnableJoin): Unit = {
+    val enable = packet.enable
+    println(s"$id enableJoin $enable")
+    if (room != null && room.creator == this) {
+      room.enableJoin = enable
+      Server.netHandlers.values.foreach(_.sendEnableJoin(room, enable))
     }
   }
 
@@ -120,6 +136,10 @@ class NetHandlerServer extends SimpleChannelInboundHandler[Packet]  {
 
   def sendData(buffer: Array[Byte]): Unit = {
     ctx.writeAndFlush(new PacketRoomData(buffer))
+  }
+
+  def sendEnableJoin(room: Room, enable: Boolean): Unit = {
+    ctx.writeAndFlush(new SPacketEnableJoin(room.id, enable))
   }
 
   def close(): Unit = {

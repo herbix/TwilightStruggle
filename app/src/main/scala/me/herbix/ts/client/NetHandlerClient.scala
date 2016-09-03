@@ -46,6 +46,7 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
       case p: SPacketLeaveRoom => leaveRoom(p)
       case p: SPacketDestroyRoom => destroyRoom(p)
       case p: PacketRoomData => roomData(p)
+      case p: Packet => println(s"$id $p")
     }
   }
 
@@ -197,6 +198,11 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
     ctx.writeAndFlush(new CPacketVersion(version))
   }
 
+  def sendEnableJoin(enable: Boolean): Unit = {
+    println("send enableJoin " + enable)
+    ctx.writeAndFlush(new CPacketEnableJoin(enable))
+  }
+
   def roomProperty(): Unit = {
     println("roomProperty")
     ClientFrame.extraInfluence = roomIn.readInt()
@@ -250,6 +256,7 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
     seed = random.nextLong()
     roomOut.writeLong(seed)
     roomOut.flush()
+    sendEnableJoin(false)
     showGame()
   }
 
@@ -288,6 +295,7 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
   }
 
   def close(): Unit = {
+    sendExit()
     roomIn.close()
     ctx.close()
   }
