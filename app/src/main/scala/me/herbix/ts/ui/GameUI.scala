@@ -117,12 +117,16 @@ class GameUI(playerId: Int) extends JFrame {
         controlUI.uiType match {
           case controlUI.UIType.SelectCard =>
             controlUI.uiSelectCard.setCard(card)
+            handUI.repaint()
           case controlUI.UIType.SelectCardAndAction =>
             controlUI.uiSelectCardAndAction.setCard(card)
+            handUI.repaint()
           case controlUI.UIType.SelectCardOrCancel =>
             controlUI.uiSelectCardOrCancel.setCard(card)
+            handUI.repaint()
           case controlUI.UIType.SelectMultipleCards =>
             controlUI.uiSelectMultipleCards.toggleCard(card)
+            handUI.repaint()
           case _ =>
         }
       }
@@ -209,12 +213,11 @@ class GameUI(playerId: Int) extends JFrame {
       }
     })
 
+    controlUI.uiSelectCard.pendingCardSelection = pendingCardSelection
+    controlUI.uiSelectCardAndAction.pendingCardSelection = pendingCardSelection
+    controlUI.uiSelectCardOrCancel.pendingCardSelection = pendingCardSelection
     controlUI.uiSelectMultipleCards.pendingCardSelection = pendingCardSelection
     handUI.pendingCardSelection = pendingCardSelection
-
-    controlUI.uiSelectMultipleCards.updateListeners :+= (() => {
-      handUI.repaint()
-    })
 
     flagsUI.flagClickListeners :+= ((faction: Faction, flag: Flag, flagData: Any) => {
       if (faction == game.playerFaction && flag == Flags.CubaMissile && game.stateStack.top != State.end) {

@@ -333,11 +333,17 @@ abstract class ControlSubUICard(parent: ControlUI, array: Array[String]) extends
   var card = Cards.fromId(0)
 
   var isLocked = false
+  var pendingCardSelection: mutable.Set[Card] = null
 
   def resetCard() = setCard(Cards.fromId(0))
 
   def setCard(card: Card): Unit = {
     if (isLocked) return
+
+    if (pendingCardSelection != null) {
+      pendingCardSelection.clear()
+      pendingCardSelection += card
+    }
 
     img = Resource.card(card.id)
     this.card = card
