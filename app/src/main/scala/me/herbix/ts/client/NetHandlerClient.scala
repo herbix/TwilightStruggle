@@ -1,29 +1,26 @@
 package me.herbix.ts.client
 
-import java.awt.event.{WindowEvent, WindowAdapter}
-import java.io.{DataOutputStream, DataInputStream}
-import java.net.Socket
-import javax.swing.{WindowConstants, SwingUtilities}
+import java.awt.event.{WindowAdapter, WindowEvent}
+import java.io.{DataInputStream, DataOutputStream}
+import javax.swing.{SwingUtilities, WindowConstants}
 
+import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 import me.herbix.ts.logic._
+import me.herbix.ts.netcommon._
 import me.herbix.ts.ui.GameUI
 import me.herbix.ts.util.Serializer._
 
-import scala.collection.mutable
 import scala.util.Random
 
 /**
   * Created by Chaofan on 2016/7/3.
   */
-class NetHandlerClient(socket: Socket) {
+class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
 
   var id = 0
   var name: String = System.getProperty("user.name", "TS-" + Integer.toHexString(Random.nextInt()))
 
   var isRoomCreator = false
-
-  val in = new DataInputStream(socket.getInputStream)
-  val out = new DataOutputStream(socket.getOutputStream)
 
   val roomInReal: RoomDataInputStream = new RoomDataInputStream()
   val roomIn = new DataInputStream(roomInReal)
@@ -32,31 +29,30 @@ class NetHandlerClient(socket: Socket) {
   val random = new Random()
   var seed = 0l
 
-  sendVersion(ClientFrame.gameVersion)
-  sendRename(name)
+  var ctx: ChannelHandlerContext = null
 
-  new Thread() {
-    override def run(): Unit = {
-      try {
-        while (true) {
-          val b = in.readByte()
-          b match {
-            case 0 => id = in.readInt()
-            case 1 => destroyRoom()
-            case 2 => newRoom()
-            case 3 => joinRoom()
-            case 4 => leaveRoom()
-            case 5 => roomData()
-            case 6 => otherJoinRoom()
-          }
-        }
-      } catch {
-        case e: Throwable =>
-          e.printStackTrace()
-          close()
-      }
+  override def channelActive(ctx: ChannelHandlerContext): Unit = {
+    this.ctx = ctx
+    sendVersion(ClientFrame.gameVersion)
+    sendRename(name)
+  }
+
+  override def channelRead0(ctx: ChannelHandlerContext, msg: Packet): Unit = {
+    msg match {
+      case p: SPacketId => id = p.id
+      case p: SPacketNewRoom => newRoom(p)
+      case p: SPacketJoinRoom => joinRoom(p)
+      case p: SPacketOtherJoinRoom => otherJoinRoom(p)
+      case p: SPacketLeaveRoom => leaveRoom(p)
+      case p: SPacketDestroyRoom => destroyRoom(p)
+      case p: PacketRoomData => roomData(p)
     }
-  }.start()
+  }
+
+  override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
+    println(s"$id $cause")
+    close()
+  }
 
   new Thread() {
     override def run(): Unit = {
@@ -78,8 +74,8 @@ class NetHandlerClient(socket: Socket) {
     }
   }.start()
 
-  def destroyRoom(): Unit = {
-    val id = in.readInt()
+  def destroyRoom(packet: SPacketDestroyRoom): Unit = {
+    val id = packet.id
     ClientFrame.roomCreatorMap -= id
     println(s"destroyRoom $id")
     SwingUtilities.invokeLater(new Runnable {
@@ -96,11 +92,11 @@ class NetHandlerClient(socket: Socket) {
     })
   }
 
-  def newRoom(): Unit = {
-    val roomId = in.readInt()
-    val creatorId = in.readInt()
-    val name = in.readUTF()
-    val version = in.readUTF()
+  def newRoom(packet: SPacketNewRoom): Unit = {
+    val roomId = packet.id
+    val creatorId = packet.creator
+    val name = packet.name
+    val version = packet.version
     ClientFrame.roomCreatorMap += roomId -> creatorId
     println(s"newRoom $roomId $creatorId $name")
     SwingUtilities.invokeLater(new Runnable {
@@ -111,15 +107,9 @@ class NetHandlerClient(socket: Socket) {
     })
   }
 
-  def joinRoom(): Unit = {
-    val roomId = in.readInt()
-    val roommateCount = in.readInt()
-    val info = mutable.Set.empty[(Int, String)]
-    for (i <- 0 until roommateCount) {
-      val id = in.readInt()
-      val name = in.readUTF()
-      info += ((id, name))
-    }
+  def joinRoom(packet: SPacketJoinRoom): Unit = {
+    val roomId = packet.id
+    val info = packet.members
     isRoomCreator = ClientFrame.roomCreatorMap(roomId) == id
     RoomDialog.start.setEnabled(isRoomCreator)
     println(s"joinRoom $roomId")
@@ -134,8 +124,8 @@ class NetHandlerClient(socket: Socket) {
     })
   }
 
-  def leaveRoom(): Unit = {
-    val id = in.readInt()
+  def leaveRoom(packet: SPacketLeaveRoom): Unit = {
+    val id = packet.id
     println(s"leaveRoom $id")
     SwingUtilities.invokeLater(new Runnable {
       override def run(): Unit = {
@@ -155,16 +145,13 @@ class NetHandlerClient(socket: Socket) {
     })
   }
 
-  def roomData(): Unit = {
-    val length = in.readInt()
-    val buffer = new Array[Byte](length)
-    in.readFully(buffer)
-    roomInReal.fill(buffer)
+  def roomData(packet: PacketRoomData): Unit = {
+    roomInReal.fill(packet.bytes)
   }
 
-  def otherJoinRoom(): Unit = {
-    val id = in.readInt()
-    val name = in.readUTF()
+  def otherJoinRoom(packet: SPacketOtherJoinRoom): Unit = {
+    val id = packet.id
+    val name = packet.name
     println(s"otherJoinRoom $id")
     if (isRoomCreator) {
       roomSendProperty()
@@ -178,55 +165,36 @@ class NetHandlerClient(socket: Socket) {
 
   def sendExit(): Unit = {
     println("send exit")
-    this.synchronized {
-      out.writeByte(0)
-    }
+    ctx.writeAndFlush(new CPacketExit())
   }
 
   def sendRename(name: String): Unit = {
     println("send rename " + name)
-    this.synchronized {
-      out.writeByte(1)
-      out.writeUTF(name)
-    }
+    ctx.writeAndFlush(new CPacketRename(name))
   }
 
   def sendNewRoom(): Unit = {
     println("send newRoom")
-    this.synchronized {
-      out.writeByte(2)
-    }
+    ctx.writeAndFlush(new CPacketNewRoom())
   }
 
   def sendJoinRoom(roomId: Int): Unit = {
     println("send joinRoom " + roomId)
-    this.synchronized {
-      out.writeByte(3)
-      out.writeInt(roomId)
-    }
+    ctx.writeAndFlush(new CPacketJoinRoom(roomId))
   }
 
   def sendLeaveRoom(): Unit = {
     println("send leaveRoom")
-    this.synchronized {
-      out.writeByte(4)
-    }
+    ctx.writeAndFlush(new CPacketLeaveRoom())
   }
 
   def sendRoomData(buffer: Array[Byte]): Unit = {
-    this.synchronized {
-      out.writeByte(5)
-      out.writeInt(buffer.length)
-      out.write(buffer)
-    }
+    ctx.writeAndFlush(new PacketRoomData(buffer))
   }
 
   def sendVersion(version: String): Unit = {
     println("send version " + version)
-    this.synchronized {
-      out.writeByte(6)
-      out.writeUTF(version)
-    }
+    ctx.writeAndFlush(new CPacketVersion(version))
   }
 
   def roomProperty(): Unit = {
@@ -321,10 +289,7 @@ class NetHandlerClient(socket: Socket) {
 
   def close(): Unit = {
     roomIn.close()
-    try {
-      socket.close()
-    } catch {
-      case e: Throwable =>
-    }
+    ctx.close()
   }
+
 }

@@ -2,8 +2,13 @@ package me.herbix.ts.server
 
 import java.io.FileWriter
 import java.lang.management.ManagementFactory
-import java.net.ServerSocket
 
+import io.netty.bootstrap.ServerBootstrap
+import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.SocketChannel
+import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.{ChannelInitializer, ChannelOption, EventLoopGroup}
+import me.herbix.ts.netcommon.NetCodec
 import me.herbix.ts.util.Config
 
 import scala.collection.mutable
@@ -20,11 +25,28 @@ object Server {
       savePidFile()
     }
 
-    val serverSocket = new ServerSocket(Config.port)
-    while (true) {
-      val socket = serverSocket.accept()
-      println(s"Receive connection $socket")
-      new NetHandlerServer(socket)
+    val bossGroup: EventLoopGroup = new NioEventLoopGroup()
+    val workerGroup: EventLoopGroup = new NioEventLoopGroup()
+
+    try {
+      val bootstrap = new ServerBootstrap()
+      bootstrap.group(bossGroup, workerGroup)
+        .channel(classOf[NioServerSocketChannel])
+        .childHandler(new ChannelInitializer[SocketChannel] {
+          override def initChannel(ch: SocketChannel): Unit = {
+            println(s"Receive connection ${ch.remoteAddress()}")
+            ch.pipeline().addLast(new NetCodec, new NetHandlerServer)
+          }
+        })
+        .option(ChannelOption.SO_BACKLOG.asInstanceOf[ChannelOption[Any]], 128)
+        .childOption(ChannelOption.SO_KEEPALIVE.asInstanceOf[ChannelOption[Any]], true)
+
+      val channelFuture = bootstrap.bind(Config.port).sync()
+
+      channelFuture.channel().closeFuture().sync()
+    } finally {
+      bossGroup.shutdownGracefully()
+      workerGroup.shutdownGracefully()
     }
   }
 

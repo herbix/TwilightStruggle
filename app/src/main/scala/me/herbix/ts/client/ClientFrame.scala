@@ -2,13 +2,18 @@ package me.herbix.ts.client
 
 import java.awt.event.{ActionEvent, ActionListener}
 import java.awt.{BorderLayout, Dimension}
-import java.net.Socket
 import java.util.Properties
 import javax.swing._
 import javax.swing.table.DefaultTableModel
 
+import io.netty.bootstrap.Bootstrap
+import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.SocketChannel
+import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.channel.{ChannelInitializer, ChannelOption}
 import me.herbix.ts.client.NewRoomDialog.GameVariantDelegate
 import me.herbix.ts.logic.{Faction, GameVariant}
+import me.herbix.ts.netcommon.NetCodec
 import me.herbix.ts.util.{Config, Lang, Resource}
 
 import scala.collection.mutable
@@ -73,11 +78,26 @@ object ClientFrame extends JFrame {
   newRoom.setEnabled(false)
   joinRoom.setEnabled(false)
 
+
   new Thread() {
     override def run(): Unit = {
+
+      val workGroup = new NioEventLoopGroup()
+
       try {
-        val socket = new Socket(Config.host, Config.port)
-        netHandler = new NetHandlerClient(socket)
+        val bootstrap = new Bootstrap()
+        bootstrap.group(workGroup)
+          .channel(classOf[NioSocketChannel])
+          .option(ChannelOption.SO_KEEPALIVE.asInstanceOf[ChannelOption[Any]], true)
+          .handler(new ChannelInitializer[SocketChannel] {
+            override def initChannel(ch: SocketChannel): Unit = {
+              netHandler = new NetHandlerClient
+              ch.pipeline().addLast(new NetCodec, netHandler)
+            }
+          })
+
+        val channelFuture = bootstrap.connect(Config.host, Config.port).sync()
+
         SwingUtilities.invokeLater(new Runnable {
           override def run(): Unit = {
             setTitle(s"冷战热斗[$gameVersion] - " + netHandler.name)
@@ -85,6 +105,8 @@ object ClientFrame extends JFrame {
             joinRoom.setEnabled(true)
           }
         })
+
+        channelFuture.channel().closeFuture().sync()
       } catch {
         case e: Throwable =>
           SwingUtilities.invokeLater(new Runnable {
@@ -92,6 +114,8 @@ object ClientFrame extends JFrame {
               setTitle(s"冷战热斗[$gameVersion] - 连接失败")
             }
           })
+      } finally {
+        workGroup.shutdownGracefully()
       }
     }
   }.start()
