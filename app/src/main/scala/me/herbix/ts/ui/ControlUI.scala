@@ -209,6 +209,7 @@ class ControlUI(val game: Game) extends JPanel {
   def selectMultipleCardsUI(tip: String) = {
     showSubUI(SelectMultipleCards)
     uiSelectMultipleCards.text(2) = tip
+    uiSelectMultipleCards.pendingCardSelection.clear()
   }
 
   def selectCardAndActionUI(canSpace: (Game, Card) => Boolean, canEvent: (Game, Card) => Boolean,
