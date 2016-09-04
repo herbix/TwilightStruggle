@@ -342,7 +342,9 @@ abstract class ControlSubUICard(parent: ControlUI, array: Array[String]) extends
 
     if (pendingCardSelection != null) {
       pendingCardSelection.clear()
-      pendingCardSelection += card
+      if (card.id != 0) {
+        pendingCardSelection += card
+      }
     }
 
     img = Resource.card(card.id)
