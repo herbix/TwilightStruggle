@@ -173,6 +173,9 @@ class Game extends GameTrait {
   }
 
   private def nextStateContainsException(input: Operation): Unit = {
+    if (operatingPlayer == Neutral) {
+      clearSnapshots()
+    }
     input match {
       case op: OperationCubaMissileRequest =>
         if (stateStack.top != cubaMissileRemove) {
@@ -738,6 +741,8 @@ class Game extends GameTrait {
     setDefcon(defcon + 1)
 
     flags.turnEnds()
+
+    operatingPlayer = Neutral
 
     stateStack.push(selectHeadlineCard)
   }

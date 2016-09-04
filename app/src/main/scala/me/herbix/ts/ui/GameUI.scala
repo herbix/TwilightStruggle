@@ -277,8 +277,8 @@ class GameUI(playerId: Int) extends JFrame {
       val game2 = game.anotherGame.asInstanceOf[Game]
       val space = game1.space(game.playerFaction)
 
-      game1.space(game.playerFaction) = SpaceLevel(space.level + step)
-      game2.space(game.playerFaction) = SpaceLevel(space.level + step)
+      game1.increaseSpace(game.playerFaction, step)
+      game2.increaseSpace(game.playerFaction, step)
 
       worldMapUI.repaint()
     }
