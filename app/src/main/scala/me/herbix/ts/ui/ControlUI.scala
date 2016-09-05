@@ -111,24 +111,28 @@ class ControlUI(val game: Game) extends JPanel {
     val oldUI = uiMap(uiType)
 
     val state = game.stateStack.top
-    val tip = state match {
-      case State.putStartUSSR => Lang.putEastEurope
-      case State.putStartUS => Lang.putWestEurope
-      case State.putStartExtra | State.noradInfluence => Lang.putExtra
-      case State.cardOperationAddInfluence => Lang.operationAddInfluence
-      case State.selectHeadlineCard | State.selectHeadlineCard2 => Lang.selectHeadline
-      case State.discardHeldCard => Lang.discardHeldCard
-      case State.quagmireDiscard => Lang.selectQuagmireDiscard
-      case State.quagmirePlayScoringCard => Lang.selectQuagmireScoringCard
-      case State.cardOperationRealignment => Lang.operationRealignment
-      case State.cardOperationCoup => Lang.operationCoup
-      case State.cubaMissileRemove => Lang.cardTips(Card040CubaMissile)(0)
-      case State.selectTake8Rounds => Lang.take8rounds
-      case State.EventStates(_) =>
-        val card = game.currentCard
-        val step = card.asInstanceOf[CardMultiStep].getStep(game)
-        Lang.cardTips(card)(step-1)
-      case _ => ""
+    val tip = try {
+      state match {
+        case State.putStartUSSR => Lang.putEastEurope
+        case State.putStartUS => Lang.putWestEurope
+        case State.putStartExtra | State.noradInfluence => Lang.putExtra
+        case State.cardOperationAddInfluence => Lang.operationAddInfluence
+        case State.selectHeadlineCard | State.selectHeadlineCard2 => Lang.selectHeadline
+        case State.discardHeldCard => Lang.discardHeldCard
+        case State.quagmireDiscard => Lang.selectQuagmireDiscard
+        case State.quagmirePlayScoringCard => Lang.selectQuagmireScoringCard
+        case State.cardOperationRealignment => Lang.operationRealignment
+        case State.cardOperationCoup => Lang.operationCoup
+        case State.cubaMissileRemove => Lang.cardTips(Card040CubaMissile)(0)
+        case State.selectTake8Rounds => Lang.take8rounds
+        case State.EventStates(_) =>
+          val card = game.currentCard
+          val step = card.asInstanceOf[CardMultiStep].getStep(game)
+          Lang.cardTips(card)(step - 1)
+        case _ => ""
+      }
+    } catch {
+      case ex: Throwable => null
     }
 
     game.getOperationHint match {

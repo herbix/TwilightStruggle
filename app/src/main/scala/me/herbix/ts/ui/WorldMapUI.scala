@@ -5,7 +5,8 @@ import java.awt.event._
 import java.awt.image.BufferedImage
 import javax.swing.{JPanel, JScrollPane, SwingUtilities}
 
-import me.herbix.ts.logic.{WorldMap, Country, Faction, Game}
+import me.herbix.ts.logic.SpaceLevel.SpaceLevel
+import me.herbix.ts.logic._
 import me.herbix.ts.util.MapValue
 import me.herbix.ts.util.Resource._
 
@@ -50,6 +51,8 @@ class WorldMapUI(val game: Game) extends JPanel {
   var countryHoverListeners: List[Country => Unit] = List()
   var countryClickListeners: List[(Country, Int) => Unit] = List()
 
+  var spaceHoverListeners: List[SpaceLevel => Unit] = List()
+
   setPreferredSize(new Dimension((bg.getWidth * scale).toInt, (bg.getHeight * scale).toInt))
 
   addMouseWheelListener(new MouseWheelListener {
@@ -88,6 +91,7 @@ class WorldMapUI(val game: Game) extends JPanel {
     var oldy = 0
     var dragging = false
     var oldHoverCountry: Country = null
+    var oldHoverSpaceLevel: SpaceLevel = null
     override def mousePressed(e: MouseEvent): Unit = {
       if (e.getButton != MouseEvent.BUTTON1) {
         dragging = true
@@ -115,6 +119,13 @@ class WorldMapUI(val game: Game) extends JPanel {
           countryHoverListeners.foreach(_(country))
         }
       }
+      val spaceLevel = findSpaceLevel(e.getX, e.getY)
+      if (spaceLevel != oldHoverSpaceLevel) {
+        oldHoverSpaceLevel = spaceLevel
+        if (spaceLevel != null) {
+          spaceHoverListeners.foreach(_(spaceLevel))
+        }
+      }
     }
     override def mouseDragged(e: MouseEvent): Unit = {
       if (dragging) {
@@ -134,6 +145,15 @@ class WorldMapUI(val game: Game) extends JPanel {
         val cx = rect._1
         val cy = rect._2
         nx >= cx && nx < cx + rect._3 && ny >= cy && ny < cy + rect._4
+      }).orNull
+    def findSpaceLevel(x: Int, y: Int): SpaceLevel =
+      (0 to 8).map(SpaceLevel.apply).find(l => {
+        val (tx, ty) = getTokenCenter(MapValue.space0, MapValue.space8, MapValue.spaceSize, 0, 8, l.level)
+        val nx = x / scale
+        val ny = y / scale
+        val cx = tx - MapValue.spaceSize._1 / 2
+        val cy = ty - MapValue.spaceSize._2 / 2
+        nx >= cx && nx < cx + MapValue.spaceSize._1 && ny >= cy && ny < cy + MapValue.spaceSize._2
       }).orNull
   }
 

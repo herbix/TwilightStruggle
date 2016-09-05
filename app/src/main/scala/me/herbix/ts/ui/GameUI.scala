@@ -5,6 +5,7 @@ import java.awt.{BorderLayout, Color, Dimension}
 import javax.swing._
 
 import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.{Card, Cards}
 import me.herbix.ts.util.Resource
@@ -164,6 +165,10 @@ class GameUI(playerId: Int) extends JFrame {
 
     flagsUI.flagHoverListeners :+= ((faction: Faction, flag: Flag, flagData: Any) => {
       detailUI.setFlag(faction, flag, flagData)
+    })
+
+    worldMapUI.spaceHoverListeners :+= ((space: SpaceLevel) => {
+      detailUI.setSpace(space)
     })
 
     controlUI.uiSelectCountry.pendingCountrySelection = pendingCountrySelection

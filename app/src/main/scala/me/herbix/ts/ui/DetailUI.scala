@@ -4,6 +4,7 @@ import java.awt._
 import javax.swing.JPanel
 
 import me.herbix.ts.logic.Faction._
+import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.{Cards, Card}
 import me.herbix.ts.util.{Lang, MapValue, Resource}
@@ -16,7 +17,7 @@ class DetailUI(game: Game) extends JPanel {
 
   object DetailMode extends Enumeration {
     type DetailMode = Value
-    val CountryMode, CardMode, FlagMode, EmptyMode = Value
+    val CountryMode, CardMode, FlagMode, SpaceMode, EmptyMode = Value
   }
 
   import DetailMode._
@@ -27,6 +28,7 @@ class DetailUI(game: Game) extends JPanel {
   var flag: Flag = null
   var flagData: Any = null
   var flagFaction: Faction = US
+  var space: SpaceLevel = null
 
   def setCountry(country: Country): Unit = {
     mode = CountryMode
@@ -48,6 +50,12 @@ class DetailUI(game: Game) extends JPanel {
     repaint()
   }
 
+  def setSpace(space: SpaceLevel): Unit = {
+    mode = SpaceMode
+    this.space = space
+    repaint()
+  }
+
   override def paint(g: Graphics): Unit = {
     super.paint(g)
 
@@ -63,6 +71,8 @@ class DetailUI(game: Game) extends JPanel {
         paintCard(g2d)
       case DetailMode.FlagMode =>
         paintFlag(g2d)
+      case DetailMode.SpaceMode =>
+        paintSpace(g2d)
       case _ =>
     }
   }
@@ -371,6 +381,31 @@ class DetailUI(game: Game) extends JPanel {
       ) +
         (if (flag.flagType == FlagType.ThisTurn) "\n" + Lang.thisTurnFlag else "")
 
+
+    paintName(g, name)
+    paintDesc(g, desc)
+  }
+
+  def paintSpace(g: Graphics2D): Unit = {
+    val level = space.level
+
+    val transform = g.getTransform
+    g.translate((getWidth - MapValue.spaceSize._1) / 2, 10)
+
+    val x = if (level == 0) {
+      MapValue.space0._1
+    } else {
+      MapValue.space0._1 + (MapValue.space8._1 - MapValue.space0._1) / 8 * level + 3
+    }
+    val y = MapValue.space0._2
+    g.drawImage(worldMap, 0, 0, MapValue.spaceSize._1, MapValue.spaceSize._2, x, y, x + MapValue.spaceSize._1, y + MapValue.spaceSize._2, null)
+
+    g.setTransform(transform)
+
+    g.translate(10, 20 + MapValue.spaceSize._2 - 30)
+
+    val name = Lang.spaceInfo(level)._1
+    val desc = Lang.spaceInfo(level)._2
 
     paintName(g, name)
     paintDesc(g, desc)
