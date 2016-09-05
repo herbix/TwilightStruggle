@@ -67,8 +67,12 @@ object ClientFrame extends JFrame {
   val joinRoom = new JButton("加入")
   joinRoom.setPreferredSize(new Dimension(100, 30))
 
+  val help = new JButton("帮助")
+  help.setPreferredSize(new Dimension(100, 30))
+
   panelBottom.add(newRoom)
   panelBottom.add(joinRoom)
+  panelBottom.add(help)
 
   pack()
 
@@ -166,6 +170,12 @@ object ClientFrame extends JFrame {
             JOptionPane.showMessageDialog(ClientFrame, "版本不同，不能加入。", "冷战热斗", JOptionPane.ERROR_MESSAGE)
         }
       }
+    }
+  })
+
+  help.addActionListener(new ActionListener {
+    override def actionPerformed(e: ActionEvent): Unit = {
+      HelpDialog.setVisible(true)
     }
   })
 
