@@ -11,6 +11,14 @@
 
     <artifactId>common</artifactId>
 
+    <repositories>
+        <repository>
+            <id>herbix-public</id>
+            <name>Herbix Public</name>
+            <url>http://maven.herbix.me/content/groups/public/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <artifactId>stepanno</artifactId>
