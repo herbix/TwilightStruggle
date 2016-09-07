@@ -89,6 +89,8 @@ object Lang {
 
   val thisTurnFlag = "回合结束时标记失效。"
 
+  val removeFromGame = "此牌于事件发动后移出游戏"
+
   val improve = "改善"
   val degrade = "恶化"
   val keep = "不变"
@@ -259,10 +261,10 @@ object Lang {
   val cardInfo = new Array[(String, String)](120)
   for (item <- CardInfo.infoItems) {
     val id = item.name.toInt
-    val title = item.lines.head.content + (if (item.properties.contains("star")) "*" else "")
+    val title = item.lines.head.content + (if (item("star") != null) "*" else "")
     val desc = item.lines
-      .takeRight(item.lines.length - 1)
-      .filter(!_.properties.contains("comment"))
+      .drop(1)
+      .filter(_("comment") == null)
       .map(_.content).mkString("\n")
     cardInfo(id) = (title, desc)
   }

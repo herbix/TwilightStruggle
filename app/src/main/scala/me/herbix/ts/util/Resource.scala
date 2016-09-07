@@ -1,5 +1,6 @@
 package me.herbix.ts.util
 
+import java.awt.image.BufferedImage
 import java.awt.{Color, Font}
 import javax.imageio.ImageIO
 
@@ -17,6 +18,13 @@ object Resource {
   val card = (0 to 110)
     .map(i => (i, ImageIO.read(getClass.getResourceAsStream(f"/cards/$i%03d.png"))))
     .toMap
+  val cardBg = card.map(pair => {
+    pair._1 match {
+      case 78 => (78, ImageIO.read(getClass.getResourceAsStream("/cards/078_bg.png")))
+      case 95 => (95, ImageIO.read(getClass.getResourceAsStream("/cards/095_bg.png")))
+      case _ => pair
+    }
+  })
 
   Flags.init()
   val flag = (0 to Flags.flagId).map(i => {
@@ -92,6 +100,9 @@ object Resource {
 
   val cardStarUSSR1 = new Color(0xffffce00)
   val cardStarUSSR2 = new Color(0xffd62432)
+
+  val cardBackground = new Color(0xffe3f4fe)
+  val cardRed = new Color(0xffde1d3a)
 
   val cardTitleFont = new Font(Lang.lishu, 0, 18)
   val cardOpFont = new Font("Arial", Font.BOLD, 18)

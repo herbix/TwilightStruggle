@@ -45,7 +45,7 @@ class Info(in: InputStream) {
         name = split(0)
         properties ++= split.toStream.takeRight(split.length - 1).map(_.trim).map(s => {
           s.indexOf('=') match {
-            case -1 => (s, "")
+            case -1 => (s, "true")
             case index => (s.substring(0, index), s.substring(index + 1))
           }
         }).toMap
@@ -71,8 +71,19 @@ class Info(in: InputStream) {
   }
 }
 
-case class InfoItem(val name: String, val properties: Map[String, String], val lines: Seq[InfoLine])
+case class InfoItem(val name: String, val properties: Map[String, String], val lines: Seq[InfoLine]) {
+  def apply(key: String): String = {
+    properties.get(key).orNull
+  }
+  def apply(key: Int): InfoLine = {
+    lines(key)
+  }
+}
 
-case class InfoLine(val content: String, val properties: Map[String, String] = Map.empty)
+case class InfoLine(val content: String, val properties: Map[String, String] = Map.empty) {
+  def apply(key: String): String = {
+    properties.get(key).orNull
+  }
+}
 
 object CardInfo extends Info(getClass.getResourceAsStream("/cards.txt"))
