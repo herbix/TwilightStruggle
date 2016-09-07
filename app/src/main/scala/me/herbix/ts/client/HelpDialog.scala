@@ -50,6 +50,7 @@ object HelpDialog extends JFrame {
 
   setLocationRelativeTo(getOwner)
 
+  helpListModel.addElement(new ListItem("============卡牌列表============"))
   (1 to 110).map(Cards.fromId).foreach(card => helpListModel.addElement(new ListItem(card)))
 
   helpList.addListSelectionListener(new ListSelectionListener {
@@ -116,7 +117,7 @@ object HelpDialog extends JFrame {
     g.setColor(titleColor)
     g.fillRect(114, 55, 202, 22)
 
-    g.setFont(new Font("隶书", 0, 24))
+    g.setFont(new Font(Lang.lishu, 0, 24))
     val fm1 = g.getFontMetrics
     g.setColor(Color.WHITE)
     g.drawString(titleText, 200 - fm1.stringWidth(titleText) / 2, 75)
@@ -141,7 +142,7 @@ object HelpDialog extends JFrame {
 
         if (hasStar) {
           g.setColor(Resource.cardRed)
-          g.setFont(new Font("楷体", 0, 20))
+          g.setFont(new Font(Lang.kaiti, 0, 20))
           val fm = g.getFontMetrics
           g.drawString(Lang.removeFromGame, (inWidth - fm.stringWidth(Lang.removeFromGame)) / 2, cardImg.getHeight - 20)
         }
@@ -158,18 +159,28 @@ object HelpDialog extends JFrame {
         g.fillRect(43, 127, 285, 97)
         g.setColor(color2)
         g.fillPolygon(Array[Int](328, 43, 332, 332), Array[Int](125, 225, 225, 125), 4)
-        g.setColor(color3)
-        g.fillRect(41, 230, 293, 30)
-        g.setColor(color4)
-        g.fillRect(41, 264, 293, 30)
-        g.setColor(color3)
-        g.fillRect(41, 297, 293, 30)
-        g.setColor(color4)
-        g.fillRect(41, 330, 293, 56)
-        if (info.lines.length == 7) {
+        if (info.lines.length > 4) {
           g.setColor(color3)
-          g.fillRect(41, 388, 293, 57)
+          g.fillRect(41, 230, 293, 30)
+          g.setColor(color4)
+          g.fillRect(41, 264, 293, 30)
+          g.setColor(color3)
+          g.fillRect(41, 297, 293, 30)
+          g.setColor(color4)
+          g.fillRect(41, 330, 293, 56)
+          if (info.lines.length == 7) {
+            g.setColor(color3)
+            g.fillRect(41, 388, 293, 57)
+          }
+        } else {
+          g.setColor(color3)
+          g.fillRect(42, 232, 289, 106)
+          g.setColor(color2)
+          g.fillRect(42, 342, 291, 28)
+          g.setColor(Resource.cardBackground)
+          g.fillRect(59, 428, 262, 30)
         }
+
         g.setColor(color5)
         g.fillRect(44, 465, 287, 21)
 
@@ -180,7 +191,7 @@ object HelpDialog extends JFrame {
         paintName(g, card, info, inWidth, 185)
 
         val content = info.lines.drop(1).dropRight(1)
-        g.setFont(new Font("宋体", 0, 20))
+        g.setFont(new Font(Lang.songti, 0, 20))
         val fm = g.getFontMetrics
 
         if (content.length > 2) {
@@ -189,7 +200,13 @@ object HelpDialog extends JFrame {
           g.drawString(content(2).content, (inWidth - fm.stringWidth(content(2).content)) / 2, 252 + 66)
           g.drawString(content(3).content, (inWidth - fm.stringWidth(content(3).content)) / 2, 365)
         } else {
+          g.drawString(content(0).content, (inWidth - fm.stringWidth(content(0).content)) / 2, 290)
+          g.drawString(content(1).content, (inWidth - fm.stringWidth(content(1).content)) / 2, 363)
 
+          g.setColor(Resource.cardRed)
+          g.setFont(new Font(Lang.kaiti, 0, 20))
+          val fm2 = g.getFontMetrics
+          g.drawString(Lang.removeFromGame, (inWidth - fm2.stringWidth(Lang.removeFromGame)) / 2, 452)
         }
 
         if (content.length > 4) {
@@ -200,7 +217,7 @@ object HelpDialog extends JFrame {
           g.drawString(str2, (inWidth - fm.stringWidth(str2)) / 2, 436)
         }
 
-        g.setFont(new Font("黑体", 0, 20))
+        g.setFont(new Font(Lang.heiti, 0, 20))
         g.setColor(new Color(0xfffef45e))
 
         val tip = info.lines.last.content
@@ -220,7 +237,7 @@ object HelpDialog extends JFrame {
     val trans = g.getTransform
 
     g.setColor(Color.BLACK)
-    g.setFont(new Font("隶书", 0, 36))
+    g.setFont(new Font(Lang.lishu, 0, 36))
     val fm = g.getFontMetrics
     g.translate(width / 2, 0)
     val strWidth = fm.stringWidth(name)
@@ -231,7 +248,7 @@ object HelpDialog extends JFrame {
     g.drawString(name, -strWidth / 2, baseline)
 
     if (info("star") != null) {
-      g.setFont(new Font("隶书", 0, 24))
+      g.setFont(new Font(Lang.lishu, 0, 24))
       g.drawString("*", strWidth / 2, baseline - 7)
     }
 
@@ -266,9 +283,9 @@ object HelpDialog extends JFrame {
 
     for (line <- lines) {
       if (line("italic") != null) {
-        g.setFont(new Font("楷体", 0, 18))
+        g.setFont(new Font(Lang.kaiti, 0, 18))
       } else {
-        g.setFont(new Font("宋体", 0, 20))
+        g.setFont(new Font(Lang.songti, 0, 20))
       }
       val fm = g.getFontMetrics
 
@@ -298,7 +315,7 @@ object HelpDialog extends JFrame {
   def paintDescSim(g: Graphics2D, card: Card, info: InfoItem, width: Int, start: Int): Int = {
     val desc = Lang.cardInfo(card.id)._2
 
-    g.setFont(new Font("宋体", 0, 20))
+    g.setFont(new Font(Lang.songti, 0, 20))
 
     val fm = g.getFontMetrics
 

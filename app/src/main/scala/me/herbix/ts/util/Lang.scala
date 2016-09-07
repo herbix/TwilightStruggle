@@ -24,8 +24,10 @@ object Lang {
   val turn = "回合: %s-%s"
   val currentPlayer = "当前玩家为："
 
+  val songti = "宋体"
   val heiti = "黑体"
   val lishu = "隶书"
+  val kaiti = "楷体"
 
   val selectFaction = "选择你的阵营"
   val waitingForOpposite = "等待对方行动"
