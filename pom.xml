@@ -12,6 +12,7 @@
         <module>stepanno</module>
         <module>app</module>
         <module>common</module>
+        <module>agent</module>
     </modules>
 
     <distributionManagement>
