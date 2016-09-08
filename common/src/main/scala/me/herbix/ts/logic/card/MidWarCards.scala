@@ -486,7 +486,10 @@ object Card067GrainSales extends CardMultiStep(67, 2, US, false) {
   def randomPickCard(game: Game): Int = {
     if (game.hand(USSR).cardCountExcludingChinaCard > 0) {
       val card = game.hand(USSR).pick(game.random)
+      game.handRemove(USSR, card)
+      game.recordHistory(new HistoryLoseCard(USSR, card))
       game.currentCardData = card
+      game.clearSnapshots()
       1
     } else {
       2
@@ -497,14 +500,14 @@ object Card067GrainSales extends CardMultiStep(67, 2, US, false) {
   def playOrReturn(game: Game, input: Operation): Int = {
     val op = input.asInstanceOf[OperationYesNo]
     game.recordHistory(new HistoryYesNo(US, this, op.value))
+    val card = game.currentCardData.asInstanceOf[Card]
     if (op.value) {
-      val card = game.currentCardData.asInstanceOf[Card]
-      game.handRemove(USSR, card)
-      game.recordHistory(new HistoryLoseCard(USSR, card))
-      game.currentCardChange(card)
       game.currentCardData = null
+      game.currentCardChange(card)
       3
     } else {
+      game.handAdd(USSR, card)
+      game.recordHistory(new HistoryGetCard(USSR, card))
       game.currentCardData = null
       2
     }
