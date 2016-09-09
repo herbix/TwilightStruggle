@@ -34,16 +34,26 @@ object OperationHint {
     new OperationModifyInfluenceHint(point, isAdd, targetFaction, realValid, ignoreControl, mustAllPoints, modifyOp)
   }
 
+  private def realCardValid(valid: (Game, Card) => Boolean)(game: Game, card: Card): Boolean = {
+    val data = game.currentCardData
+    val cardSet = if (data != null && data.isInstanceOf[CardSet]) {
+      data.asInstanceOf[CardSet]
+    } else {
+      game.hand(game.playerFaction)
+    }
+    cardSet.has(card) && valid(game, card)
+  }
+
   def apply(operationType: Class[OperationSelectCard],
             canNull: Boolean,
             valid: (Game, Card) => Boolean
            ) =
-    new OperationSelectCardHint(canNull, valid)
+    new OperationSelectCardHint(canNull, realCardValid(valid))
 
   def apply(operationType: Class[OperationSelectCards],
             valid: (Game, Card) => Boolean
            ) =
-    new OperationSelectCardsHint(valid)
+    new OperationSelectCardsHint(realCardValid(valid))
 
   def apply(operationType: Class[OperationSelectCardAndAction],
             presetCard: Card,
@@ -52,7 +62,7 @@ object OperationHint {
             canEvent: (Game, Card) => Boolean,
             canOperation: (Game, Card) => Boolean
            ) =
-    new OperationSelectCardAndActionHint(presetCard, canPlay, canSpace, canEvent, canOperation)
+    new OperationSelectCardAndActionHint(presetCard, realCardValid(canPlay), canSpace, canEvent, canOperation)
 
   def apply(operationType: Class[OperationSelectOperation],
             canInfluence: (Game) => Boolean,

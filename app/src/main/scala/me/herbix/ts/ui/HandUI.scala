@@ -154,7 +154,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
   })
 
   def getCardEnabled(card: Card): Boolean = {
-    if (selfHand.isSelected || eventCards.isSelected) {
+    if ((selfHand.isSelected && !hasEventCards) || (eventCards.isSelected && hasEventCards)) {
       game.getOperationHint match {
         case oh: OperationSelectCardAndActionHint => oh.canPlay(game, card)
         case oh: OperationSelectCardHint => oh.valid(game, card)
