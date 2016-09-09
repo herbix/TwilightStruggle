@@ -141,7 +141,7 @@ class OperationSelectCardAndActionHint(val presetCard: Card,
   def validCards(game: Game): Set[Card] = {
     Cards.allCards.filter(canPlay(game, _)).toSet
   }
-  def validCardOperations(game: Game, card: Card): Set[Action] = {
+  def validCardActions(game: Game, card: Card): Set[Action] = {
     var result = Set.empty[Action]
     if (canSpace(game, card)) result += Action.Space
     if (canEvent(game, card)) result += Action.Event
@@ -170,7 +170,7 @@ class OperationSelectCountryHint(val count: Int,
                                 ) extends OperationHint(classOf[OperationSelectCountry]) {
   def validCountries(game: Game, detail: Set[Country]): Set[Country] = {
     WorldMap.countries.values.filter(c => {
-      valid(game, detail + c)
+      !detail.contains(c) && valid(game, detail + c)
     }).toSet
   }
 }

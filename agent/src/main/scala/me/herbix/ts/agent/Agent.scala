@@ -9,9 +9,9 @@ import scala.collection.mutable
   */
 abstract class Agent(game: Game, operationCallback: Operation => Unit) {
 
-  game.stateUpdateListeners :+= gameUpdateState
-
-  gameUpdateState()
+  game.stateUpdateListeners :+= (() => {
+    gameUpdateState()
+  })
 
   val tasks = mutable.Queue.empty[() => Unit]
 
@@ -21,8 +21,13 @@ abstract class Agent(game: Game, operationCallback: Operation => Unit) {
 
   agentThread.start()
 
+  gameUpdateState()
+
   def gameUpdateState(): Unit = {
     tasks.enqueue(gameUpdateState(game, game.getOperationHint))
+    tasks.synchronized {
+      tasks.notify()
+    }
   }
 
   private def gameUpdateState(game: Game, hint: OperationHint)(): Unit = {
@@ -31,6 +36,7 @@ abstract class Agent(game: Game, operationCallback: Operation => Unit) {
     }
     val input = update(game, hint)
     if (input != null) {
+      println("Agent call operationCallback " + input)
       operationCallback(input)
     }
   }
