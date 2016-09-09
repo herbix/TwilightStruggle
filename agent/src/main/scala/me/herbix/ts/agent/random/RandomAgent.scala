@@ -1,7 +1,6 @@
 package me.herbix.ts.agent.random
 
 import me.herbix.ts.agent.Agent
-import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic._
 
 import scala.util.Random
@@ -9,7 +8,9 @@ import scala.util.Random
 /**
   * Created by Chaofan on 2016/9/9.
   */
-class RandomAgent(game: Game, operationCallback: Operation => Unit, val rand: Random = new Random()) extends Agent(game, operationCallback) {
+class RandomAgent(game: Game, operationCallback: Operation => Unit) extends Agent(game, operationCallback) {
+
+  lazy val rand = new Random()
 
   override def update(game: Game, hint: OperationHint): Operation = {
     val playerId = game.playerId
