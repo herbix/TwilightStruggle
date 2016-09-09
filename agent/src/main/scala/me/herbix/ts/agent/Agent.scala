@@ -7,4 +7,13 @@ import me.herbix.ts.logic.Game
   */
 class Agent(game: Game) {
 
+  game.stateUpdateListeners :+= gameUpdateState
+
+  gameUpdateState()
+
+  def gameUpdateState(): Unit = {
+    val oh = game.getOperationHint
+
+  }
+
 }

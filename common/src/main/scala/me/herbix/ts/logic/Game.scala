@@ -3,6 +3,7 @@ package me.herbix.ts.logic
 import java.util.Random
 
 import me.herbix.ts.logic.Faction._
+import me.herbix.ts.logic.GameVariant.GameVariant
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic.card._
@@ -13,7 +14,7 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/12.
   */
-class Game extends GameTrait {
+class Game(val gameVariant: GameVariant) extends GameTrait {
 
   // other players
   var anotherGame: GameTrait = null
@@ -334,10 +335,65 @@ class Game extends GameTrait {
   }
 
   protected def initGame(): Unit = {
+    gameVariant match {
+      case GameVariant.Standard => initGameStandard()
+      case GameVariant.ChineseCivilWar => initGameChineseCivilWar()
+      case GameVariant.LateWar => initGameLateWar()
+      case _ =>
+    }
+  }
+
+  def initGameStandard() = {
     initGameExceptChinaCard()
 
     handAdd(USSR, Cards.chinaCard)
     recordHistory(new HistoryGetCard(USSR, Cards.chinaCard))
+  }
+
+  def initGameChineseCivilWar() = {
+    initGameExceptChinaCard()
+    addFlag(Neutral, Flags.ChineseCivilWar)
+  }
+
+  def initGameLateWar() = {
+    turn = 8
+    setDefcon(4)
+    space(USSR) = SpaceLevel.Orbit
+    space(US) = SpaceLevel.Landed
+    addFlag(US, Flags.SpaceAwardMayDiscard)
+    vp = -4
+
+    addFlag(USSR, Flags.USJapanPact)
+    addFlag(US, Flags.MarshallPlan)
+    addFlag(USSR, Flags.NATO)
+    addFlag(US, Flags.WarsawPact)
+    addFlag(USSR, Flags.DeGaulle)
+    addFlag(US, Flags.FlowerPower)
+
+    deckJoin(Cards.earlyWarSet.filter(!Cards.isCardStarred(_)))
+    deckJoin(Cards.midWarSet.filter(!Cards.isCardStarred(_)))
+    deckJoin(Cards.lateWarSet)
+    if (optionalCards) {
+      deckJoin(Cards.earlyWarOptionalSet.filter(!Cards.isCardStarred(_)))
+      deckJoin(Cards.midWarOptionalSet.filter(!Cards.isCardStarred(_)))
+      deckJoin(Cards.lateWarOptionalSet)
+    }
+    deckAdd(Card044BearTrap)
+    deckAdd(Card065CampDavidAccords)
+    deckAdd(Card068JohnPaulII)
+    deckAdd(Card064PanamaCanalReturned)
+
+    pickGameStartHands(9)
+
+    handAdd(USSR, Cards.chinaCard)
+    recordHistory(new HistoryGetCard(USSR, Cards.chinaCard))
+
+    modifyInfluence(USSR, true, WorldMap.ussrLateWarStart)
+    modifyInfluence(US, true, WorldMap.usLateWarStart)
+
+    recordHistory(new HistoryTurnRound(turn, -1, Neutral))
+
+    stateStack.push(selectHeadlineCard)
   }
 
   def initGameExceptChinaCard(): Unit = {
@@ -418,6 +474,13 @@ class Game extends GameTrait {
     }
     if (detail2.nonEmpty) {
       recordHistory(new HistoryModifyInfluence(faction, isAdd, detail2))
+    }
+    if (gameVariant == GameVariant.ChineseCivilWar) {
+      if (influence(WorldMap.countryChina, USSR) >= 3) {
+        removeFlag(Neutral, Flags.ChineseCivilWar)
+        handAdd(USSR, Cards.chinaCard)
+        recordHistory(new HistoryGetCard(USSR, Cards.chinaCard))
+      }
     }
   }
 
@@ -1213,7 +1276,20 @@ class Game extends GameTrait {
     recordHistory(new HistoryPokeChest(faction))
   }
 
+  def endGameByVpLateWar() = {
+    if (vp < 20) {
+      gameOver(USSR)
+    } else {
+      gameOver(US)
+    }
+  }
+
   def endGameByVp(): Unit = {
+    if (gameVariant == GameVariant.LateWar) {
+      endGameByVpLateWar()
+      return
+    }
+
     if (vp < 0) {
       gameOver(USSR)
     } else if (vp > 0) {
@@ -1467,8 +1543,15 @@ class Game extends GameTrait {
     }
   }
 
-  def excludeChina(set: Set[Country]): Boolean = !set(WorldMap.countryChina)
-  def excludeChina(map: Map[Country, Int]): Boolean = !map.contains(WorldMap.countryChina)
+  def excludeChina(set: Set[Country]): Boolean = {
+    !set(WorldMap.countryChina) ||
+      (gameVariant == GameVariant.ChineseCivilWar && influence(WorldMap.countryChina, USSR) < 3 && playerFaction == USSR)
+  }
+
+  def excludeChina(map: Map[Country, Int]): Boolean = {
+    !map.contains(WorldMap.countryChina) || (gameVariant == GameVariant.ChineseCivilWar &&
+      influence(WorldMap.countryChina, USSR) + map(WorldMap.countryChina) <= 3 && playerFaction == USSR)
+  }
 
   class GameOverException(val winner: Faction) extends Exception
 

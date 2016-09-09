@@ -21,7 +21,7 @@ class GameSerializationTest {
   @Test
   def doTest(): Unit = {
 
-    game = new Game
+    game = GameFactory.createGameByVariant(GameVariant.Standard)
     game.playerId = 0
 
     game.setRandomSeed(0L)
