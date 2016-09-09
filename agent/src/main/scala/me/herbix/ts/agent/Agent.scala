@@ -7,7 +7,7 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/9/8.
   */
-abstract class Agent(game: Game, operationCallback: (Operation) => Unit) {
+abstract class Agent(game: Game, operationCallback: Operation => Unit) {
 
   game.stateUpdateListeners :+= gameUpdateState
 
@@ -26,7 +26,10 @@ abstract class Agent(game: Game, operationCallback: (Operation) => Unit) {
   }
 
   private def gameUpdateState(game: Game, hint: OperationHint)(): Unit = {
-    val input = update(game, game.getOperationHint)
+    if (hint == OperationHint.NOP) {
+      return
+    }
+    val input = update(game, hint)
     if (input != null) {
       operationCallback(input)
     }
@@ -44,6 +47,6 @@ abstract class Agent(game: Game, operationCallback: (Operation) => Unit) {
     }
   }
 
-  abstract def update(game: Game, hint: OperationHint): Operation
+  def update(game: Game, hint: OperationHint): Operation
 
 }

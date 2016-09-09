@@ -133,6 +133,8 @@ object Cards {
   def lateWarOptionalSet = cardMap.filter(e => e._1 > 108 && e._1 <= 110).values
   def chinaCard = cardMap(6)
 
+  def allCards = cardMap.values
+
   def isEarlyWarCard(card: Card): Boolean = {
     val i = card.id
     i <= 35 || (i >= 103 && i <= 106)
