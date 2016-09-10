@@ -485,11 +485,9 @@ object Card067GrainSales extends CardMultiStep(67, 2, US, false) {
   @prepare
   def randomPickCard(game: Game): Int = {
     if (game.hand(USSR).cardCountExcludingChinaCard > 0) {
-      val card = game.hand(USSR).pick(game.random)
-      game.handRemove(USSR, card)
+      val card = game.pickCardFromHand(USSR)
       game.recordHistory(new HistoryLoseCard(USSR, card))
       game.currentCardData = card
-      game.clearSnapshots()
       1
     } else {
       2

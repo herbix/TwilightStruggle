@@ -77,10 +77,8 @@ object ClientLocal extends App {
   game2.anotherGame = game1
 
   val seed = new Random().nextLong()
-  game1.randomSeed = seed
-  game2.randomSeed = seed
-  game1.random.setSeed(seed)
-  game2.random.setSeed(seed)
+  game1.setRandomSeed(seed)
+  game2.setRandomSeed(seed)
 
   gameUI1.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
   gameUI2.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)

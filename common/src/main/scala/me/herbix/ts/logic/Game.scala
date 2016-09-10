@@ -30,8 +30,8 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
   var drawGameWinner = US
 
   // game info
-  var randomSeed = 0l
-  val random = new Random
+  private var randomSeed = 0l
+  private val random = new Random
 
   // game table
   val countryInfluence = WorldMap.countries.values.map(c => c -> mutable.Map(US -> 0, USSR -> 0)).toMap
@@ -132,6 +132,8 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
     randomSeed = seed
     random.setSeed(seed)
   }
+
+  def getRandomSeed: Long = randomSeed
 
   def sendNextState(input: Operation): Unit = {
     nextState(input)
@@ -324,6 +326,11 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
     }
     clearSnapshots()
     deck.pickAndRemove(random)
+  }
+
+  def pickCardFromHand(faction: Faction): Card = {
+    clearSnapshots()
+    hand(faction).pickAndRemove(random)
   }
 
   def deckAdd(card: Card): Unit = {

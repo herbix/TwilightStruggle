@@ -75,10 +75,8 @@ object ClientAgent extends App {
   game2.anotherGame = game1
 
   val seed = new Random().nextLong()
-  game1.randomSeed = seed
-  game2.randomSeed = seed
-  game1.random.setSeed(seed)
-  game2.random.setSeed(seed)
+  game1.setRandomSeed(seed)
+  game2.setRandomSeed(seed)
 
   AgentFactory.createDefaultAgent(game2, (hint: OperationHint, input: Operation) => {
     SwingUtilities.invokeLater(new Runnable {

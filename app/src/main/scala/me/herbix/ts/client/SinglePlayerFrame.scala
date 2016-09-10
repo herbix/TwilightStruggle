@@ -164,10 +164,8 @@ object SinglePlayerFrame extends JFrame {
     game2.anotherGame = game1
 
     val seed = new Random().nextLong()
-    game1.randomSeed = seed
-    game2.randomSeed = seed
-    game1.random.setSeed(seed)
-    game2.random.setSeed(seed)
+    game1.setRandomSeed(seed)
+    game2.setRandomSeed(seed)
 
     val player1Agent =
       if (radio1Agent.isSelected && radio2Agent.isSelected) {
@@ -209,8 +207,7 @@ object SinglePlayerFrame extends JFrame {
       game3.playerId = 2
       game3.isSpectator = true
 
-      game3.randomSeed = seed
-      game3.random.setSeed(seed)
+      game3.setRandomSeed(seed)
 
       game1.anotherGame = new GameCluster(game2, game3)
       game2.anotherGame = new GameCluster(game1, game3)

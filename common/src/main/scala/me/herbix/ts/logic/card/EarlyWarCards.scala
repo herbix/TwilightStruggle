@@ -26,10 +26,9 @@ object Card005FiveYearPlan extends CardInstant(5, 3, US, false) {
     if (ussrHand.isEmptyExcludingChinaCard) {
       return true
     }
-    val card = ussrHand.pickAndRemove(game.random)
+    val card = game.pickCardFromHand(USSR)
     val activateEvent = card.faction == US && card.canEvent(game, US)
     game.discardCard(card, USSR, !activateEvent, true)
-    game.clearSnapshots()
     if (activateEvent) {
       game.currentCard = card
       game.operatingPlayer = US

@@ -185,7 +185,7 @@ object Card092Terrorism extends CardInstant(92, 2, Neutral, false) {
     val hand = game.hand(opposite)
     for (i <- 0 until count) {
       if (!hand.isEmptyExcludingChinaCard) {
-        val card = hand.pickAndRemove(game.random)
+        val card = game.pickCardFromHand(opposite)
         game.discardCard(card, opposite, true, true)
       }
     }
