@@ -24,6 +24,12 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
     } else if (eventCards.isSelected) {
       switchToButton(selfHand)
     }
+
+    if (game.isSpectator) {
+      selfHand.setText(Lang.usHand)
+      otherHand.setText(Lang.ussrHand)
+    }
+
     updateState()
   })
 
@@ -202,7 +208,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
     }
   }
 
-  def shouldNotShowCards: Boolean = otherHand.isSelected && !showOppositeHand
+  def shouldNotShowCards: Boolean = !game.isSpectator && otherHand.isSelected && !showOppositeHand
 
   def hasEventCards: Boolean = {
     val data = game.currentCardData
@@ -211,7 +217,15 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
 
   def getShowCardSet: CardSet = {
     if (game.playerFaction == Neutral && !discarded.isSelected) {
-      null
+      if (game.isSpectator) {
+        if (selfHand.isSelected) {
+          game.hand(US)
+        } else {
+          game.hand(USSR)
+        }
+      } else {
+        null
+      }
     } else if (selfHand.isSelected) {
       game.hand(game.playerFaction)
     } else if (otherHand.isSelected) {

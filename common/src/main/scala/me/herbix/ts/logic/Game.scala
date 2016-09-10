@@ -181,7 +181,7 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
       case op: OperationCubaMissileRequest =>
         if (stateStack.top != cubaMissileRemove) {
           if (!op.isResponse) {
-            if (op.playerId != playerId) {
+            if (op.playerId != playerId && !isSpectator) {
               anotherGame.nextState(new OperationCubaMissileRequest(playerId, playerFaction, true))
               stateStack.push(cubaMissileRemove)
             }
@@ -1407,7 +1407,7 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
       return OperationHint.NOP
     }
     stateStack.top match {
-      case State.start => OperationHint.CHOOSE_FACTION
+      case State.start => OperationHint(classOf[OperationChooseFaction])
       case State.putStartUSSR =>
         if (playerFaction == USSR) {
           OperationHint(classOf[OperationModifyInfluence], 6, true, USSR, (game, detail) =>

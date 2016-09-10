@@ -8,23 +8,24 @@ import scala.util.Random
 /**
   * Created by Chaofan on 2016/9/9.
   */
-class RandomAgent(game: Game, operationCallback: Operation => Unit) extends Agent(game, operationCallback) {
+class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => Unit) extends Agent(game, operationCallback) {
 
   lazy val rand = new Random()
 
   override def update(game: Game, hint: OperationHint): Operation = {
     val playerId = game.playerId
     val faction = game.playerFaction
+
     hint match {
-      case OperationHint.CHOOSE_FACTION =>
+      case h: OperationChooseFactionHint =>
         if (game.pendingInput == null) {
-          null
+          new OperationChooseFaction(playerId, if (rand.nextBoolean()) Faction.US else Faction.USSR)
         } else {
           val pendingInput = game.pendingInput.asInstanceOf[OperationChooseFaction]
           new OperationChooseFaction(playerId, Faction.getOpposite(pendingInput.faction))
         }
 
-      case OperationHint.SELECT_REGION =>
+      case h: OperationSelectRegionHint =>
         new OperationSelectRegion(playerId, faction, Region(rand.nextInt(6)))
 
       case h: OperationModifyInfluenceHint =>

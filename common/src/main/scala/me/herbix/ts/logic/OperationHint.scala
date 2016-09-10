@@ -11,8 +11,6 @@ import me.herbix.ts.logic.card.{Cards, Card}
 object OperationHint {
 
   val NOP = new OperationHint(null)
-  val CHOOSE_FACTION = new OperationHint(classOf[OperationChooseFaction])
-  val SELECT_REGION = new OperationHint(classOf[OperationSelectRegion])
 
   def apply(operationType: Class[OperationModifyInfluence],
             point: Int,
@@ -92,6 +90,15 @@ object OperationHint {
 
   def apply(operationType: Class[OperationIntValue], min: Int, max: Int) =
     new OperationIntValueHint(min, max)
+
+  def apply(operationType: Class[_ <: Operation]) =
+    if (operationType == classOf[OperationChooseFaction]) {
+      new OperationChooseFactionHint()
+    } else if (operationType == classOf[OperationSelectRegion]) {
+      new OperationSelectRegionHint()
+    } else {
+      new OperationHint(operationType)
+    }
 
 }
 
@@ -178,3 +185,7 @@ class OperationSelectCountryHint(val count: Int,
 class OperationYesNoHint(val isConfirm: Boolean) extends OperationHint(classOf[OperationYesNo])
 
 class OperationIntValueHint(val min: Int, val max: Int) extends OperationHint(classOf[OperationIntValue])
+
+class OperationChooseFactionHint extends OperationHint(classOf[OperationChooseFaction])
+
+class OperationSelectRegionHint extends OperationHint(classOf[OperationSelectRegion])

@@ -37,6 +37,8 @@ object Lang {
   val oppositeHand = "对手手牌"
   val discardedCards = "弃牌堆"
   val eventCards = "事件用牌"
+  val usHand = "美国手牌"
+  val ussrHand = "苏联手牌"
 
   val putEastEurope = "请在东欧放置%s点影响力"
   val putWestEurope = "请在西欧放置%s点影响力"

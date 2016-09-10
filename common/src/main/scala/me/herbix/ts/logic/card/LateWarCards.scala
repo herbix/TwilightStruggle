@@ -209,7 +209,7 @@ object Card094Chernobyl extends CardMultiStep(94, 3, US, true) {
   }
 
   override def getSpecialOperationHint(game: Game): OperationHint =
-    OperationHint.SELECT_REGION
+    OperationHint(classOf[OperationSelectRegion])
 }
 
 object Card095LatinAmericaDebtCrisis extends CardMultiStep(95, 2, USSR, false) {

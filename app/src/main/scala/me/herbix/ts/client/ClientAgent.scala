@@ -80,10 +80,12 @@ object ClientAgent extends App {
   game1.random.setSeed(seed)
   game2.random.setSeed(seed)
 
-  AgentFactory.createDefaultAgent(game2, (input: Operation) => {
+  AgentFactory.createDefaultAgent(game2, (hint: OperationHint, input: Operation) => {
     SwingUtilities.invokeLater(new Runnable {
       override def run(): Unit = {
-        game2.sendNextState(input)
+        if (hint == game2.getOperationHint) {
+          game2.sendNextState(input)
+        }
       }
     })
   })

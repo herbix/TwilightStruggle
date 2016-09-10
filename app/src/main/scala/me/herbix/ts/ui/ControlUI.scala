@@ -103,14 +103,15 @@ class ControlUI(val game: Game) extends JPanel {
   }
 
   def updateState(): Unit = {
-    if (game.isSpectator) {
+    val state = game.stateStack.top
+
+    if (game.isSpectator && state != State.end) {
       spectatorUI()
       return
     }
 
     val oldUI = uiMap(uiType)
 
-    val state = game.stateStack.top
     val tip = try {
       state match {
         case State.putStartUSSR => Lang.putEastEurope
@@ -142,8 +143,8 @@ class ControlUI(val game: Game) extends JPanel {
         } else {
           waitOtherUI()
         }
-      case OperationHint.CHOOSE_FACTION => chooseFactionUI()
-      case OperationHint.SELECT_REGION => selectRegionUI()
+      case oh: OperationChooseFactionHint => chooseFactionUI()
+      case oh: OperationSelectRegionHint => selectRegionUI()
       case oh: OperationModifyInfluenceHint =>
         addInfluenceUI(oh.point, tip, oh.isAdd, oh.ignoreControl, oh.mustAllPoints, oh.modifyOp, oh.targetFaction, oh.valid)
       case oh: OperationSelectCardHint =>
