@@ -14,14 +14,14 @@ import io.netty.channel.{ChannelInitializer, ChannelOption}
 import me.herbix.ts.client.NewRoomDialog.GameVariantDelegate
 import me.herbix.ts.logic.{Faction, GameVariant}
 import me.herbix.ts.netcommon.NetCodec
-import me.herbix.ts.util.{Config, Lang, Resource}
+import me.herbix.ts.util.{Config, Lang}
 
 import scala.collection.mutable
 
 /**
   * Created by Chaofan on 2016/7/3.
   */
-object ClientFrame extends JFrame {
+object MultiplePlayerFrame extends JFrame {
 
   val gameVersion = "ts-" + getGameVersion
 
@@ -33,9 +33,6 @@ object ClientFrame extends JFrame {
   var gameVariant = GameVariant.Standard
 
   val roomCreatorMap = mutable.Map.empty[Int, Int]
-
-  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
-  setLayout(new BorderLayout)
 
   setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
 
@@ -122,14 +119,6 @@ object ClientFrame extends JFrame {
     }
   }.start()
 
-  new Thread() {
-    override def run(): Unit = {
-      val time = System.nanoTime()
-      Resource.getClass
-      println("Loading Resource: " + (System.nanoTime() - time) / 1e9 + "s")
-    }
-  }.start()
-
   newRoom.addActionListener(new ActionListener {
     override def actionPerformed(e: ActionEvent): Unit = {
       NewRoomDialog.setVisible(true)
@@ -167,7 +156,7 @@ object ClientFrame extends JFrame {
           }
         } catch {
           case e: Throwable =>
-            JOptionPane.showMessageDialog(ClientFrame, "版本不同，不能加入。", "冷战热斗", JOptionPane.ERROR_MESSAGE)
+            JOptionPane.showMessageDialog(MultiplePlayerFrame, "版本不同，不能加入。", "冷战热斗", JOptionPane.ERROR_MESSAGE)
         }
       }
     }
@@ -178,10 +167,6 @@ object ClientFrame extends JFrame {
       HelpDialog.setVisible(true)
     }
   })
-
-  def main(args: Array[String]): Unit = {
-    setVisible(true)
-  }
 
   def getGameVersion: String = {
     val p = new Properties()

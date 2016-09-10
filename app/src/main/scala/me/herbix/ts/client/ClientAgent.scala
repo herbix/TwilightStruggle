@@ -32,7 +32,6 @@ object ClientAgent extends App {
       ClientLocal.synchronized {
         Resource.getClass
         gameUI1 = new GameUI(0)
-        gameUI1.debugMode = true
         uiInitialized = true
         ClientLocal.notify()
       }

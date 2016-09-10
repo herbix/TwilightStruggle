@@ -33,7 +33,7 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
 
   override def channelActive(ctx: ChannelHandlerContext): Unit = {
     this.ctx = ctx
-    sendVersion(ClientFrame.gameVersion)
+    sendVersion(MultiplePlayerFrame.gameVersion)
     sendRename(name)
   }
 
@@ -77,11 +77,11 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
 
   def destroyRoom(packet: SPacketDestroyRoom): Unit = {
     val id = packet.id
-    ClientFrame.roomCreatorMap -= id
+    MultiplePlayerFrame.roomCreatorMap -= id
     println(s"destroyRoom $id")
     SwingUtilities.invokeLater(new Runnable {
       override def run(): Unit = {
-        val model = ClientFrame.tableModel
+        val model = MultiplePlayerFrame.tableModel
         val r = (0 until model.getRowCount) find { i =>
           val roomId = model.getValueAt(i, 0).asInstanceOf[Int]
           roomId == id
@@ -98,11 +98,11 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
     val creatorId = packet.creator
     val name = packet.name
     val version = packet.version
-    ClientFrame.roomCreatorMap += roomId -> creatorId
+    MultiplePlayerFrame.roomCreatorMap += roomId -> creatorId
     println(s"newRoom $roomId $creatorId $name")
     SwingUtilities.invokeLater(new Runnable {
       override def run(): Unit = {
-        val model = ClientFrame.tableModel
+        val model = MultiplePlayerFrame.tableModel
         model.addRow(Array[Object](Integer.valueOf(roomId), name, version))
       }
     })
@@ -111,7 +111,7 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
   def joinRoom(packet: SPacketJoinRoom): Unit = {
     val roomId = packet.id
     val info = packet.members
-    isRoomCreator = ClientFrame.roomCreatorMap(roomId) == id
+    isRoomCreator = MultiplePlayerFrame.roomCreatorMap(roomId) == id
     RoomDialog.start.setEnabled(isRoomCreator)
     println(s"joinRoom $roomId")
     SwingUtilities.invokeLater(new Runnable {
@@ -205,11 +205,11 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
 
   def roomProperty(): Unit = {
     println("roomProperty")
-    ClientFrame.extraInfluence = roomIn.readInt()
-    ClientFrame.drawWinner = Faction(roomIn.readInt())
-    ClientFrame.hasOptional = roomIn.readBoolean()
-    ClientFrame.gameVariant = GameVariant(roomIn.readInt())
-    ClientFrame.showInfo()
+    MultiplePlayerFrame.extraInfluence = roomIn.readInt()
+    MultiplePlayerFrame.drawWinner = Faction(roomIn.readInt())
+    MultiplePlayerFrame.hasOptional = roomIn.readBoolean()
+    MultiplePlayerFrame.gameVariant = GameVariant(roomIn.readInt())
+    MultiplePlayerFrame.showInfo()
   }
 
   def roomStart(): Unit = {
@@ -243,10 +243,10 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
   def roomSendProperty(): Unit = {
     println("roomSendProperty")
     roomOut.writeByte(0)
-    roomOut.writeInt(ClientFrame.extraInfluence)
-    roomOut.writeInt(ClientFrame.drawWinner.id)
-    roomOut.writeBoolean(ClientFrame.hasOptional)
-    roomOut.writeInt(ClientFrame.gameVariant.id)
+    roomOut.writeInt(MultiplePlayerFrame.extraInfluence)
+    roomOut.writeInt(MultiplePlayerFrame.drawWinner.id)
+    roomOut.writeBoolean(MultiplePlayerFrame.hasOptional)
+    roomOut.writeInt(MultiplePlayerFrame.gameVariant.id)
     roomOut.flush()
   }
 
@@ -276,12 +276,12 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
 
   def showGame(): Unit = {
     val gameUI = new GameUI(id)
-    gameUI.init(GameFactory.createGameByVariant(ClientFrame.gameVariant))
+    gameUI.init(GameFactory.createGameByVariant(MultiplePlayerFrame.gameVariant))
     RoomDialog.gameUI = gameUI
     RoomDialog.setVisible(false)
-    gameUI.game.extraInfluence = ClientFrame.extraInfluence
-    gameUI.game.optionalCards = ClientFrame.hasOptional
-    gameUI.game.drawGameWinner = ClientFrame.drawWinner
+    gameUI.game.extraInfluence = MultiplePlayerFrame.extraInfluence
+    gameUI.game.optionalCards = MultiplePlayerFrame.hasOptional
+    gameUI.game.drawGameWinner = MultiplePlayerFrame.drawWinner
     gameUI.game.anotherGame = new RemoteGame(this)
     gameUI.game.setRandomSeed(seed)
     gameUI.setVisible(true)

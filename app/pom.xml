@@ -53,7 +53,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>me.herbix.ts.client.ClientFrame</mainClass>
+                            <mainClass>me.herbix.ts.client.Client</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

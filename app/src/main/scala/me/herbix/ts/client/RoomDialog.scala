@@ -61,7 +61,7 @@ object RoomDialog extends JDialog {
         return
       }
       try {
-        ClientFrame.netHandler.sendLeaveRoom()
+        MultiplePlayerFrame.netHandler.sendLeaveRoom()
       } catch {
         case e: Throwable =>
       }
@@ -71,7 +71,7 @@ object RoomDialog extends JDialog {
   start.addActionListener(new ActionListener {
     override def actionPerformed(e: ActionEvent): Unit = {
       try {
-        ClientFrame.netHandler.roomSendStart()
+        MultiplePlayerFrame.netHandler.roomSendStart()
       } catch {
         case e: Throwable =>
       }

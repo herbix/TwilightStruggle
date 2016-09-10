@@ -17,7 +17,12 @@ class RandomAgent(game: Game, operationCallback: Operation => Unit) extends Agen
     val faction = game.playerFaction
     hint match {
       case OperationHint.CHOOSE_FACTION =>
-        new OperationChooseFaction(playerId, if(rand.nextBoolean()) Faction.US else Faction.USSR)
+        if (game.pendingInput == null) {
+          null
+        } else {
+          val pendingInput = game.pendingInput.asInstanceOf[OperationChooseFaction]
+          new OperationChooseFaction(playerId, Faction.getOpposite(pendingInput.faction))
+        }
 
       case OperationHint.SELECT_REGION =>
         new OperationSelectRegion(playerId, faction, Region(rand.nextInt(6)))
