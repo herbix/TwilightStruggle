@@ -220,8 +220,10 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       if (game.isSpectator) {
         if (selfHand.isSelected) {
           game.hand(US)
-        } else {
+        } else if (otherHand.isSelected) {
           game.hand(USSR)
+        } else {
+          null
         }
       } else {
         null
