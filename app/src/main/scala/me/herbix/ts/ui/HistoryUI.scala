@@ -14,7 +14,10 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/17.
   */
-class HistoryUI(game: Game) extends JPanel {
+class HistoryUI(g: Game) extends JPanel {
+
+  val game = g.asInstanceOf[GameRecordingHistory]
+
   game.stateUpdateListeners :+= (() => updateContent())
 
   var historyText: mutable.Stack[HistoryMeta] = mutable.Stack()

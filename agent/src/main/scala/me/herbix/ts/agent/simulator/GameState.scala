@@ -8,7 +8,7 @@ import me.herbix.ts.logic.card.Card
 /**
   * Created by Chaofan on 2016/9/14.
   */
-class GameState(variant: GameVariant) extends Game(variant) {
+class GameState extends Game {
 
   override def pickCardFromDeck(): Card = {
     super.pickCardFromDeck()

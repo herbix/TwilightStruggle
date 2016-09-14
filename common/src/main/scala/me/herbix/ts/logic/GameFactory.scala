@@ -8,7 +8,9 @@ import me.herbix.ts.logic.GameVariant.GameVariant
 object GameFactory {
 
   def createGameByVariant(variant: GameVariant): Game = {
-    new Game(variant)
+    val result = new GameRecordingHistory
+    result.gameVariant = variant
+    result
   }
 
 }

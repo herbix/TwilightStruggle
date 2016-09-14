@@ -3,7 +3,6 @@ package me.herbix.ts.logic
 import java.util.Random
 
 import me.herbix.ts.logic.Faction._
-import me.herbix.ts.logic.GameVariant.GameVariant
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic.card._
@@ -14,7 +13,7 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/12.
   */
-class Game(val gameVariant: GameVariant) extends GameTrait {
+abstract class Game extends GameTrait {
 
   // other players
   var anotherGame: GameTrait = null
@@ -28,12 +27,13 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
   var extraInfluence = 0
   var optionalCards = true
   var drawGameWinner = US
+  var gameVariant = GameVariant.Standard
 
   // game info
   private var randomSeed = 0l
   private val random = new Random
 
-  // game table
+  // game tabletop
   val countryInfluence = WorldMap.countries.values.map(c => c -> mutable.Map(US -> 0, USSR -> 0)).toMap
   countryInfluence(WorldMap.countryUS)(US) = 100
   countryInfluence(WorldMap.countryUSSR)(USSR) = 100
@@ -113,15 +113,6 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
   var skipHeadlineCard2 = false
   // game states end
 
-  // history
-  var currentHistory = List.empty[History]
-  var oldHistory = List.empty[History]
-  var currentHistoryId = 0
-  def history = currentHistory ++ oldHistory
-
-  // snapshot
-  var lastSnapshot = new Snapshot(this)
-
   // operation hint
   var currentOperationHint = createOperationHint()
 
@@ -175,7 +166,7 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
     }
   }
 
-  private def nextStateContainsException(input: Operation): Unit = {
+  protected def nextStateContainsException(input: Operation): Unit = {
     if (operatingPlayer == Neutral) {
       clearSnapshots()
     }
@@ -199,13 +190,6 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
           case other => nextState(input, other)
         }
     }
-    if (currentHistory.nonEmpty) {
-      val newestHistory = currentHistory.last
-      if (newestHistory.snapshot == null) {
-        newestHistory.snapshot = lastSnapshot
-      }
-    }
-    lastSnapshot = new Snapshot(this)
   }
 
   def nextState(input: Operation): Unit = {
@@ -220,16 +204,7 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
     stateUpdateListeners.foreach(_())
   }
 
-  def recordHistory(h: History): Unit = {
-    h.id = currentHistoryId
-    currentHistoryId += 1
-    if (h.isInstanceOf[HistoryTurnRound]) {
-      oldHistory = currentHistory ++ oldHistory
-      currentHistory = List.empty
-      clearSnapshots()
-    }
-    currentHistory :+= h
-  }
+  def recordHistory(h: History): Unit = { }
 
   def addFlag(faction: Faction, flag: Flag, data: Any = null): Unit = {
     if (!flags.hasFlag(faction, flag)) {
@@ -1380,14 +1355,7 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
     }
   }
 
-  def clearSnapshots(): Unit = {
-    lastSnapshot.needApproval = true
-    for (h <- history) {
-      if (h.snapshot != null) {
-        h.snapshot.needApproval = true
-      }
-    }
-  }
+  def clearSnapshots(): Unit = { }
 
   def sendRollBackBeforeHistory(historyId: Int): Unit = {
     rollBackBeforeHistory(historyId)
@@ -1395,16 +1363,7 @@ class Game(val gameVariant: GameVariant) extends GameTrait {
   }
 
   override def rollBackBeforeHistory(historyId: Int): Unit = {
-    history.find(_.id == historyId) match {
-      case Some(history) =>
-        val snapshot = history.snapshot
-        if (snapshot != null && !snapshot.needApproval) {
-          snapshot.rollBack()
-        }
-      case _ =>
-    }
-    currentOperationHint = createOperationHint()
-    stateUpdateListeners.foreach(_())
+    throw new UnsupportedOperationException("Rollback is not supported in base Game class")
   }
 
   def getOperationHint: OperationHint = currentOperationHint

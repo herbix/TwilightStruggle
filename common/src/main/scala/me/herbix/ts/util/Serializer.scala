@@ -121,14 +121,6 @@ object Serializer {
     }
 
     out.writeBoolean(skipHeadlineCard2)
-
-    out.writeInt(currentHistoryId)
-    currentHistory.lastOption match {
-      case Some(last) =>
-        out.writeInt(last.id)
-      case None =>
-        out.writeInt(-1)
-    }
   }
 
   def readGameState(implicit game: Game, in: DataInputStream): Unit = {
@@ -195,6 +187,26 @@ object Serializer {
     }
 
     skipHeadlineCard2 = in.readBoolean()
+  }
+
+  def writeGameRecordingHistoryState(implicit game: GameRecordingHistory, out: DataOutputStream): Unit = {
+    writeGameState(game, out)
+
+    import game._
+
+    out.writeInt(currentHistoryId)
+    currentHistory.lastOption match {
+      case Some(last) =>
+        out.writeInt(last.id)
+      case None =>
+        out.writeInt(-1)
+    }
+  }
+
+  def readGameRecordingHistoryState(implicit game: GameRecordingHistory, in: DataInputStream): Unit = {
+    readGameState(game, in)
+
+    import game._
 
     currentHistoryId = in.readInt()
 
@@ -204,7 +216,7 @@ object Serializer {
     }
   }
 
-  def adjustHistory(lastHistoryId: Int)(implicit game: Game): Unit = {
+  def adjustHistory(lastHistoryId: Int)(implicit game: GameRecordingHistory): Unit = {
     import game._
 
     val pos = currentHistory.indexWhere(_.id == lastHistoryId)

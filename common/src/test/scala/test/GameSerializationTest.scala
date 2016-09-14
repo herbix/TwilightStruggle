@@ -14,14 +14,14 @@ import org.junit.Assert._
   */
 class GameSerializationTest {
 
-  var game: Game = null
+  var game: GameRecordingHistory = null
 
   def c(name: String): Country = WorldMap.countries(name)
 
   @Test
   def doTest(): Unit = {
 
-    game = GameFactory.createGameByVariant(GameVariant.Standard)
+    game = GameFactory.createGameByVariant(GameVariant.Standard).asInstanceOf[GameRecordingHistory]
     game.playerId = 0
 
     game.setRandomSeed(0L)
@@ -34,7 +34,7 @@ class GameSerializationTest {
     game.nextState(new OperationModifyInfluence(0, US, true, Map(c("W.Germany") -> 4, c("Italy") -> 3)))
 
     val out = new ByteArrayOutputStream
-    Serializer.writeGameState(game, new DataOutputStream(out))
+    Serializer.writeGameRecordingHistoryState(game, new DataOutputStream(out))
 
     val historyId = game.currentHistory.last.id
     val state = game.stateStack.top
@@ -60,7 +60,7 @@ class GameSerializationTest {
     game.nextState(new OperationSelectCardAndAction(1, USSR, Card020OlympicGames, Action.Event))
 
     val in = new DataInputStream(new ByteArrayInputStream(out.toByteArray))
-    Serializer.readGameState(game, in)
+    Serializer.readGameRecordingHistoryState(game, in)
 
     assertEquals(9, game.hand(USSR).cardCount)
     assertTrue(game.hand(US).has(Card005FiveYearPlan))
