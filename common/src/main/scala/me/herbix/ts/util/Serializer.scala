@@ -1,6 +1,6 @@
 package me.herbix.ts.util
 
-import java.io.{DataInputStream, DataOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Region.Region
@@ -187,6 +187,22 @@ object Serializer {
     }
 
     skipHeadlineCard2 = in.readBoolean()
+  }
+
+  def writeGameState(game: Game): Array[Byte] = {
+    val out = new ByteArrayOutputStream
+    writeGameState(game, new DataOutputStream(out))
+    out.toByteArray
+  }
+
+  def readGameState(game: Game, data: Array[Byte]): Unit = {
+    readGameState(game, new DataInputStream(new ByteArrayInputStream(data)))
+  }
+
+  def copyGameState(to: Game, from: Game): Unit = {
+    val out = new ByteArrayOutputStream
+    writeGameState(from, new DataOutputStream(out))
+    readGameState(to, new DataInputStream(new ByteArrayInputStream(out.toByteArray)))
   }
 
   def writeGameRecordingHistoryState(implicit game: GameRecordingHistory, out: DataOutputStream): Unit = {

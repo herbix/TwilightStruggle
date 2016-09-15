@@ -1,6 +1,7 @@
 package me.herbix.ts.agent.random
 
 import me.herbix.ts.agent.Agent
+import me.herbix.ts.agent.simulator.GameSimulator
 import me.herbix.ts.logic._
 
 import scala.util.Random
@@ -11,8 +12,56 @@ import scala.util.Random
 class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => Unit) extends Agent(game, operationCallback) {
 
   lazy val rand = new Random()
+  lazy val simulator = new GameSimulator
 
   override def update(game: Game, hint: OperationHint): Operation = {
+    val playerId = game.playerId
+    val faction = game.playerFaction
+
+    hint match {
+      case h: OperationChooseFactionHint =>
+        if (game.pendingInput == null) {
+          return new OperationChooseFaction(playerId, if (rand.nextBoolean()) Faction.US else Faction.USSR)
+        } else {
+          val pendingInput = game.pendingInput.asInstanceOf[OperationChooseFaction]
+          return new OperationChooseFaction(playerId, Faction.getOpposite(pendingInput.faction))
+        }
+      case _ =>
+    }
+
+    do {
+      simulator.begin(game)
+      val gameState = simulator.state
+      val candicate = pickOperation(gameState, hint)
+
+      if (game.operatingPlayer == Faction.Neutral) {
+        return candicate
+      }
+
+      simulator.extendState(candicate)
+
+      var deadEnd = false
+      var searchEnd = false
+      do {
+        val newState = simulator.state
+        if (newState.stateStack.top == State.end) {
+          searchEnd = true
+          deadEnd = newState.operatingPlayer == Faction.getOpposite(game.playerFaction)
+        }
+        if (newState.operatingPlayer != game.playerFaction) {
+          searchEnd = true
+        }
+      } while (!searchEnd)
+
+      if (!deadEnd) {
+        return candicate
+      }
+    } while (true)
+
+    pickOperation(game, hint)
+  }
+
+  def pickOperation(game: Game, hint: OperationHint): Operation = {
     val playerId = game.playerId
     val faction = game.playerFaction
 
@@ -92,5 +141,4 @@ class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => U
       case _ => null
     }
   }
-
 }
