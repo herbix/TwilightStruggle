@@ -1,10 +1,11 @@
 package me.herbix.ts.util
 
 import java.awt.image.BufferedImage
-import java.awt.{Color, Font}
+import java.awt.{RenderingHints, Image, Color, Font}
 import javax.imageio.ImageIO
+import javax.swing.ImageIcon
 
-import me.herbix.ts.logic.{Flags, Flag}
+import me.herbix.ts.logic.{Faction, Flags, Flag}
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.Faction._
 
@@ -38,6 +39,8 @@ object Resource {
       (i, Map(US -> ImageIO.read(inA), USSR -> ImageIO.read(inS)))
     }
   }).toMap
+
+  val nuclearIcon = new ImageIcon(Resource.flag(Flags.Defcon2Penalty.id)(Faction.Neutral).getScaledInstance(25, 25, Image.SCALE_SMOOTH))
 
   val tokenSpaceUs = ImageIO.read(getClass.getResourceAsStream("/tokens/spaceus.png"))
   val tokenSpaceUssr = ImageIO.read(getClass.getResourceAsStream("/tokens/spaceussr.png"))

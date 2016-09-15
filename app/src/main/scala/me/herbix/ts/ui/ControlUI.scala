@@ -238,6 +238,12 @@ class ControlUI(val game: Game) extends JPanel {
     uiSelectOperation.influence.setEnabled(canInfluence)
     uiSelectOperation.realignment.setEnabled(canRealignment)
     uiSelectOperation.coup.setEnabled(canCoup)
+    if (game.phasingPlayer != Faction.getOpposite(game.playerFaction) && canCoup &&
+      ((game.defcon == 2 && !game.flags.hasFlag(game.playerFaction, Flags.NuclearSubs)) || game.flags.hasFlag(game.playerFaction, Flags.CubaMissile))) {
+      uiSelectOperation.coup.setIcon(Resource.nuclearIcon)
+    } else {
+      uiSelectOperation.coup.setIcon(null)
+    }
   }
 
   def selectCountryUI(point: Int, point2: Int, tip: String, mustAllPoints: Boolean,
@@ -560,6 +566,19 @@ class ControlSubUISelectCardAndAction(parent: ControlUI)
     } else {
       buttonEvent.setText(Lang.event)
       buttonOperation.setText(Lang.operation)
+    }
+
+    val hand = parent.game.hand(parent.game.playerFaction)
+    val scoringCardCount = hand.count(!_.canHeld(parent.game))
+    if ((scoringCardCount == parent.game.turnRoundCount + 1 - parent.game.round && card.canHeld(parent.game)) ||
+      scoringCardCount > parent.game.turnRoundCount + 1 - parent.game.round){
+      buttonSpace.setIcon(Resource.nuclearIcon)
+      buttonEvent.setIcon(Resource.nuclearIcon)
+      buttonOperation.setIcon(Resource.nuclearIcon)
+    } else {
+      buttonSpace.setIcon(null)
+      buttonEvent.setIcon(null)
+      buttonOperation.setIcon(null)
     }
   }
 
