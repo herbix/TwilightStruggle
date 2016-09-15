@@ -693,6 +693,9 @@ abstract class Game extends GameTrait {
     defcon = newVal
     recordHistory(new HistoryDefcon(oldVal, defcon))
     checkDefcon()
+    if (defcon > 2) {
+      flags.setFlagData(US, Flags.NORAD, defcon)
+    }
   }
 
   def mayTake8Rounds(faction: Faction) =
