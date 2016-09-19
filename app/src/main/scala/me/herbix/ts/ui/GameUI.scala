@@ -250,6 +250,10 @@ class GameUI(playerId: Int) extends JFrame {
                 if (params.nonEmpty) {
                   debugSpace(params(0).toInt)
                 }
+              case 'r' =>
+                if (params.nonEmpty) {
+                  debugRound(params(0).toInt)
+                }
               case _ =>
             }
           }
@@ -271,6 +275,9 @@ class GameUI(playerId: Int) extends JFrame {
         case "d" =>
           game1.discards.add(card)
           game2.discards.add(card)
+        case "r" =>
+          game1.hand(game.playerFaction).remove(card)
+          game2.hand(game.playerFaction).remove(card)
         case _ => return
       }
 
@@ -284,6 +291,16 @@ class GameUI(playerId: Int) extends JFrame {
 
       game1.increaseSpace(game.playerFaction, step)
       game2.increaseSpace(game.playerFaction, step)
+
+      worldMapUI.repaint()
+    }
+
+    def debugRound(round: Int) = {
+      val game1 = game
+      val game2 = game.anotherGame.asInstanceOf[Game]
+
+      game1.round = round
+      game2.round = round
 
       worldMapUI.repaint()
     }
