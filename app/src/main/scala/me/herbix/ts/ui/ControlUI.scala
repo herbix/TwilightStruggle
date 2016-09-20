@@ -573,22 +573,26 @@ class ControlSubUISelectCardAndAction(parent: ControlUI)
     buttonEvent.setIcon(null)
     buttonOperation.setIcon(null)
 
-    val hand = parent.game.hand(parent.game.playerFaction)
-    val scoringCardCount = hand.count(!_.canHeld(parent.game))
-    if ((scoringCardCount == parent.game.turnRoundCount + 1 - parent.game.round && card.canHeld(parent.game)) ||
-      scoringCardCount > parent.game.turnRoundCount + 1 - parent.game.round){
-      buttonSpace.setIcon(Resource.nuclearIcon)
-      buttonEvent.setIcon(Resource.nuclearIcon)
-      buttonOperation.setIcon(Resource.nuclearIcon)
+    if (card.id != 0) {
+      val hand = parent.game.hand(parent.game.playerFaction)
+      val scoringCardCount = hand.count(!_.canHeld(parent.game))
+      if ((scoringCardCount == parent.game.turnRoundCount + 1 - parent.game.round && card.canHeld(parent.game)) ||
+        scoringCardCount > parent.game.turnRoundCount + 1 - parent.game.round) {
+        buttonSpace.setIcon(Resource.nuclearIcon)
+        buttonEvent.setIcon(Resource.nuclearIcon)
+        buttonOperation.setIcon(Resource.nuclearIcon)
+      }
     }
 
-    val cardProperties = CardInfo.info(card.id).properties
-    if (cardProperties.contains("nuclear")) {
-      val nuclear = cardProperties("nuclear")
-      if (nuclear == "true" || nuclear == parent.game.playerFaction.toString) {
-        buttonEvent.setIcon(Resource.nuclearIcon)
-        if (oppositeEvent) {
-          buttonOperation.setIcon(Resource.nuclearIcon)
+    if (parent.game.defcon == 2 && parent.game.phasingPlayer == parent.game.playerFaction) {
+      val cardProperties = CardInfo.info(card.id).properties
+      if (cardProperties.contains("nuclear")) {
+        val nuclear = cardProperties("nuclear")
+        if (nuclear == "true" || nuclear == parent.game.playerFaction.toString) {
+          buttonEvent.setIcon(Resource.nuclearIcon)
+          if (oppositeEvent) {
+            buttonOperation.setIcon(Resource.nuclearIcon)
+          }
         }
       }
     }

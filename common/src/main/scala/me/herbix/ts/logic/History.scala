@@ -10,6 +10,7 @@ import me.herbix.ts.logic.card.Card
   */
 abstract class History {
   var id = 0
+  var isOperating = false
   var snapshot: Snapshot = null
 }
 

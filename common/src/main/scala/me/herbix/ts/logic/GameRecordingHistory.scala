@@ -9,7 +9,9 @@ class GameRecordingHistory extends Game {
   var currentHistoryId = 0
   var currentHistory = List.empty[History]
   var oldHistory = List.empty[History]
+  var oldHistoryDesc = List.empty[History]
   def history = currentHistory ++ oldHistory
+  def historyDesc = oldHistoryDesc ++ currentHistory
 
   // snapshot
   private var lastSnapshot = new Snapshot(this)
@@ -29,10 +31,12 @@ class GameRecordingHistory extends Game {
   override def recordHistory(h: History): Unit = {
     super.recordHistory(h)
 
+    h.isOperating = getOperationHint != OperationHint.NOP
     h.id = currentHistoryId
     currentHistoryId += 1
     if (h.isInstanceOf[HistoryTurnRound]) {
       oldHistory = currentHistory ++ oldHistory
+      oldHistoryDesc = oldHistoryDesc ++ currentHistory
       currentHistory = List.empty
       clearSnapshots()
     }

@@ -123,4 +123,6 @@ object Resource {
   val tokenFont = new Font("Arial", Font.BOLD, 18)
   val tokenFont2 = new Font("Arial", Font.BOLD, 24)
 
+  val mapHighlightColor = new Color(0xffffff00)
+
 }
