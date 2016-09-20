@@ -91,7 +91,6 @@ class GameUI(playerId: Int) extends JFrame {
         if (game.playerFaction == Faction.US) {
           setUIBackground(Resource.usColorUI)
           bgSet = true
-
         } else if (game.playerFaction == Faction.USSR) {
           setUIBackground(Resource.ussrColorUI)
           bgSet = true
