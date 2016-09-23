@@ -1200,7 +1200,7 @@ abstract class Game extends GameTrait {
       usBattlefield += 1
     }
 
-    val useShuttleDiplomacy = flags.hasFlag(Flags.ShuttleDiplomacy) && (region == Region.Asia || region == Region.MidEast)
+    val useShuttleDiplomacy = flags.hasFlag(Flags.ShuttleDiplomacy) && (region == Region.Asia || region == Region.MidEast) && ussrBattlefield > 0
     if (useShuttleDiplomacy) {
       ussrBattlefield -= 1
     }

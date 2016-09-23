@@ -125,4 +125,7 @@ object Resource {
 
   val mapHighlightColor = new Color(0xffffff00)
 
+  val regionContentColor = new Color(0xfffff7e2)
+  val regionContentFont = new Font(Lang.heiti, Font.BOLD, 19)
+  val regionContentFont2 = new Font("Arial", Font.BOLD, 19)
 }

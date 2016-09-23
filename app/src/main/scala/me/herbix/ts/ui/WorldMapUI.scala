@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage
 import javax.swing.{Timer, JPanel, JScrollPane, SwingUtilities}
 
 import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
 import me.herbix.ts.util.{Resource, MapValue}
@@ -59,6 +60,8 @@ class WorldMapUI(g: Game) extends JPanel {
 
   var spaceHoverListeners: List[SpaceLevel => Unit] = List()
 
+  var regionHoverListeners: List[Region => Unit] = List()
+
   val changedModel = new ChangedModel()
 
   setPreferredSize(new Dimension((bg.getWidth * scale).toInt, (bg.getHeight * scale).toInt))
@@ -100,6 +103,7 @@ class WorldMapUI(g: Game) extends JPanel {
     var dragging = false
     var oldHoverCountry: Country = null
     var oldHoverSpaceLevel: SpaceLevel = null
+    var oldHoverRegion: Region = null
     override def mousePressed(e: MouseEvent): Unit = {
       if (e.getButton != MouseEvent.BUTTON1) {
         dragging = true
@@ -134,6 +138,13 @@ class WorldMapUI(g: Game) extends JPanel {
           spaceHoverListeners.foreach(_(spaceLevel))
         }
       }
+      val region = findRegion(e.getX, e.getY)
+      if (region != oldHoverRegion) {
+        oldHoverRegion = region
+        if (region != null) {
+          regionHoverListeners.foreach(_(region))
+        }
+      }
     }
     override def mouseDragged(e: MouseEvent): Unit = {
       if (dragging) {
@@ -162,6 +173,16 @@ class WorldMapUI(g: Game) extends JPanel {
         val cx = tx - MapValue.spaceSize._1 / 2
         val cy = ty - MapValue.spaceSize._2 / 2
         nx >= cx && nx < cx + MapValue.spaceSize._1 && ny >= cy && ny < cy + MapValue.spaceSize._2
+      }).orNull
+    def findRegion(x: Int, y: Int): Region =
+      (Region.MainRegionSet + Region.SouthEastAsia).find(r => {
+        val pos = MapValue.regionPos(r)
+        val size = MapValue.regionSize
+        val nx = x / scale
+        val ny = y / scale
+        val cx = pos._1
+        val cy = pos._2
+        nx >= cx && nx < cx +size._1 && ny >= cy && ny < cy + size._2
       }).orNull
   }
 

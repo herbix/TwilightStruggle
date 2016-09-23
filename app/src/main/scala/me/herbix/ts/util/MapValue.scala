@@ -1,6 +1,8 @@
 package me.herbix.ts.util
 
-import me.herbix.ts.logic.Country
+import me.herbix.ts.logic.Region.Region
+import me.herbix.ts.logic.{Region, Country}
+import me.herbix.ts.logic.Region.Region
 
 import scala.collection.mutable
 
@@ -137,4 +139,15 @@ object MapValue {
   val space0 = (1389, 1326)
   val space8 = (2096, 1326)
   val spaceSize = (79, 79)
+
+  val regionSize = (138, 96)
+  val regionPos = mutable.Map.empty[Region, (Int, Int)]
+
+  regionPos += Region.Europe -> (1066, 19)
+  regionPos += Region.Asia -> (1859, 975)
+  regionPos += Region.MidEast -> (1616, 832)
+  regionPos += Region.Africa -> (923, 1004)
+  regionPos += Region.MidAmerica -> (469, 624)
+  regionPos += Region.SouthAmerica -> (725, 1200)
+  regionPos += Region.SouthEastAsia -> (1997, 1099)
 }
