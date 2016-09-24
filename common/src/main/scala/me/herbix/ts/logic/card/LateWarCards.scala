@@ -40,7 +40,7 @@ object Card084ReaganBombsLibya extends CardInstant(84, 2, US, true) {
 object Card085StarWars extends CardMultiStep(85, 2, US, true) {
   override def canEvent(game: Game, faction: Faction) =
     game.space(US).level > game.space(USSR).level &&
-    game.discards.exists(c => c.canHeld(game) && c.canEvent(game, game.operatingPlayer))
+    game.discards.exists(c => c.canHeld(game) && c.canEvent(game, faction))
 
   @prepare
   def showDiscards(game: Game): Unit = {
