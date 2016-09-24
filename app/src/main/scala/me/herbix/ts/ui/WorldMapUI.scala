@@ -415,12 +415,37 @@ class WorldMapUI(g: Game) extends JPanel {
   def updateChangedModel(): Unit = {
     val target = {
       val reverseHistory = game.historyDesc.toStream.reverse
-      val index = if (game.getOperationHint != OperationHint.NOP) {
-        val r = reverseHistory.indexWhere(!_.isOperating)
-        if (r == 0) reverseHistory.indexWhere(_.isOperating) else r
-      } else {
-        val r = reverseHistory.indexWhere(_.isOperating)
-        if (r == 0) reverseHistory.indexWhere(!_.isOperating) else r
+      val index = {
+        val f = if (game.operatingPlayer == Faction.Neutral) {
+          game.playerFaction
+        } else {
+          game.operatingPlayer
+        }
+
+        var faction: Faction = null
+        var oldIndex = 1
+        var index = 0
+        do {
+          index = reverseHistory.indexWhere(_.canOperate, oldIndex)
+
+          if (index != -1) {
+            if (faction == null) {
+              faction = reverseHistory.drop(index).head.operatingPlayer
+            } else {
+              if (faction == Faction.Neutral) {
+                index = -1
+              } else if (faction != reverseHistory.drop(index).head.operatingPlayer) {
+                index = -1
+              }
+            }
+          }
+
+          if (index >= 1) {
+            oldIndex = index + 1
+          }
+        } while (index >= 0)
+
+        oldIndex - 1
       }
 
       if (index == -1) {

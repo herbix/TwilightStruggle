@@ -135,7 +135,7 @@ abstract class Game extends GameTrait {
   private def nextState(input: Operation, currentState: State): Unit = {
     currentState match {
       case State.start => nextStateMayWait(input, nextStateStart)
-      case State.putStartUSSR => nextStatePutStart(input, putStartUS)
+      case State.putStartUSSR => nextStatePutStart(input, putStartUS, US)
       case State.putStartUS => nextStatePutStartUS(input)
       case State.putStartExtra => nextStatePutExtra(input)
       case State.selectHeadlineCard => nextStateSelectHeadline(input)
@@ -290,7 +290,7 @@ abstract class Game extends GameTrait {
   }
 
   def nextStatePutExtra(input: Operation): Unit = {
-    nextStatePutStart(input, selectHeadlineCard)
+    nextStatePutStart(input, selectHeadlineCard, Neutral)
     recordHistory(new HistoryTurnRound(turn, -1, Neutral))
   }
 
@@ -389,6 +389,7 @@ abstract class Game extends GameTrait {
     modifyInfluence(USSR, true, WorldMap.ussrStandardStart)
     modifyInfluence(US, true, WorldMap.usStandardStart)
 
+    operatingPlayer = USSR
     stateStack.push(putStartUSSR)
   }
 
@@ -403,15 +404,16 @@ abstract class Game extends GameTrait {
 
   def nextStatePutStartUS(input: Operation): Unit = {
     if (extraInfluence != 0) {
-      nextStatePutStart(input, putStartExtra)
+      nextStatePutStart(input, putStartExtra, if (extraInfluence > 0) US else USSR)
     } else {
       nextStatePutExtra(input)
     }
   }
 
-  def nextStatePutStart(input: Operation, next: State): Unit = {
+  def nextStatePutStart(input: Operation, next: State, faction: Faction): Unit = {
     val op = input.asInstanceOf[OperationModifyInfluence]
     modifyInfluence(op.faction, op.isAdd, op.detail)
+    operatingPlayer = faction
     stateStack.pop()
     stateStack.push(next)
   }
@@ -705,11 +707,13 @@ abstract class Game extends GameTrait {
   def nextTurn(dontTake8Rounds: Boolean = false, dontDiscardHeld: Boolean = false): Unit = {
     if (round == turnRoundCount + 1 && !dontTake8Rounds) {
       if (mayTake8Rounds(phasingPlayer)) {
+        operatingPlayer = phasingPlayer
         stateStack.push(selectTake8Rounds)
         return
       }
       nextRound()
       if (round == turnRoundCount + 1 && mayTake8Rounds(phasingPlayer)) {
+        operatingPlayer = phasingPlayer
         stateStack.push(selectTake8Rounds)
         return
       }
@@ -731,6 +735,7 @@ abstract class Game extends GameTrait {
           round = 8
           phasingPlayer = US
         }
+        operatingPlayer = faction
         stateStack.push(discardHeldCard)
         return
       }
@@ -1316,6 +1321,9 @@ abstract class Game extends GameTrait {
 
     currentCard = card
 
+    operatingPlayerChange(operatingPlayer)
+    currentCardChange(currentCard)
+
     stateStack.pop()
     stateStack.push(cardE)
 
@@ -1470,21 +1478,22 @@ abstract class Game extends GameTrait {
           OperationHint.NOP
         }
       case State.selectTake8Rounds =>
-        if (playerFaction == phasingPlayer) {
+        if (playerFaction == operatingPlayer) {
           OperationHint(classOf[OperationYesNo], false)
         } else {
           OperationHint.NOP
         }
       case State.quagmireDiscard =>
-        if (phasingPlayer == playerFaction) {
+        if (operatingPlayer == playerFaction) {
           OperationHint(classOf[OperationSelectCard], false, (game, card) =>
             card.canPlay(this, playerFaction) && card.canDiscard(this, playerFaction))
         } else {
           OperationHint.NOP
         }
       case State.quagmirePlayScoringCard =>
-        if (phasingPlayer == playerFaction) {
-          OperationHint(classOf[OperationSelectCard], false, (game, card) => card.canPlay(this, playerFaction))
+        if (operatingPlayer == playerFaction) {
+          OperationHint(classOf[OperationSelectCard], false, (game, card) =>
+            card.canPlay(this, playerFaction) && !card.canDiscard(this, playerFaction))
         } else {
           OperationHint.NOP
         }

@@ -24,6 +24,8 @@ class GameRecordingHistory extends Game {
       if (newestHistory.snapshot == null) {
         newestHistory.snapshot = lastSnapshot
       }
+      newestHistory.operatingPlayer = operatingPlayer
+      newestHistory.canOperate = true
     }
     lastSnapshot = new Snapshot(this)
   }
@@ -31,7 +33,6 @@ class GameRecordingHistory extends Game {
   override def recordHistory(h: History): Unit = {
     super.recordHistory(h)
 
-    h.isOperating = getOperationHint != OperationHint.NOP
     h.id = currentHistoryId
     currentHistoryId += 1
     if (h.isInstanceOf[HistoryTurnRound]) {

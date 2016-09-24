@@ -576,8 +576,8 @@ class ControlSubUISelectCardAndAction(parent: ControlUI)
     if (card.id != 0) {
       val hand = parent.game.hand(parent.game.playerFaction)
       val scoringCardCount = hand.count(!_.canHeld(parent.game))
-      if ((scoringCardCount == parent.game.turnRoundCount + 1 - parent.game.round && card.canHeld(parent.game)) ||
-        scoringCardCount > parent.game.turnRoundCount + 1 - parent.game.round) {
+      if (scoringCardCount > 0 && ((scoringCardCount == parent.game.turnRoundCount + 1 - parent.game.round && card.canHeld(parent.game)) ||
+        scoringCardCount > parent.game.turnRoundCount + 1 - parent.game.round)) {
         buttonSpace.setIcon(Resource.nuclearIcon)
         buttonEvent.setIcon(Resource.nuclearIcon)
         buttonOperation.setIcon(Resource.nuclearIcon)
