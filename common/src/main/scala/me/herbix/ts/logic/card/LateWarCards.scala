@@ -168,7 +168,7 @@ object Card091OrtegaInNicaragua extends CardMultiStep(91, 2, USSR, true) {
     game.currentCardData = game.modifyOp(faction, this.op)
   }
 
-  @step1(cardEventSelectCountry, 1, false, selectCountry.withName("Cuba", "Honduras", "Costa Rica"))
+  @step1(cardEventSelectCountry, 1, false, selectCountry.withName("Cuba", "Honduras", "Costa Rica").canCoupWithoutFlags)
   def doCoup(game: Game, input: Operation): Unit = {
     val modifier = game.currentCardData.asInstanceOf[Int]
     for (country <- input.asInstanceOf[OperationSelectCountry].detail) {

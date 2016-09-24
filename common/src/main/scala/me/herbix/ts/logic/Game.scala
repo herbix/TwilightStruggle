@@ -693,6 +693,9 @@ abstract class Game extends GameTrait {
     defcon = newVal
     recordHistory(new HistoryDefcon(oldVal, defcon))
     checkDefcon()
+    if (defcon > 2) {
+      flags.setFlagData(US, Flags.NORAD, defcon)
+    }
   }
 
   def mayTake8Rounds(faction: Faction) =
@@ -1197,7 +1200,7 @@ abstract class Game extends GameTrait {
       usBattlefield += 1
     }
 
-    val useShuttleDiplomacy = flags.hasFlag(Flags.ShuttleDiplomacy) && (region == Region.Asia || region == Region.MidEast)
+    val useShuttleDiplomacy = flags.hasFlag(Flags.ShuttleDiplomacy) && (region == Region.Asia || region == Region.MidEast) && ussrBattlefield > 0
     if (useShuttleDiplomacy) {
       ussrBattlefield -= 1
     }

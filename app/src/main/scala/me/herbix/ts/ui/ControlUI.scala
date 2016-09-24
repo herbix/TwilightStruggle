@@ -9,7 +9,7 @@ import me.herbix.ts.logic
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card._
-import me.herbix.ts.util.{Lang, Resource}
+import me.herbix.ts.util.{CardInfo, Lang, Resource}
 
 import scala.collection.mutable
 import scala.List
@@ -238,6 +238,12 @@ class ControlUI(val game: Game) extends JPanel {
     uiSelectOperation.influence.setEnabled(canInfluence)
     uiSelectOperation.realignment.setEnabled(canRealignment)
     uiSelectOperation.coup.setEnabled(canCoup)
+    if (game.phasingPlayer != Faction.getOpposite(game.playerFaction) && canCoup &&
+      ((game.defcon == 2 && !game.flags.hasFlag(game.playerFaction, Flags.NuclearSubs)) || game.flags.hasFlag(game.playerFaction, Flags.CubaMissile))) {
+      uiSelectOperation.coup.setIcon(Resource.nuclearIcon)
+    } else {
+      uiSelectOperation.coup.setIcon(null)
+    }
   }
 
   def selectCountryUI(point: Int, point2: Int, tip: String, mustAllPoints: Boolean,
@@ -297,7 +303,7 @@ abstract class ControlSubUIBase(val control: ControlUI) extends JPanel with Acti
   setLayout(null)
 
   protected def addButton(buttonText: String, x: Int, y: Int, w: Int, h: Int): JButton = {
-    val button = new JButton()
+    val button = new Button()
     button.setText(buttonText)
     button.setLocation(x, y)
     button.setSize(w, h)
@@ -554,12 +560,41 @@ class ControlSubUISelectCardAndAction(parent: ControlUI)
     buttonEvent.setEnabled(eventEnabled && card.id != 0)
     buttonOperation.setEnabled(canOperation(parent.game, card) && card.id != 0)
 
-    if (card.faction == Faction.getOpposite(parent.game.playerFaction) && eventEnabled) {
+    val oppositeEvent = card.faction == Faction.getOpposite(parent.game.playerFaction) && eventEnabled
+    if (oppositeEvent) {
       buttonEvent.setText(Lang.eventFirst)
       buttonOperation.setText(Lang.operationFirst)
     } else {
       buttonEvent.setText(Lang.event)
       buttonOperation.setText(Lang.operation)
+    }
+
+    buttonSpace.setIcon(null)
+    buttonEvent.setIcon(null)
+    buttonOperation.setIcon(null)
+
+    if (card.id != 0) {
+      val hand = parent.game.hand(parent.game.playerFaction)
+      val scoringCardCount = hand.count(!_.canHeld(parent.game))
+      if ((scoringCardCount == parent.game.turnRoundCount + 1 - parent.game.round && card.canHeld(parent.game)) ||
+        scoringCardCount > parent.game.turnRoundCount + 1 - parent.game.round) {
+        buttonSpace.setIcon(Resource.nuclearIcon)
+        buttonEvent.setIcon(Resource.nuclearIcon)
+        buttonOperation.setIcon(Resource.nuclearIcon)
+      }
+    }
+
+    if (parent.game.defcon == 2 && parent.game.phasingPlayer == parent.game.playerFaction) {
+      val cardProperties = CardInfo.info(card.id).properties
+      if (cardProperties.contains("nuclear")) {
+        val nuclear = cardProperties("nuclear")
+        if (nuclear == "true" || nuclear == parent.game.playerFaction.toString) {
+          buttonEvent.setIcon(Resource.nuclearIcon)
+          if (oppositeEvent) {
+            buttonOperation.setIcon(Resource.nuclearIcon)
+          }
+        }
+      }
     }
   }
 

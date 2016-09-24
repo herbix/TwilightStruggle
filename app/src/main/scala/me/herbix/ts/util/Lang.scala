@@ -108,6 +108,21 @@ object Lang {
   val winnerIs = "胜利者是%s"
   val drawGame = "平局"
 
+  val presence = "存在"
+  val domination = "支配"
+  val control = "控制"
+
+  val success = "胜利"
+
+  val sum = "总数"
+  val battlefieldCountry = "战场国"
+  val nonbattlefieldCountry = "非战场国"
+  val opponentNear = "对方邻国"
+
+  val southEastAsiaScore =
+    "缅甸，老挝/柬埔寨，越南，马来西亚，印度尼西亚，菲律宾的控制者各+1VP\n" +
+    "泰国的控制者+2VP"
+
   val chineseCivilWar = "中国内战"
 
   val historyStartGame = "开始游戏"

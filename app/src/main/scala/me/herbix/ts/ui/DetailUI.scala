@@ -4,11 +4,15 @@ import java.awt._
 import javax.swing.JPanel
 
 import me.herbix.ts.logic.Faction._
+import me.herbix.ts.logic.Region.RegionState.RegionState
+import me.herbix.ts.logic.Region.{RegionState, Region}
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
-import me.herbix.ts.logic.card.{Cards, Card}
+import me.herbix.ts.logic.card.{Card073ShuttleDiplomacy, Cards, Card}
 import me.herbix.ts.util.{Lang, MapValue, Resource}
 import me.herbix.ts.util.Resource._
+
+import scala.collection.immutable.List
 
 /**
   * Created by Chaofan on 2016/6/17.
@@ -17,7 +21,7 @@ class DetailUI(game: Game) extends JPanel {
 
   object DetailMode extends Enumeration {
     type DetailMode = Value
-    val CountryMode, CardMode, FlagMode, SpaceMode, EmptyMode = Value
+    val CountryMode, CardMode, FlagMode, SpaceMode, RegionMode, EmptyMode = Value
   }
 
   import DetailMode._
@@ -29,6 +33,7 @@ class DetailUI(game: Game) extends JPanel {
   var flagData: Any = null
   var flagFaction: Faction = US
   var space: SpaceLevel = null
+  var region: Region = null
 
   def setCountry(country: Country): Unit = {
     mode = CountryMode
@@ -56,6 +61,12 @@ class DetailUI(game: Game) extends JPanel {
     repaint()
   }
 
+  def setRegion(region: Region): Unit = {
+    mode = RegionMode
+    this.region = region
+    repaint()
+  }
+
   override def paint(g: Graphics): Unit = {
     super.paint(g)
 
@@ -73,6 +84,8 @@ class DetailUI(game: Game) extends JPanel {
         paintFlag(g2d)
       case DetailMode.SpaceMode =>
         paintSpace(g2d)
+      case DetailMode.RegionMode =>
+        paintRegion(g2d)
       case _ =>
     }
   }
@@ -331,14 +344,14 @@ class DetailUI(game: Game) extends JPanel {
     g.setTransform(trans)
   }
 
-  def paintDesc(g: Graphics2D, desc: String): Unit = {
+  def paintDesc(g: Graphics2D, desc: String, startRow: Int = 78, width: Int = 180, breakLine: Int = 19, newLine: Int = 25): Unit = {
     g.setFont(Resource.cardDescFont)
     g.setColor(Color.black)
 
     val fm = g.getFontMetrics
 
     val lines = desc.split("\n")
-    var currentRow = 78
+    var currentRow = startRow
     var currentCol = 0
     val ca = Array[Char](0)
 
@@ -347,8 +360,8 @@ class DetailUI(game: Game) extends JPanel {
       for (i <- 0 until toDraw.length) {
         val c = toDraw.charAt(i)
         val cw = fm.charWidth(c)
-        if (currentCol + cw > 180 && c != '，' && c != '。') {
-          currentRow += 19
+        if (currentCol + cw > width && c != '，' && c != '。') {
+          currentRow += breakLine
           currentCol = 0
         }
         ca(0) = c
@@ -359,7 +372,7 @@ class DetailUI(game: Game) extends JPanel {
         }
         currentCol += cw
       }
-      currentRow += 25
+      currentRow += newLine
       currentCol = 0
     }
   }
@@ -410,4 +423,278 @@ class DetailUI(game: Game) extends JPanel {
     paintName(g, name)
     paintDesc(g, desc)
   }
+
+  val stroke4 = new BasicStroke(2, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10, Array(1, 4), 0)
+  val stroke5 = new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10, Array(4, 4), 0)
+
+  val regionTriangleX = Array(0, 180, 180)
+  val regionTriangleY = Array(34, 0, 34)
+
+  def paintRegion(g: Graphics2D): Unit = {
+    val (color1, color2) = region match {
+      case Region.Europe =>
+        (Resource.regionColor(Region.WestEurope), Resource.regionColor(Region.EastEurope))
+      case Region.SouthEastAsia =>
+        (Resource.regionColor(Region.Asia), Resource.regionColor(Region.SouthEastAsia))
+      case r =>
+        (Resource.regionColor(r), null)
+    }
+
+    g.translate(10, 20)
+
+    g.setColor(Resource.regionContentColor)
+    g.fillRect(0, 0, 180, 125)
+    g.setColor(color1)
+    g.fillRect(0, 0, 180, 34)
+
+    if (color2 != null) {
+      g.setColor(color2)
+      g.fillPolygon(regionTriangleX, regionTriangleY, 3)
+    }
+
+    g.setStroke(stroke1)
+    g.setColor(Color.BLACK)
+    g.drawRect(0, 0, 180, 125)
+    g.drawLine(0, 34, 180, 34)
+
+    g.setStroke(stroke3)
+    g.setFont(Resource.textFont2)
+    g.setColor(Color.BLACK)
+    val fm1 = g.getFontMetrics
+    val str1 = Lang.getRegionName(region)
+    val w1 = fm1.stringWidth(str1)
+
+    g.drawString(str1, (180-w1) / 2, 27)
+
+    if (region != Region.SouthEastAsia) {
+      val info = Region.ScoringInfo(region)
+
+      paintRegionInfo(g, Lang.presence, info._1.toString, Resource.regionContentFont, Resource.regionContentFont2, 59)
+      paintRegionInfo(g, Lang.domination, info._2.toString, Resource.regionContentFont, Resource.regionContentFont2, 86)
+
+      if (info._3 > 200) {
+        paintRegionInfo(g, Lang.control, Lang.success, Resource.regionContentFont, Resource.regionContentFont, 113)
+      } else {
+        paintRegionInfo(g, Lang.control, info._3.toString, Resource.regionContentFont, Resource.regionContentFont2, 113)
+      }
+
+      paintRegionInfoDetail(g, info)
+
+    } else {
+      g.translate(10, 0)
+      paintDesc(g, Lang.southEastAsiaScore, 56, 160, 17, 21)
+      g.translate(-10, 0)
+
+      paintSEAsiaRegionInfoDetail(g)
+    }
+
+    g.setStroke(stroke5)
+    g.setColor(Color.GRAY)
+    g.drawLine(90, 135, 90, 270)
+    g.drawLine(0, 248, 180, 248)
+  }
+
+  def paintRegionInfo(g: Graphics2D, name: String, value: String, font1: Font, font2: Font, y: Int): Unit = {
+    g.setFont(font1)
+    val fm3 = g.getFontMetrics
+    val w1 = fm3.stringWidth(name)
+    g.drawString(name, 10, y)
+
+    g.setFont(font2)
+    val fm2 = g.getFontMetrics
+
+    g.setStroke(stroke4)
+    val str1 = value
+    val r1 = fm2.stringWidth(str1)
+    g.drawLine(w1 + 20, y - 2, 160 - r1, y - 2)
+    g.drawString(str1, 170 - r1, y)
+  }
+
+  def paintRegionInfoDetail(g: Graphics2D, info: (Int, Int, Int)) = {
+    val presence = info._1
+    val domination = info._2
+    val control = info._3
+
+    val targetCountries = WorldMap.regionCountries(region) - WorldMap.countryChina
+    val battlefieldCount = targetCountries.count(_.isBattlefield)
+
+    var usBattlefieldCountries = targetCountries.filter(country => country.isBattlefield && country.getController(game) == US)
+    val ussrBattlefieldCountries = targetCountries.filter(country => country.isBattlefield && country.getController(game) == USSR)
+
+    var usBattlefield = usBattlefieldCountries.size
+    val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(game) == US)
+    var ussrBattlefield = ussrBattlefieldCountries.size
+    val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(game) == USSR)
+    val usAll = usBattlefield + usNonBattlefield
+    val ussrAll = ussrBattlefield + ussrNonBattlefield
+
+    var shuttleDiplomacyCount = 0
+
+    val taiwan = WorldMap.countries("Taiwan")
+    if (taiwan.regions(region) && taiwan.getController(game) == US && game.flags.hasFlag(US, Flags.Taiwan)) {
+      usBattlefield += 1
+      usBattlefieldCountries += taiwan
+    }
+
+    val useShuttleDiplomacy = game.flags.hasFlag(Flags.ShuttleDiplomacy) && (region == Region.Asia || region == Region.MidEast) && ussrBattlefield > 0
+    if (useShuttleDiplomacy) {
+      ussrBattlefield -= 1
+      shuttleDiplomacyCount = -1
+    }
+
+    val usPresence = usBattlefield > 0 || usNonBattlefield > 0
+    val ussrPresence = ussrBattlefield > 0 || ussrNonBattlefield > 0
+    val usDomination = usBattlefield > ussrBattlefield && usAll > ussrAll && usNonBattlefield > 0
+    val ussrDomination = ussrBattlefield > usBattlefield && ussrAll > usAll && ussrNonBattlefield > 0
+    val usControl = usBattlefield == battlefieldCount && usAll > ussrAll
+    val ussrControl = ussrBattlefield == battlefieldCount && ussrAll > usAll
+
+    var usVp = if (usControl) control else if (usDomination) domination else if (usPresence) presence else 0
+    var ussrVp = if (ussrControl) control else if (ussrDomination) domination else if (ussrPresence) presence else 0
+
+    usVp += usBattlefield
+    ussrVp += ussrBattlefield
+
+    val usNearOpponent = targetCountries.filter(country => country.getController(game) == US && country.adjacentCountries(WorldMap.countryUSSR))
+    val ussrNearOpponent = targetCountries.filter(country => country.getController(game) == USSR && country.adjacentCountries(WorldMap.countryUS))
+
+    usVp += usNearOpponent.size
+    ussrVp += ussrNearOpponent.size
+
+    if (useShuttleDiplomacy) {
+      val battlefieldAndNear = targetCountries.find(country => {
+        country.getController(game) == USSR && country.adjacentCountries(WorldMap.countryUS) && country.isBattlefield
+      })
+      if (battlefieldAndNear.nonEmpty) {
+        ussrVp -= 1
+        shuttleDiplomacyCount = -2
+      }
+    }
+
+    paintRegionInfoByFaction(g, info,
+      if (usControl) RegionState.Control
+      else if (usDomination) RegionState.Domination
+      else if (usPresence) RegionState.Presence
+      else RegionState.Nop,
+      usBattlefieldCountries,
+      usNearOpponent,
+      0,
+      usVp,
+      0,
+      Resource.usColor
+    )
+
+    paintRegionInfoByFaction(g, info,
+      if (ussrControl) RegionState.Control
+      else if (ussrDomination) RegionState.Domination
+      else if (ussrPresence) RegionState.Presence
+      else RegionState.Nop,
+      ussrBattlefieldCountries,
+      ussrNearOpponent,
+      shuttleDiplomacyCount,
+      ussrVp,
+      95,
+      Resource.ussrColor
+    )
+  }
+
+  def paintRegionInfoByFaction(g: Graphics2D, info: (Int, Int, Int),
+                               state: RegionState, battlefieldCountries: Set[Country],
+                               nearOpponentCountries: Set[Country], shuttleDiplomacyCount: Int,
+                               vp: Int, x: Int, color: Color): Unit = {
+    val presence = info._1
+    val domination = info._2
+    val control = info._3
+
+    var paintList = List.empty[(String, Int)]
+    state match {
+      case RegionState.Presence => paintList :+= Lang.presence -> presence
+      case RegionState.Domination => paintList :+= Lang.domination -> domination
+      case RegionState.Control => paintList :+= Lang.control -> control
+      case RegionState.Nop =>
+    }
+
+    var byCountriesList = List.empty[(String, Int)]
+    for (country <- battlefieldCountries) {
+      if (nearOpponentCountries.contains(country)) {
+        byCountriesList :+= Lang.countryNames(country.name) -> 2
+      } else {
+        byCountriesList :+= Lang.countryNames(country.name) -> 1
+      }
+    }
+    for (country <- nearOpponentCountries) {
+      if (!battlefieldCountries.contains(country)) {
+        byCountriesList :+= Lang.countryNames(country.name) -> 1
+      }
+    }
+    if (shuttleDiplomacyCount < 0) {
+      byCountriesList :+= Lang.cardInfo(73)._1 -> shuttleDiplomacyCount
+    }
+
+    if (paintList.size + byCountriesList.size <= 6) {
+      paintScoreList(g, paintList ++ byCountriesList :+ (Lang.sum -> vp), x, color)
+      return
+    }
+
+    paintScoreList(g,
+      paintList :+
+        (Lang.battlefieldCountry -> battlefieldCountries.size) :+
+        (Lang.opponentNear -> nearOpponentCountries.size) :+
+        (Lang.cardInfo(73)._1 -> shuttleDiplomacyCount) :+
+        (Lang.sum -> vp),
+      x, color)
+  }
+
+  def paintSEAsiaRegionInfoDetail(g: Graphics2D): Unit = {
+    val targetCountries = WorldMap.regionCountries(region)
+    val usCountries = targetCountries.filter(_.getController(game) == US)
+    val ussrCountries = targetCountries.filter(_.getController(game) == USSR)
+
+    paintSEAsiaRegionInfoByFaction(g, usCountries, usCountries.size + usCountries.count(_.isBattlefield), 0, Resource.usColor)
+    paintSEAsiaRegionInfoByFaction(g, ussrCountries, ussrCountries.size + ussrCountries.count(_.isBattlefield), 95, Resource.ussrColor)
+  }
+
+  def paintSEAsiaRegionInfoByFaction(g: Graphics2D, countries: Set[Country], vp: Int, x: Int, color: Color): Unit = {
+    if (countries.size <= 6) {
+      paintScoreList(g,
+        countries.map(c => if (c.isBattlefield) Lang.countryNames(c.name) -> 2 else Lang.countryNames(c.name) -> 1).toList :+ (Lang.sum -> vp),
+        x, color)
+    } else {
+      paintScoreList(g,
+        List(Lang.battlefieldCountry -> countries.count(_.isBattlefield) * 2, Lang.nonbattlefieldCountry -> countries.count(!_.isBattlefield), Lang.sum -> vp),
+        x, color)
+    }
+  }
+
+  def paintScoreList(g: Graphics2D, paintList: List[(String, Int)], x: Int, color: Color): Unit = {
+    g.setFont(Resource.cardDescFont)
+
+    val fm = g.getFontMetrics
+
+    var y = 150
+
+    for ((item, value) <- paintList.dropRight(1)) {
+      g.setColor(Color.black)
+      g.drawString(item, x, y)
+      g.setColor(color)
+      var v = if (value < 200) value.toString else Lang.success
+      if (v.length > 5) {
+        v = v.substring(0, 5) + "..."
+      }
+      g.drawString(v, x + 85 - fm.stringWidth(v), y)
+      y += 18
+    }
+
+    val (item, value) = paintList.last
+    y = 265
+    g.setColor(Color.black)
+    g.drawString(item, x, y)
+    g.setColor(color)
+    var v = if (value < 200) value.toString else Lang.success
+    if (v.length > 5) {
+      v = v.substring(0, 5) + "..."
+    }
+    g.drawString(v, x + 85 - fm.stringWidth(v), y)
+  }
+
 }

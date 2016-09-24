@@ -1,14 +1,15 @@
 package me.herbix.ts.ui
 
 import java.awt.event._
-import java.awt.{Color, Graphics, Graphics2D, RenderingHints}
+import java.awt._
 import javax.swing.{JButton, JPanel}
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.{Cards, Card}
-import me.herbix.ts.util.{Lang, Resource}
+import me.herbix.ts.util.{CardInfo, Lang, Resource}
 
+import scala.collection.immutable.List
 import scala.collection.mutable
 
 /**
@@ -76,11 +77,11 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
   eventCards.setFocusable(false)
   add(eventCards)
 
+  override def paint(graphics: Graphics): Unit = {
+    super.paint(graphics)
 
-  override def paint(g: Graphics): Unit = {
-    super.paint(g)
-
-    g.asInstanceOf[Graphics2D].setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+    val g = graphics.asInstanceOf[Graphics2D]
+    g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
 
     val hand = getShowCardSet
     var n = 0

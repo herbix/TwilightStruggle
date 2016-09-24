@@ -206,7 +206,7 @@ object Card048KitchenDebates extends CardInstant(48, 1, US, true) {
   }
 }
 
-object Card049MissileEnvy extends CardMultiStep(49, 2, Neutral, true) {
+object Card049MissileEnvy extends CardMultiStep(49, 2, Neutral, true /* Give to opponent after played */) {
   override def canEvent(game: Game, faction: Faction): Boolean =
     !game.flags.hasFlag(faction, Flags.MissileEnvy) && !game.hand(Faction.getOpposite(faction)).isEmptyExcludingChinaCard
   class Card049MissileEnvyDummy(tmpop: Int) extends Card(49, 2, Neutral, false) {
@@ -571,7 +571,7 @@ object Card072SadatExpelsSoviets extends CardInstant(72, 1, US, true) {
   }
 }
 
-object Card073ShuttleDiplomacy extends CardInstant(73, 3, US, true) {
+object Card073ShuttleDiplomacy extends CardInstant(73, 3, US, true /* Will be in discard pile after scoring */) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addFlag(US, Flags.ShuttleDiplomacy)
     true

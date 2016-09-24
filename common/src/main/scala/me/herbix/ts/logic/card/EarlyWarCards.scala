@@ -444,7 +444,7 @@ object Card103Defectors extends CardInstant(103, 2, US, false) {
   override def canHeadline(game: Game, faction: Faction) = true
   override def canEvent(game: Game, faction: Faction) = game.round == 0
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    if (faction == US) {
+    if (game.phasingPlayer == US) {
       game.skipHeadlineCard2 = true
     }
     true

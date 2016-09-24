@@ -3,11 +3,13 @@ package me.herbix.ts.ui
 import java.awt._
 import java.awt.event._
 import java.awt.image.BufferedImage
-import javax.swing.{JPanel, JScrollPane, SwingUtilities}
+import javax.swing.{Timer, JPanel, JScrollPane, SwingUtilities}
 
+import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
-import me.herbix.ts.util.MapValue
+import me.herbix.ts.util.{Resource, MapValue}
 import me.herbix.ts.util.Resource._
 
 import scala.List
@@ -16,9 +18,14 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/14.
   */
-class WorldMapUI(val game: Game) extends JPanel {
+class WorldMapUI(g: Game) extends JPanel {
 
-  game.stateUpdateListeners :+= (() => repaint())
+  val game = g.asInstanceOf[GameRecordingHistory]
+
+  game.stateUpdateListeners :+= (() => {
+    updateChangedModel()
+    repaint()
+  })
 
   var outerView: JScrollPane = null
 
@@ -52,6 +59,10 @@ class WorldMapUI(val game: Game) extends JPanel {
   var countryClickListeners: List[(Country, Int) => Unit] = List()
 
   var spaceHoverListeners: List[SpaceLevel => Unit] = List()
+
+  var regionHoverListeners: List[Region => Unit] = List()
+
+  val changedModel = new ChangedModel()
 
   setPreferredSize(new Dimension((bg.getWidth * scale).toInt, (bg.getHeight * scale).toInt))
 
@@ -92,6 +103,7 @@ class WorldMapUI(val game: Game) extends JPanel {
     var dragging = false
     var oldHoverCountry: Country = null
     var oldHoverSpaceLevel: SpaceLevel = null
+    var oldHoverRegion: Region = null
     override def mousePressed(e: MouseEvent): Unit = {
       if (e.getButton != MouseEvent.BUTTON1) {
         dragging = true
@@ -126,6 +138,13 @@ class WorldMapUI(val game: Game) extends JPanel {
           spaceHoverListeners.foreach(_(spaceLevel))
         }
       }
+      val region = findRegion(e.getX, e.getY)
+      if (region != oldHoverRegion) {
+        oldHoverRegion = region
+        if (region != null) {
+          regionHoverListeners.foreach(_(region))
+        }
+      }
     }
     override def mouseDragged(e: MouseEvent): Unit = {
       if (dragging) {
@@ -155,6 +174,16 @@ class WorldMapUI(val game: Game) extends JPanel {
         val cy = ty - MapValue.spaceSize._2 / 2
         nx >= cx && nx < cx + MapValue.spaceSize._1 && ny >= cy && ny < cy + MapValue.spaceSize._2
       }).orNull
+    def findRegion(x: Int, y: Int): Region =
+      (Region.MainRegionSet + Region.SouthEastAsia).find(r => {
+        val pos = MapValue.regionPos(r)
+        val size = MapValue.regionSize
+        val nx = x / scale
+        val ny = y / scale
+        val cx = pos._1
+        val cy = pos._2
+        nx >= cx && nx < cx +size._1 && ny >= cy && ny < cy + size._2
+      }).orNull
   }
 
   addMouseListener(mouseAdapter)
@@ -172,8 +201,8 @@ class WorldMapUI(val game: Game) extends JPanel {
     g.drawImage(bg, 0, 0, null)
 
     drawTurnToken(g)
-    drawDefconToken(g)
-    drawVPToken(g)
+    drawDefconToken(g, changedModel.defcon)
+    drawVPToken(g, changedModel.vp)
 
     import me.herbix.ts.logic.Faction._
 
@@ -183,11 +212,11 @@ class WorldMapUI(val game: Game) extends JPanel {
     val roundImg = if (isUS) tokenActionUs else tokenActionUssr
     drawActionToken(g, roundColor, roundImg, round)
 
-    drawMilitaryToken(g, usColor, game.military(US), -tokenSize/2, tokenMilitaryUs)
-    drawMilitaryToken(g, ussrColor, game.military(USSR), tokenSize/2, tokenMilitaryUssr)
+    drawMilitaryToken(g, usColor, game.military(US), -tokenSize/2, tokenMilitaryUs, changedModel.military(US))
+    drawMilitaryToken(g, ussrColor, game.military(USSR), tokenSize/2, tokenMilitaryUssr, changedModel.military(USSR))
 
-    drawSpaceToken(g, usColor, game.space(US).level, -tokenSize/2, tokenSpaceUs)
-    drawSpaceToken(g, ussrColor, game.space(USSR).level, tokenSize/2, tokenSpaceUssr)
+    drawSpaceToken(g, usColor, game.space(US).level, -tokenSize/2, tokenSpaceUs, changedModel.space(US))
+    drawSpaceToken(g, ussrColor, game.space(USSR).level, tokenSize/2, tokenSpaceUssr, changedModel.space(USSR))
 
     g.setFont(influenceTokenTextFont)
     val fm = g.getFontMetrics
@@ -235,6 +264,10 @@ class WorldMapUI(val game: Game) extends JPanel {
           drawInfluenceToken(g, fm, ussrInfluence.toString, ussrBgColor, ussrDrawColor, x + 52, y + 18)
         }
       }
+
+      if (changedModel.countries(country)) {
+        drawHighLight(g, x, y, w, h)
+      }
     }
 
     val country = WorldMap.countryChina
@@ -267,6 +300,10 @@ class WorldMapUI(val game: Game) extends JPanel {
       } else {
         drawInfluenceToken(g, fm, ussrInfluence.toString, ussrBgColor, ussrDrawColor, x + 8, y + 8)
       }
+    }
+
+    if (changedModel.countries(country)) {
+      drawHighLight(g, x, y, w, h)
     }
   }
 
@@ -318,19 +355,25 @@ class WorldMapUI(val game: Game) extends JPanel {
     drawTokenString(g, x, y, "Turn")
   }
 
-  def drawDefconToken(g: Graphics): Unit = {
+  def drawDefconToken(g: Graphics, highlighted: Boolean): Unit = {
     val (x, y) = getTokenCenter(MapValue.defcon1, MapValue.defcon5, MapValue.defconSize, 1, 5, game.defcon)
     val img = tokenDefcon
     drawToken(g, tokenColor, x - tokenSize / 2, y - tokenSize / 2)
     g.drawImage(img, x - img.getWidth / 2, y - img.getHeight / 2, null)
+    if (highlighted) {
+      drawHighLight(g, x-tokenSize/2, y-tokenSize/2, tokenSize, tokenSize)
+    }
   }
 
-  def drawVPToken(g: Graphics): Unit = {
+  def drawVPToken(g: Graphics, highlighted: Boolean): Unit = {
     val (x, y) = getTokenCenter(MapValue.vpUs20, MapValue.vpUssr20, MapValue.vpSize, 20, -20,
       Math.max(-20, Math.min(20, game.vp)))
     drawToken(g, tokenColor, x - tokenSize / 2, y - tokenSize / 2)
     g.setFont(tokenFont2)
     drawTokenString(g, x, y, "VP")
+    if (highlighted) {
+      drawHighLight(g, x-tokenSize/2, y-tokenSize/2, tokenSize, tokenSize)
+    }
   }
 
   def drawActionToken(g: Graphics, bgColor: Color, img: BufferedImage, value: Int): Unit = {
@@ -339,15 +382,96 @@ class WorldMapUI(val game: Game) extends JPanel {
     g.drawImage(img, x - img.getWidth / 2, y - img.getHeight / 2, null)
   }
 
-  def drawSpaceToken(g: Graphics, bgColor: Color, level: Int, yOffset: Int, img: BufferedImage): Unit = {
+  def drawSpaceToken(g: Graphics, bgColor: Color, level: Int, yOffset: Int, img: BufferedImage, highlighted: Boolean): Unit = {
     val (x, y) = getTokenCenter(MapValue.space0, MapValue.space8, MapValue.spaceSize, 0, 8, level)
     drawToken(g, bgColor, x - tokenSize / 2, y - tokenSize / 2 + yOffset)
     g.drawImage(img, x - img.getWidth / 2, y - img.getHeight / 2 + yOffset, null)
+    if (highlighted) {
+      drawHighLight(g, x-tokenSize/2, y-tokenSize/2+yOffset, tokenSize, tokenSize)
+    }
   }
 
-  def drawMilitaryToken(g: Graphics, bgColor: Color, level: Int, yOffset: Int, img: BufferedImage): Unit = {
+  def drawMilitaryToken(g: Graphics, bgColor: Color, level: Int, yOffset: Int, img: BufferedImage, highlighted: Boolean): Unit = {
     val (x, y) = getTokenCenter(MapValue.military0, MapValue.military5, MapValue.militarySize, 0, 5, level)
     drawToken(g, bgColor, x - tokenSize / 2, y - tokenSize / 2 + yOffset)
     g.drawImage(img, x - img.getWidth / 2, y - img.getHeight / 2 + yOffset, null)
+    if (highlighted) {
+      drawHighLight(g, x-tokenSize/2, y-tokenSize/2+yOffset, tokenSize, tokenSize)
+    }
   }
+
+  def drawHighLight(g: Graphics, x: Int, y: Int, w: Int, h: Int): Unit = {
+    val g2d = g.asInstanceOf[Graphics2D]
+    val stroke = g2d.getStroke
+    g2d.setStroke(new BasicStroke(9, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, Array(22f, 18f), 1 + changedModel.tick % 40))
+    g.setColor(Color.BLACK)
+    g.drawRect(x, y, w, h)
+    g2d.setStroke(new BasicStroke(7, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, Array(20f), changedModel.tick % 40))
+    g.setColor(Resource.mapHighlightColor)
+    g.drawRect(x, y, w, h)
+    g2d.setStroke(stroke)
+  }
+
+  def updateChangedModel(): Unit = {
+    val target = {
+      val reverseHistory = game.historyDesc.toStream.reverse
+      val index = if (game.getOperationHint != OperationHint.NOP) {
+        val r = reverseHistory.indexWhere(!_.isOperating)
+        if (r == 0) reverseHistory.indexWhere(_.isOperating) else r
+      } else {
+        val r = reverseHistory.indexWhere(_.isOperating)
+        if (r == 0) reverseHistory.indexWhere(!_.isOperating) else r
+      }
+
+      if (index == -1) {
+        game.historyDesc
+      } else {
+        game.historyDesc.takeRight(index)
+      }
+    }
+
+    changedModel.reset()
+
+    for (h <- target) {
+      h match {
+        case h: HistoryCountry =>
+          changedModel.countries ++= h.countries
+        case h: HistoryDefcon =>
+          changedModel.defcon = true
+        case h: HistoryVp =>
+          changedModel.vp = true
+        case h: HistoryMilitary =>
+          changedModel.military += h.faction
+        case h: HistorySpace =>
+          changedModel.space += h.faction
+        case _ =>
+      }
+    }
+  }
+
+  class ChangedModel {
+    var countries = Set.empty[Country]
+    var defcon = false
+    var vp = false
+    var military = Set.empty[Faction]
+    var space = Set.empty[Faction]
+    var tick = 0
+
+    val timer = new Timer(60, new ActionListener {
+      override def actionPerformed(e: ActionEvent): Unit = {
+        tick += 1
+        repaint()
+      }
+    })
+    timer.start()
+
+    def reset(): Unit = {
+      countries = Set.empty[Country]
+      defcon = false
+      military = Set.empty[Faction]
+      space = Set.empty[Faction]
+      vp = false
+    }
+  }
+
 }
