@@ -10,12 +10,17 @@ import me.herbix.ts.logic.{OperationHint, Operation, Game}
   */
 object AgentFactory {
 
-  def createDefaultAgent(game: Game, callback: (OperationHint, Operation) => Unit): Agent =
-    new RandomAgent(game, callback)
+  def createDefaultAgent(game: Game, callback: (OperationHint, Operation) => Unit, isOpponentAgent: Boolean = false): Agent = {
+    val result = new RandomAgent(game, callback)
+    result.isOpponentAgent = isOpponentAgent
+    result
+  }
 
-  def createAgentFromClass(agentClass: Class[_ <: Agent], game: Game, callback: (OperationHint, Operation) => Unit): Agent = {
+  def createAgentFromClass(agentClass: Class[_ <: Agent], game: Game, callback: (OperationHint, Operation) => Unit, isOpponentAgent: Boolean = false): Agent = {
     val constructor = agentClass.getConstructor(classOf[Game], classOf[(OperationHint, Operation) => Unit])
-    constructor.newInstance(game, callback)
+    val result = constructor.newInstance(game, callback)
+    result.isOpponentAgent = isOpponentAgent
+    result
   }
 
   private val allAgentClass = Set[Class[_ <: Agent]](classOf[RandomAgent])

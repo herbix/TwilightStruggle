@@ -13,6 +13,8 @@ abstract class Agent(game: Game, operationCallback: (OperationHint, Operation) =
     gameUpdateState()
   })
 
+  var isOpponentAgent = false
+
   val tasks = mutable.Queue.empty[() => Unit]
 
   val agentThread = new Thread() {

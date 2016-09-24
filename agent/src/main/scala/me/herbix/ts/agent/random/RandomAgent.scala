@@ -21,7 +21,10 @@ class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => U
     hint match {
       case h: OperationChooseFactionHint =>
         if (game.pendingInput == null) {
-          return new OperationChooseFaction(playerId, if (rand.nextBoolean()) Faction.US else Faction.USSR)
+          if (isOpponentAgent)
+            return new OperationChooseFaction(playerId, if (rand.nextBoolean()) Faction.US else Faction.USSR)
+          else
+            return null
         } else {
           val pendingInput = game.pendingInput.asInstanceOf[OperationChooseFaction]
           return new OperationChooseFaction(playerId, Faction.getOpposite(pendingInput.faction))
@@ -29,16 +32,18 @@ class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => U
       case _ =>
     }
 
+    var tryCount = 100
+
     do {
       simulator.begin(game)
       val gameState = simulator.state
-      val candicate = pickOperation(gameState, hint)
+      val candidate = pickOperation(gameState, hint)
 
       if (game.operatingPlayer == Faction.Neutral) {
-        return candicate
+        return candidate
       }
 
-      simulator.extendState(candicate)
+      simulator.extendState(candidate)
 
       var deadEnd = false
       var searchEnd = false
@@ -46,17 +51,23 @@ class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => U
         val newState = simulator.state
         if (newState.stateStack.top == State.end) {
           searchEnd = true
-          deadEnd = newState.operatingPlayer == Faction.getOpposite(game.playerFaction)
-        }
-        if (newState.operatingPlayer != game.playerFaction) {
+          deadEnd = newState.operatingPlayer == Faction.getOpposite(faction)
+        } else if (newState.hand(faction).count(!_.canHeld(newState)) > newState.turnRoundCount - newState.round) {
           searchEnd = true
+          deadEnd = true
+        } else if (newState.getOperationHint == OperationHint.NOP) {
+          searchEnd = true
+        } else {
+          simulator.extendState(pickOperation(newState, newState.getOperationHint))
         }
       } while (!searchEnd)
 
       if (!deadEnd) {
-        return candicate
+        return candidate
       }
-    } while (true)
+
+      tryCount -= 1
+    } while (tryCount > 0)
 
     pickOperation(game, hint)
   }
@@ -66,14 +77,6 @@ class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => U
     val faction = game.playerFaction
 
     hint match {
-      case h: OperationChooseFactionHint =>
-        if (game.pendingInput == null) {
-          new OperationChooseFaction(playerId, if (rand.nextBoolean()) Faction.US else Faction.USSR)
-        } else {
-          val pendingInput = game.pendingInput.asInstanceOf[OperationChooseFaction]
-          new OperationChooseFaction(playerId, Faction.getOpposite(pendingInput.faction))
-        }
-
       case h: OperationSelectRegionHint =>
         new OperationSelectRegion(playerId, faction, Region(rand.nextInt(6)))
 

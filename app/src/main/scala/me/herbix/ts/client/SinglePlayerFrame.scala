@@ -196,7 +196,7 @@ object SinglePlayerFrame extends JFrame {
             }
           }
         })
-      })
+      }, true)
 
       val gameUI3 = new GameUI(2)
       val game3 = GameFactory.createGameByVariant(gameVariant)
@@ -233,7 +233,7 @@ object SinglePlayerFrame extends JFrame {
             }
           }
         })
-      })
+      }, player1Agent != null)
     } else {
       val gameUI2 = new GameUI(1)
 

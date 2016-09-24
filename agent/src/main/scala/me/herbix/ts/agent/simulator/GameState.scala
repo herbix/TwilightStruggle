@@ -22,11 +22,11 @@ class GameState private(val data: Array[Byte]) extends Game {
     optionalCards = game.optionalCards
     drawGameWinner = game.drawGameWinner
     gameVariant = game.gameVariant
+
+    reset()
   }
 
   var nextStates = Map.empty[Operation, Map[GameState, Double]]
-
-  reset()
 
   override def sendNextState(input: Operation): Unit = {
     nextState(input)
