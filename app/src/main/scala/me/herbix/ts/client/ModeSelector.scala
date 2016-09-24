@@ -25,19 +25,24 @@ object ModeSelector extends JFrame {
 
   private val singlePlayer = new JButton("单人游戏")
   private val multiPlayer = new JButton("多人游戏")
+  private val help = new JButton("帮助")
   private val exit = new JButton("退出")
 
-  singlePlayer.setSize(150, 45)
-  singlePlayer.setLocation(75, 180)
+  singlePlayer.setSize(120, 40)
+  singlePlayer.setLocation(90, 180)
 
-  multiPlayer.setSize(150, 45)
-  multiPlayer.setLocation(75, 250)
+  multiPlayer.setSize(120, 40)
+  multiPlayer.setLocation(90, 230)
 
-  exit.setSize(150, 45)
-  exit.setLocation(75, 320)
+  help.setSize(120, 40)
+  help.setLocation(90, 280)
+
+  exit.setSize(120, 40)
+  exit.setLocation(90, 330)
 
   panel.add(singlePlayer)
   panel.add(multiPlayer)
+  panel.add(help)
   panel.add(exit)
 
   pack()
@@ -71,6 +76,12 @@ object ModeSelector extends JFrame {
         setVisible(false)
         ModeSelector.notifyAll()
       }
+    }
+  })
+
+  help.addActionListener(new ActionListener {
+    override def actionPerformed(e: ActionEvent): Unit = {
+      HelpDialog.setVisible(true)
     }
   })
 
