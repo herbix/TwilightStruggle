@@ -1,6 +1,6 @@
 package me.herbix.ts.agent.random
 
-import me.herbix.ts.agent.Agent
+import me.herbix.ts.agent.{Agent, AgentBase}
 import me.herbix.ts.agent.simulator.GameSimulator
 import me.herbix.ts.logic._
 
@@ -14,30 +14,15 @@ class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => U
   lazy val rand = new Random()
   lazy val simulator = new GameSimulator
 
-  override def update(game: Game, hint: OperationHint): Operation = {
-    val playerId = game.playerId
+  override def pickOperation(game: Game, hint: OperationHint): Operation = {
     val faction = game.playerFaction
-
-    hint match {
-      case h: OperationChooseFactionHint =>
-        if (game.pendingInput == null) {
-          if (isOpponentAgent)
-            return new OperationChooseFaction(playerId, if (rand.nextBoolean()) Faction.US else Faction.USSR)
-          else
-            return null
-        } else {
-          val pendingInput = game.pendingInput.asInstanceOf[OperationChooseFaction]
-          return new OperationChooseFaction(playerId, Faction.getOpposite(pendingInput.faction))
-        }
-      case _ =>
-    }
 
     var tryCount = 100
 
     do {
       simulator.begin(game)
       val gameState = simulator.state
-      val candidate = pickOperation(gameState, hint)
+      val candidate = pickCandidateOperation(gameState, hint)
 
       if (game.operatingPlayer == Faction.Neutral) {
         return candidate
@@ -58,7 +43,7 @@ class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => U
         } else if (newState.getOperationHint == OperationHint.NOP) {
           searchEnd = true
         } else {
-          simulator.extendState(pickOperation(newState, newState.getOperationHint))
+          simulator.extendState(pickCandidateOperation(newState, newState.getOperationHint))
         }
       } while (!searchEnd)
 
@@ -69,10 +54,10 @@ class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => U
       tryCount -= 1
     } while (tryCount > 0)
 
-    pickOperation(game, hint)
+    pickCandidateOperation(game, hint)
   }
 
-  def pickOperation(game: Game, hint: OperationHint): Operation = {
+  def pickCandidateOperation(game: Game, hint: OperationHint): Operation = {
     val playerId = game.playerId
     val faction = game.playerFaction
 

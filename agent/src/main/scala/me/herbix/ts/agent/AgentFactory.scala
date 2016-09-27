@@ -13,6 +13,7 @@ object AgentFactory {
   def createDefaultAgent(game: Game, callback: (OperationHint, Operation) => Unit, isOpponentAgent: Boolean = false): Agent = {
     val result = new RandomAgent(game, callback)
     result.isOpponentAgent = isOpponentAgent
+    result.start()
     result
   }
 
@@ -20,6 +21,7 @@ object AgentFactory {
     val constructor = agentClass.getConstructor(classOf[Game], classOf[(OperationHint, Operation) => Unit])
     val result = constructor.newInstance(game, callback)
     result.isOpponentAgent = isOpponentAgent
+    result.start()
     result
   }
 

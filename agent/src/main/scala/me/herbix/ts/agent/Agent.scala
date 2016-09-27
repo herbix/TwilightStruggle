@@ -1,64 +1,32 @@
 package me.herbix.ts.agent
 
-import me.herbix.ts.logic.{State, Operation, OperationHint, Game}
+import me.herbix.ts.logic._
 
-import scala.collection.mutable
+import scala.util.Random
 
 /**
-  * Created by Chaofan on 2016/9/8.
+  * Created by Chaofan on 2016/9/27.
   */
-abstract class Agent(game: Game, operationCallback: (OperationHint, Operation) => Unit) {
+abstract class Agent(game: Game, operationCallback: (OperationHint, Operation) => Unit) extends AgentBase(game, operationCallback) {
 
-  game.stateUpdateListeners :+= (() => {
-    gameUpdateState()
-  })
+  override def update(game: Game, hint: OperationHint): Operation = {
+    val rand = new Random()
 
-  var isOpponentAgent = false
-
-  val tasks = mutable.Queue.empty[() => Unit]
-
-  val agentThread = new Thread() {
-    override def run(): Unit = agentLoop()
-  }
-
-  agentThread.start()
-
-  gameUpdateState()
-
-  private def gameUpdateState(): Unit = {
-    val hint = game.getOperationHint
-    updateInstant(game, hint)
-    tasks.enqueue(gameUpdateState(game, hint))
-    tasks.synchronized {
-      tasks.notify()
+    hint match {
+      case h: OperationChooseFactionHint =>
+        if (game.pendingInput == null) {
+          if (isOpponentAgent)
+            new OperationChooseFaction(game.playerId, if (rand.nextBoolean()) Faction.US else Faction.USSR)
+          else
+            null
+        } else {
+          val pendingInput = game.pendingInput.asInstanceOf[OperationChooseFaction]
+          new OperationChooseFaction(game.playerId, Faction.getOpposite(pendingInput.faction))
+        }
+      case _ => pickOperation(game, hint)
     }
   }
 
-  private def gameUpdateState(game: Game, hint: OperationHint)(): Unit = {
-    if (hint == OperationHint.NOP) {
-      return
-    }
-    val input = update(game, hint)
-    if (input != null) {
-      println(s"$this call operationCallback $input")
-      operationCallback(hint, input)
-    }
-  }
-
-  private def agentLoop(): Unit = {
-    while(game.stateStack.isEmpty || game.stateStack.top != State.end) {
-      while (tasks.nonEmpty) {
-        tasks.dequeue().apply()
-      }
-
-      tasks.synchronized {
-        tasks.wait()
-      }
-    }
-  }
-
-  def updateInstant(game: Game, hint: OperationHint): Unit = {}
-
-  def update(game: Game, hint: OperationHint): Operation
+  def pickOperation(game: Game, hint: OperationHint): Operation
 
 }
