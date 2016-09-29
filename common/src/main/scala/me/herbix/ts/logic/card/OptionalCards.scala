@@ -6,6 +6,7 @@ import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
 
 import me.herbix.ts.util.ConditionBuilder._
+import me.herbix.ts.util.OperationHint
 
 import scala.collection.mutable
 
@@ -45,7 +46,7 @@ object Card105SpecialRelationship extends CardMultiStep(105, 2, US, false) {
   @prepare
   def checkUKAndNATO(game: Game, input: Operation): Int = {
     val uk = WorldMap.countries("UK")
-    if (uk.getController(game) == US) {
+    if (game.getController(uk) == US) {
       if (game.flags.hasFlag(Flags.NATO)) 2 else 1
     } else {
       3
@@ -127,7 +128,7 @@ object Card107Che extends CardMultiStep(107, 3, USSR, false) {
 
 object Card108OurManInTehran extends CardMultiStep(108, 2, US, true) {
   override def canEvent(game: Game, faction: Faction) =
-    WorldMap.countries.values.exists(c => c.getController(game) == US && c.regions(Region.MidEast))
+    WorldMap.countries.values.exists(c => game.getController(c) == US && c.regions(Region.MidEast))
 
   @prepare
   def pick5CardsFromDeck(game: Game, input: Operation): Unit = {

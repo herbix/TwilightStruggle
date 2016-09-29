@@ -3,6 +3,7 @@ package me.herbix.ts.logic.card
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic._
+import me.herbix.ts.util.OperationHint
 
 /**
   * Created by Chaofan on 2016/7/23.

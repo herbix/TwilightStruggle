@@ -1,6 +1,7 @@
 package me.herbix.ts.agent
 
 import me.herbix.ts.logic._
+import me.herbix.ts.util.{OperationChooseFactionHint, OperationHint}
 
 import scala.util.Random
 

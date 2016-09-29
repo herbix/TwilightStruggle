@@ -36,10 +36,10 @@ class InfluenceCondition(items: List[(Game, Map[Country, Int]) => Boolean]) exte
     ((game: Game, detail: Map[Country, Int]) => detail.forall(_._2 <= count)))
 
   def notControlledBy(faction: Faction) = new InfluenceCondition(items :+
-    ((game: Game, detail: Map[Country, Int]) => detail.forall(_._1.getController(game) != faction)))
+    ((game: Game, detail: Map[Country, Int]) => detail.forall(t => game.getController(t._1) != faction)))
 
   def notControlled = new InfluenceCondition(items :+
-    ((game: Game, detail: Map[Country, Int]) => detail.forall(_._1.getController(game) == Neutral)))
+    ((game: Game, detail: Map[Country, Int]) => detail.forall(t => game.getController(t._1) == Neutral)))
 
   def inCountry(names: String*) = new InfluenceCondition(items :+
     ((game: Game, detail: Map[Country, Int]) => detail.forall(e => names.contains(e._1.name))))
@@ -103,7 +103,7 @@ class CountryCondition(items: List[(Game, Set[Country]) => Boolean]) extends Con
     ((game: Game, detail: Set[Country]) => detail.forall(_.regions.exists(regions.contains))))
 
   def notControlled = new CountryCondition(items :+
-    ((game: Game, detail: Set[Country]) => detail.forall(_.getController(game) == Neutral)))
+    ((game: Game, detail: Set[Country]) => detail.forall(game.getController(_) == Neutral)))
 
   def withName(names: String*) = new CountryCondition(items :+
     ((game: Game, detail: Set[Country]) => detail.forall(c => names.contains(c.name))))

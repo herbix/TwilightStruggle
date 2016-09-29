@@ -1,9 +1,10 @@
-package me.herbix.ts.logic
+package me.herbix.ts.util
 
 import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.card.Card
+import me.herbix.ts.logic.{Country, Flag, Faction}
 
 /**
   * Created by Chaofan on 2016/6/23.

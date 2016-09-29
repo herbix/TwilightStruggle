@@ -3,7 +3,8 @@ package me.herbix.ts.agent
 import javax.security.auth.callback.Callback
 
 import me.herbix.ts.agent.random.RandomAgent
-import me.herbix.ts.logic.{OperationHint, Operation, Game}
+import me.herbix.ts.logic.{Operation, Game}
+import me.herbix.ts.util.OperationHint
 
 /**
   * Created by Chaofan on 2016/9/9.

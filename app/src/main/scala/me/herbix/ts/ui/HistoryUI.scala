@@ -6,7 +6,7 @@ import javax.swing.JPanel
 
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.{Card016WarsawPact, Card020OlympicGames, Card067GrainSales}
-import me.herbix.ts.util.{Lang, Resource}
+import me.herbix.ts.util._
 
 import scala.collection.immutable.List
 import scala.collection.mutable

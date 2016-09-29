@@ -518,20 +518,20 @@ class DetailUI(game: Game) extends JPanel {
     val targetCountries = WorldMap.regionCountries(region) - WorldMap.countryChina
     val battlefieldCount = targetCountries.count(_.isBattlefield)
 
-    var usBattlefieldCountries = targetCountries.filter(country => country.isBattlefield && country.getController(game) == US)
-    val ussrBattlefieldCountries = targetCountries.filter(country => country.isBattlefield && country.getController(game) == USSR)
+    var usBattlefieldCountries = targetCountries.filter(country => country.isBattlefield && game.getController(country) == US)
+    val ussrBattlefieldCountries = targetCountries.filter(country => country.isBattlefield && game.getController(country) == USSR)
 
     var usBattlefield = usBattlefieldCountries.size
-    val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(game) == US)
+    val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && game.getController(country) == US)
     var ussrBattlefield = ussrBattlefieldCountries.size
-    val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(game) == USSR)
+    val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && game.getController(country) == USSR)
     val usAll = usBattlefield + usNonBattlefield
     val ussrAll = ussrBattlefield + ussrNonBattlefield
 
     var shuttleDiplomacyCount = 0
 
     val taiwan = WorldMap.countries("Taiwan")
-    if (taiwan.regions(region) && taiwan.getController(game) == US && game.flags.hasFlag(US, Flags.Taiwan)) {
+    if (taiwan.regions(region) && game.getController(taiwan) == US && game.flags.hasFlag(US, Flags.Taiwan)) {
       usBattlefield += 1
       usBattlefieldCountries += taiwan
     }
@@ -555,15 +555,15 @@ class DetailUI(game: Game) extends JPanel {
     usVp += usBattlefield
     ussrVp += ussrBattlefield
 
-    val usNearOpponent = targetCountries.filter(country => country.getController(game) == US && country.adjacentCountries(WorldMap.countryUSSR))
-    val ussrNearOpponent = targetCountries.filter(country => country.getController(game) == USSR && country.adjacentCountries(WorldMap.countryUS))
+    val usNearOpponent = targetCountries.filter(country => game.getController(country) == US && country.adjacentCountries(WorldMap.countryUSSR))
+    val ussrNearOpponent = targetCountries.filter(country => game.getController(country) == USSR && country.adjacentCountries(WorldMap.countryUS))
 
     usVp += usNearOpponent.size
     ussrVp += ussrNearOpponent.size
 
     if (useShuttleDiplomacy) {
       val battlefieldAndNear = targetCountries.find(country => {
-        country.getController(game) == USSR && country.adjacentCountries(WorldMap.countryUS) && country.isBattlefield
+        game.getController(country) == USSR && country.adjacentCountries(WorldMap.countryUS) && country.isBattlefield
       })
       if (battlefieldAndNear.nonEmpty) {
         ussrVp -= 1
@@ -647,8 +647,8 @@ class DetailUI(game: Game) extends JPanel {
 
   def paintSEAsiaRegionInfoDetail(g: Graphics2D): Unit = {
     val targetCountries = WorldMap.regionCountries(region)
-    val usCountries = targetCountries.filter(_.getController(game) == US)
-    val ussrCountries = targetCountries.filter(_.getController(game) == USSR)
+    val usCountries = targetCountries.filter(game.getController(_) == US)
+    val ussrCountries = targetCountries.filter(game.getController(_) == USSR)
 
     paintSEAsiaRegionInfoByFaction(g, usCountries, usCountries.size + usCountries.count(_.isBattlefield), 0, Resource.usColor)
     paintSEAsiaRegionInfoByFaction(g, ussrCountries, ussrCountries.size + ussrCountries.count(_.isBattlefield), 95, Resource.ussrColor)

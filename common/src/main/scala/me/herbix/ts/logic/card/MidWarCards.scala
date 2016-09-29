@@ -5,6 +5,7 @@ import me.herbix.ts.logic.Region.RegionState
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
 import me.herbix.ts.util.ConditionBuilder._
+import me.herbix.ts.util._
 
 /**
   * Created by Chaofan on 2016/7/24.
@@ -12,13 +13,13 @@ import me.herbix.ts.util.ConditionBuilder._
 object Card036BrushWar extends CardMultiStep(36, 3, Neutral, false) {
   val NATOCondition: (Game, Set[Country]) => Boolean = (game, detail) =>
     !game.flags.hasFlag(game.operatingPlayer, Flags.NATO) ||
-    detail.forall(c => !(c.getController(game) == Faction.getOpposite(game.operatingPlayer) && c.regions(Region.Europe)))
+    detail.forall(c => !(game.getController(c) == Faction.getOpposite(game.operatingPlayer) && c.regions(Region.Europe)))
 
   @step1(cardEventSelectCountry, 1, true, selectCountry.maxStability(2).extraCondition(NATOCondition))
   def doWar(game: Game, input: Operation): Unit = {
     val country = input.asInstanceOf[OperationSelectCountry].detail.head
     val opposite = Faction.getOpposite(faction)
-    val modifier = country.adjacentCountries.count(_.getController(game) == opposite)
+    val modifier = country.adjacentCountries.count(game.getController(_) == opposite)
     game.war(faction, country, modifier, 3, 3, 1)
   }
 
@@ -34,8 +35,8 @@ object Card038SEAsiaScoring extends CardInstant(38, 0, Neutral, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val targetCountries = WorldMap.countries.values.filter(_.regions(Region.SouthEastAsia))
     val thailand = WorldMap.countries("Thailand")
-    val usVp = targetCountries.count(_.getController(game) == US) + (if (thailand.getController(game) == US) 1 else 0)
-    val ussrVp = targetCountries.count(_.getController(game) == USSR) + (if (thailand.getController(game) == USSR) 1 else 0)
+    val usVp = targetCountries.count(game.getController(_) == US) + (if (game.getController(thailand) == US) 1 else 0)
+    val ussrVp = targetCountries.count(game.getController(_) == USSR) + (if (game.getController(thailand) == USSR) 1 else 0)
     game.addVp(US, usVp)
     game.addVp(USSR, ussrVp)
     game.checkVp()
@@ -196,8 +197,8 @@ object Card047Junta extends CardMultiStep(47, 2, Neutral, false) {
 object Card048KitchenDebates extends CardInstant(48, 1, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val targetCountries = WorldMap.countries.values
-    val usCount = targetCountries.count(country => country.isBattlefield && country.getController(game) == US)
-    val ussrCount = targetCountries.count(country => country.isBattlefield && country.getController(game) == USSR)
+    val usCount = targetCountries.count(country => country.isBattlefield && game.getController(country) == US)
+    val ussrCount = targetCountries.count(country => country.isBattlefield && game.getController(country) == USSR)
     if (usCount > ussrCount) {
       game.pokeChest(US)
       game.addVpAndCheck(US, 2)
@@ -415,7 +416,7 @@ object Card061Opec extends CardInstant(61, 3, USSR, false) {
   val countries = Set("Egypt", "Iran", "Libya", "Saudi Arabia", "Iraq", "Gulf States", "Venezuela")
   override def canEvent(game: Game, faction: Faction) = !game.flags.hasFlag(Flags.NorthSeaOil)
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val vp = countries.count(WorldMap.countries(_).getController(game) == USSR)
+    val vp = countries.count(c => game.getController(WorldMap.countries(c)) == USSR)
     game.addVpAndCheck(USSR, vp)
     true
   }
@@ -634,7 +635,7 @@ object Card078AllianceForProgress extends CardInstant(78, 3, US, true) {
     val vp = WorldMap.countries.values.count(country => {
       country.isBattlefield &&
         (country.regions(Region.MidAmerica) || country.regions(Region.SouthAmerica)) &&
-        country.getController(game) == US
+        game.getController(country) == US
     })
     game.addVpAndCheck(US, vp)
     true

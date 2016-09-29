@@ -1,8 +1,8 @@
-package me.herbix.ts.logic
+package me.herbix.ts.util
 
-import java.io.{ByteArrayInputStream, DataInputStream, DataOutputStream, ByteArrayOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
-import me.herbix.ts.util.Serializer
+import me.herbix.ts.logic.GameRecordingHistory
 
 /**
   * Created by Chaofan on 2016/7/14.

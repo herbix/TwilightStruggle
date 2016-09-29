@@ -1,9 +1,9 @@
-package me.herbix.ts.logic
-
+package me.herbix.ts.util
 
 import me.herbix.ts.logic.Action.Action
-import me.herbix.ts.logic.Faction._
-import me.herbix.ts.logic.card.{Cards, Card}
+import me.herbix.ts.logic.Faction.Faction
+import me.herbix.ts.logic._
+import me.herbix.ts.logic.card.{Card, Cards}
 
 /**
   * Created by Chaofan on 2016/7/20.

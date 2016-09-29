@@ -1,5 +1,7 @@
 package me.herbix.ts.logic
 
+import me.herbix.ts.util.{Snapshot, HistoryTurnRound, History}
+
 /**
   * Created by Chaofan on 2016/9/14.
   */

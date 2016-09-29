@@ -9,7 +9,7 @@ import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.{Card, Cards}
-import me.herbix.ts.util.Resource
+import me.herbix.ts.util._
 
 import scala.collection.mutable
 

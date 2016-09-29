@@ -9,7 +9,7 @@ import me.herbix.ts.agent.{AgentFactory, Agent}
 import me.herbix.ts.client.NewRoomDialog.GameVariantDelegate
 import me.herbix.ts.logic._
 import me.herbix.ts.ui.GameUI
-import me.herbix.ts.util.Lang
+import me.herbix.ts.util.{OperationHint, Lang}
 
 /**
   * Created by Chaofan on 2016/9/10.

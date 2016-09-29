@@ -9,7 +9,7 @@ import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
-import me.herbix.ts.util.{Resource, MapValue}
+import me.herbix.ts.util._
 import me.herbix.ts.util.Resource._
 
 import scala.List

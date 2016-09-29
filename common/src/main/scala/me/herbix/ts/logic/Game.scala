@@ -6,6 +6,7 @@ import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic.card._
+import me.herbix.ts.util._
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -13,7 +14,7 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/12.
   */
-abstract class Game extends GameTrait {
+abstract class Game extends GameTrait with InfluenceProvider {
 
   // other players
   var anotherGame: GameTrait = null
@@ -802,7 +803,7 @@ abstract class Game extends GameTrait {
 
   def tryNextRound(): Unit = {
     if (stateStack.isEmpty) {
-      if (flags.hasFlag(US, Flags.NORAD) && WorldMap.countries("Canada").getController(this) == US &&
+      if (flags.hasFlag(US, Flags.NORAD) && getController(WorldMap.countries("Canada")) == US &&
         flags.getFlagData(US, Flags.NORAD) != defcon && defcon == 2) {
         stateStack.push(noradInfluence)
       } else if (nextRound()) {
@@ -1009,8 +1010,8 @@ abstract class Game extends GameTrait {
     } else if (influence(country, US) < influence(country, USSR)) {
       rollUSSR += 1
     }
-    rollUS += country.adjacentCountries.count(_.getController(this) == US)
-    rollUSSR += country.adjacentCountries.count(_.getController(this) == USSR)
+    rollUS += country.adjacentCountries.count(getController(_) == US)
+    rollUSSR += country.adjacentCountries.count(getController(_) == USSR)
     if (flags.hasFlag(US, Flags.IranContra)) {
       rollUS -= 1
     }
@@ -1193,15 +1194,15 @@ abstract class Game extends GameTrait {
 
     val targetCountries = WorldMap.regionCountries(region) - WorldMap.countryChina
     val battlefieldCount = targetCountries.count(_.isBattlefield)
-    var usBattlefield = targetCountries.count(country => country.isBattlefield && country.getController(this) == US)
-    val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(this) == US)
-    var ussrBattlefield = targetCountries.count(country => country.isBattlefield && country.getController(this) == USSR)
-    val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && country.getController(this) == USSR)
+    var usBattlefield = targetCountries.count(country => country.isBattlefield && getController(country) == US)
+    val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && getController(country) == US)
+    var ussrBattlefield = targetCountries.count(country => country.isBattlefield && getController(country) == USSR)
+    val ussrNonBattlefield = targetCountries.count(country => !country.isBattlefield && getController(country) == USSR)
     val usAll = usBattlefield + usNonBattlefield
     val ussrAll = ussrBattlefield + ussrNonBattlefield
 
     val taiwan = WorldMap.countries("Taiwan")
-    if (taiwan.regions(region) && taiwan.getController(this) == US && flags.hasFlag(US, Flags.Taiwan)) {
+    if (taiwan.regions(region) && getController(taiwan) == US && flags.hasFlag(US, Flags.Taiwan)) {
       usBattlefield += 1
     }
 
@@ -1223,12 +1224,12 @@ abstract class Game extends GameTrait {
     usVp += usBattlefield
     ussrVp += ussrBattlefield
 
-    usVp += targetCountries.count(country => country.getController(this) == US && country.adjacentCountries(WorldMap.countryUSSR))
-    ussrVp += targetCountries.count(country => country.getController(this) == USSR && country.adjacentCountries(WorldMap.countryUS))
+    usVp += targetCountries.count(country => getController(country) == US && country.adjacentCountries(WorldMap.countryUSSR))
+    ussrVp += targetCountries.count(country => getController(country) == USSR && country.adjacentCountries(WorldMap.countryUS))
 
     if (useShuttleDiplomacy) {
       ussrVp -= (if (targetCountries.exists(country => {
-        country.getController(this) == USSR && country.adjacentCountries(WorldMap.countryUS) && country.isBattlefield
+        getController(country) == USSR && country.adjacentCountries(WorldMap.countryUS) && country.isBattlefield
       })) 1 else 0)
     }
 

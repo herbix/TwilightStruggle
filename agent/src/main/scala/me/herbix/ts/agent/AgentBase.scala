@@ -1,6 +1,7 @@
 package me.herbix.ts.agent
 
-import me.herbix.ts.logic.{State, Operation, OperationHint, Game}
+import me.herbix.ts.logic.{State, Operation, Game}
+import me.herbix.ts.util.OperationHint
 
 import scala.collection.mutable
 

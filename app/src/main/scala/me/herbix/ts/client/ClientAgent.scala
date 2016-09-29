@@ -7,7 +7,7 @@ import me.herbix.ts.agent.AgentFactory
 import me.herbix.ts.client.NewRoomDialog.GameVariantDelegate
 import me.herbix.ts.logic._
 import me.herbix.ts.ui.GameUI
-import me.herbix.ts.util.Resource
+import me.herbix.ts.util.{OperationHint, Resource}
 
 /**
   * Created by Chaofan on 2016/7/9.

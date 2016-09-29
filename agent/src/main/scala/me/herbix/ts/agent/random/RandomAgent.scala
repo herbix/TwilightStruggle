@@ -3,6 +3,7 @@ package me.herbix.ts.agent.random
 import me.herbix.ts.agent.{Agent, AgentBase}
 import me.herbix.ts.agent.simulator.GameSimulator
 import me.herbix.ts.logic._
+import me.herbix.ts.util._
 
 import scala.util.Random
 

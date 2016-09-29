@@ -4,6 +4,7 @@ import me.herbix.ts.logic.Faction.{Faction, _}
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
 import me.herbix.ts.util.ConditionBuilder._
+import me.herbix.ts.util.{HistoryYesNo, HistoryRollDice, HistoryCardAction, HistoryEvent}
 
 /**
   * Created by Chaofan on 2016/7/24.
@@ -111,7 +112,7 @@ object Card010Blockade extends CardMultiStep(10, 1, USSR, true) {
 object Card011KoreanWar extends CardInstant(11, 2, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val southKorea = WorldMap.countries("S.Korea")
-    val modifier = southKorea.adjacentCountries.count(_.getController(game) == US)
+    val modifier = southKorea.adjacentCountries.count(game.getController(_) == US)
     val modifier2 = if (game.flags.hasFlag(Flags.ChineseCivilWar)) 1 else 0
     game.war(USSR, southKorea, modifier + modifier2, 4, 2, 2)
     true
@@ -134,8 +135,8 @@ object Card013ArabIsraeliWar extends CardInstant(13, 2, USSR, false) {
   override def canEvent(game: Game, faction: Faction) = !game.flags.hasFlag(Flags.CampDavid)
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     val israel = WorldMap.countries("Israel")
-    val modifier = israel.adjacentCountries.count(_.getController(game) == US) +
-      (if (israel.getController(game) == US) 1 else 0)
+    val modifier = israel.adjacentCountries.count(game.getController(_) == US) +
+      (if (game.getController(israel) == US) 1 else 0)
     game.war(USSR, israel, modifier, 4, 2, 2)
     true
   }
@@ -288,7 +289,7 @@ object Card024IndoPakistaniWar extends CardMultiStep(24, 2, Neutral, false) {
   def eventStepDone(game: Game, input: Operation): Unit = {
     val country = input.asInstanceOf[OperationSelectCountry].detail.head
     val opposite = Faction.getOpposite(faction)
-    val modifier = country.adjacentCountries.count(_.getController(game) == opposite)
+    val modifier = country.adjacentCountries.count(game.getController(_) == opposite)
     game.war(faction, country, modifier, 4, 2, 2)
   }
 

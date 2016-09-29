@@ -4,6 +4,7 @@ import me.herbix.ts.logic.Faction.{Faction, _}
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
 import me.herbix.ts.util.ConditionBuilder._
+import me.herbix.ts.util.{OperationHint, HistoryRegion, HistoryCardOperation, HistoryEvent}
 
 /**
   * Created by Chaofan on 2016/7/24.
@@ -101,7 +102,7 @@ object Card089ShootDownKAL007 extends CardMultiStep(89, 4, US, true) {
   def setDefconAndCheckKorea(game: Game): Int = {
     game.setDefcon(game.defcon - 1)
     game.addVpAndCheck(US, 2)
-    if (WorldMap.countries("S.Korea").getController(game) == US) 1 else 4
+    if (game.getController(WorldMap.countries("S.Korea")) == US) 1 else 4
   }
 
   @step1(cardEventSpecial)
@@ -344,7 +345,7 @@ object Card102IranIraqWar extends CardMultiStep(102, 2, Neutral, false) {
   def doWar(game: Game, input: Operation): Unit = {
     val country = input.asInstanceOf[OperationSelectCountry].detail.head
     val opposite = Faction.getOpposite(faction)
-    val modifier = country.adjacentCountries.count(_.getController(game) == opposite)
+    val modifier = country.adjacentCountries.count(game.getController(_) == opposite)
     game.war(faction, country, modifier, 4, 2, 2)
   }
 

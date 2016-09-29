@@ -149,7 +149,7 @@ object Flags {
   val WarsawPact = new Flag(Always, true)
   val NATO = new Flag(Always, false, 60) {
     override def canRealignmentOrCoup(game: Game, country: Country) =
-      if (country.regions(Region.Europe) && country.getController(game) == US) Some(false) else None
+      if (country.regions(Region.Europe) && game.getController(country) == US) Some(false) else None
   }
   val MarshallPlan = new Flag(Always, true)
   val SALT = new Flag(ThisTurn, false)

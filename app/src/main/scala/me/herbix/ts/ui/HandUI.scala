@@ -7,7 +7,7 @@ import javax.swing.{JButton, JPanel}
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.{Cards, Card}
-import me.herbix.ts.util.{CardInfo, Lang, Resource}
+import me.herbix.ts.util._
 
 import scala.collection.immutable.List
 import scala.collection.mutable
