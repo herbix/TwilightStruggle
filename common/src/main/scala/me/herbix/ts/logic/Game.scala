@@ -955,13 +955,14 @@ abstract class Game extends GameTrait with InfluenceProvider {
 
   def canRealignment(faction: Faction, country: Country): Boolean = {
     if (country.regions(Region.Special)) return false
-    if (modifyOp(faction, currentCard.op, currentRealignments :+ country) - currentRealignments.size - 1 < 0) {
-      return false
-    }
     for (Some(can) <- flags.flagSets2(faction).toStream.map(_.canRealignment(this, country)).find(_.isDefined)) {
       return can
     }
     true
+  }
+
+  def hasEnoughRealignmentCount(faction: Faction, country: Country): Boolean = {
+    modifyOp(faction, currentCard.op, currentRealignments :+ country) - currentRealignments.size - 1 >= 0
   }
 
   def canCoup(faction: Faction, country: Country): Boolean = {
@@ -1461,7 +1462,8 @@ abstract class Game extends GameTrait with InfluenceProvider {
       case State.cardOperationRealignment =>
         if (playerFaction == operatingPlayer) {
           OperationHint(classOf[OperationSelectCountry], 1, getCurrentRealignmentRest(playerFaction),
-            (game: Game, detail: Set[Country]) => detail.forall(canRealignment(playerFaction, _)), true)
+            (game: Game, detail: Set[Country]) => detail.forall(country =>
+              hasEnoughRealignmentCount(playerFaction, country) && canRealignment(playerFaction, country)), true)
         } else {
           OperationHint.NOP
         }

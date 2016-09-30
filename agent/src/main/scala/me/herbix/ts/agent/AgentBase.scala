@@ -26,18 +26,18 @@ abstract class AgentBase(game: Game, operationCallback: (OperationHint, Operatio
 
   private def gameUpdateState(): Unit = {
     val hint = game.getOperationHint
-    updateInstant(game, hint)
-    tasks.enqueue(gameUpdateState(game, hint))
+    updateInstant(hint)
+    tasks.enqueue(gameUpdateState(hint))
     tasks.synchronized {
       tasks.notify()
     }
   }
 
-  private def gameUpdateState(game: Game, hint: OperationHint)(): Unit = {
+  private def gameUpdateState(hint: OperationHint)(): Unit = {
     if (hint == OperationHint.NOP) {
       return
     }
-    val input = update(game, hint)
+    val input = update(hint)
     if (input != null) {
       println(s"$this call operationCallback $input")
       operationCallback(hint, input)
@@ -56,9 +56,9 @@ abstract class AgentBase(game: Game, operationCallback: (OperationHint, Operatio
     }
   }
 
-  def updateInstant(game: Game, hint: OperationHint): Unit = {}
+  def updateInstant(hint: OperationHint): Unit = {}
 
-  def update(game: Game, hint: OperationHint): Operation
+  def update(hint: OperationHint): Operation
 
   def start(): Unit = {
     agentThread.start()

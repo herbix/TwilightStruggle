@@ -225,7 +225,7 @@ object SinglePlayerFrame extends JFrame {
     }
 
     if (player2Agent != null) {
-      AgentFactory.createAgentFromClass(player2Agent, game2, (hint: OperationHint, input: Operation) => {
+      val agent = AgentFactory.createAgentFromClass(player2Agent, game2, (hint: OperationHint, input: Operation) => {
         SwingUtilities.invokeLater(new Runnable {
           override def run(): Unit = {
             if (hint == game2.getOperationHint) {
@@ -234,6 +234,7 @@ object SinglePlayerFrame extends JFrame {
           }
         })
       }, player1Agent != null)
+      gameUI1.agent = agent
     } else {
       val gameUI2 = new GameUI(1)
 

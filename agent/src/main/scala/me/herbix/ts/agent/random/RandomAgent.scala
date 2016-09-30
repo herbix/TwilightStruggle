@@ -1,6 +1,6 @@
 package me.herbix.ts.agent.random
 
-import me.herbix.ts.agent.{Agent, AgentBase}
+import me.herbix.ts.agent.Agent
 import me.herbix.ts.agent.simulator.GameSimulator
 import me.herbix.ts.logic._
 import me.herbix.ts.util._
@@ -15,7 +15,7 @@ class RandomAgent(game: Game, operationCallback: (OperationHint, Operation) => U
   lazy val rand = new Random()
   lazy val simulator = new GameSimulator
 
-  override def pickOperation(game: Game, hint: OperationHint): Operation = {
+  override def pickOperation(hint: OperationHint): Operation = {
     val faction = game.playerFaction
 
     var tryCount = 100

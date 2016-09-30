@@ -4,6 +4,7 @@ import javax.security.auth.callback.Callback
 
 import me.herbix.ts.agent.random.RandomAgent
 import me.herbix.ts.logic.{Operation, Game}
+import me.herbix.ts.agent.simple.SimpleAgent
 import me.herbix.ts.util.OperationHint
 
 /**
@@ -26,7 +27,10 @@ object AgentFactory {
     result
   }
 
-  private val allAgentClass = Set[Class[_ <: Agent]](classOf[RandomAgent])
+  private val allAgentClass = Set[Class[_ <: Agent]](
+    classOf[RandomAgent],
+    classOf[SimpleAgent]
+  )
 
   def getAllAgentClass: Set[Class[_ <: Agent]] = allAgentClass
 

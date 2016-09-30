@@ -8,9 +8,10 @@ import scala.util.Random
 /**
   * Created by Chaofan on 2016/9/27.
   */
-abstract class Agent(game: Game, operationCallback: (OperationHint, Operation) => Unit) extends AgentBase(game, operationCallback) {
+abstract class Agent(game: Game, operationCallback: (OperationHint, Operation) => Unit)
+  extends AgentBase(game, operationCallback) with AgentTrait {
 
-  override def update(game: Game, hint: OperationHint): Operation = {
+  override def update(hint: OperationHint): Operation = {
     val rand = new Random()
 
     hint match {
@@ -24,10 +25,8 @@ abstract class Agent(game: Game, operationCallback: (OperationHint, Operation) =
           val pendingInput = game.pendingInput.asInstanceOf[OperationChooseFaction]
           new OperationChooseFaction(game.playerId, Faction.getOpposite(pendingInput.faction))
         }
-      case _ => pickOperation(game, hint)
+      case _ => pickOperation(hint)
     }
   }
-
-  def pickOperation(game: Game, hint: OperationHint): Operation
 
 }

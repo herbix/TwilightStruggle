@@ -5,6 +5,7 @@ import java.awt.event._
 import java.awt.image.BufferedImage
 import javax.swing.{Timer, JPanel, JScrollPane, SwingUtilities}
 
+import me.herbix.ts.agent.simple.SimpleAgent
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
@@ -63,6 +64,8 @@ class WorldMapUI(g: Game) extends JPanel {
   var regionHoverListeners: List[Region => Unit] = List()
 
   val changedModel = new ChangedModel()
+
+  var gameUI: GameUI = null
 
   setPreferredSize(new Dimension((bg.getWidth * scale).toInt, (bg.getHeight * scale).toInt))
 
@@ -305,7 +308,21 @@ class WorldMapUI(g: Game) extends JPanel {
     if (changedModel.countries(country)) {
       drawHighLight(g, x, y, w, h)
     }
+
+    g.setFont(debugAIFont)
+    for (country <- WorldMap.normalCountries.values ++ List(WorldMap.countryChina)) {
+      if (gameUI != null && gameUI.agent != null && gameUI.agent.isInstanceOf[SimpleAgent]) {
+        val (x, y, w, h) = MapValue.getCountryPosSize(country)
+        val agent = gameUI.agent.asInstanceOf[SimpleAgent]
+        val threat = agent.countryThreat.getOrElse(country, 0f)
+        val importance = agent.countryImportance.getOrElse(country, 0f)
+        g.setColor(Color.YELLOW)
+        g.drawString(f"$threat%.1f:$importance%.1f", x, y)
+      }
+    }
   }
+
+  val debugAIFont = new Font("Arial", 0, 20)
 
   def drawInfluenceToken(g: Graphics, fm: FontMetrics, influenceStr: String, bgColor: Color, frontColor: Color, mx: Int, my: Int): Unit = {
     drawToken(g, bgColor, mx, my)

@@ -4,6 +4,7 @@ import java.awt.event._
 import java.awt.{BorderLayout, Color, Dimension}
 import javax.swing._
 
+import me.herbix.ts.agent.Agent
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
@@ -19,6 +20,7 @@ import scala.collection.mutable
 class GameUI(playerId: Int) extends JFrame {
 
   var game: Game = null
+  var agent: Agent = null
 
   def init(game: Game): Unit = {
     this.game = game
@@ -53,6 +55,7 @@ class GameUI(playerId: Int) extends JFrame {
     val worldMapUI = new WorldMapUI(game)
     val worldMapUIOuter = new JScrollPane(worldMapUI)
     worldMapUI.setOuter(worldMapUIOuter)
+    worldMapUI.gameUI = this
     worldMapUIOuter.setPreferredSize(new Dimension(750, 480))
     worldMapUIOuter.setWheelScrollingEnabled(false)
     worldMapUIOuter.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
