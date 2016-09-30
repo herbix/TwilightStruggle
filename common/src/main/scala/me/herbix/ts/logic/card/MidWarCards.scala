@@ -121,7 +121,7 @@ object Card045Summit extends CardMultiStep(45, 1, Neutral, false) {
   def rollDice(game: Game): Int = {
     val usRoll = game.rollDice()
     val ussrRoll = game.rollDice()
-    val counters = Region.MainRegionSet.map(Region.getRegionState(game, _))
+    val counters = Region.MainRegionSet.map(game.getRegionState)
     val usModifier = counters.toStream.map(_(US)).count(s => s == RegionState.Domination || s == RegionState.Control)
     val ussrModifier = counters.toStream.map(_(USSR)).count(s => s == RegionState.Domination || s == RegionState.Control)
     val usRollResult = usRoll + usModifier

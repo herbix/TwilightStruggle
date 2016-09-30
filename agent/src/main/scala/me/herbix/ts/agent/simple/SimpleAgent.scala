@@ -75,7 +75,7 @@ class SimpleAgent(game: Game, operationCallback: (OperationHint, Operation) => U
     val faction = game.playerFaction
     val opponentFaction = Faction.getOpposite(faction)
 
-    regionStates = Region.MainRegionSet.map(r => r -> Region.getRegionState(game, r)(faction)).toMap
+    regionStates = Region.MainRegionSet.map(r => r -> game.getRegionState(r)(faction)).toMap
 
     countryImportance = WorldMap.normalCountries.values.map(country =>
       country -> calculateImportanceForCountry(faction, opponentFaction, country)
