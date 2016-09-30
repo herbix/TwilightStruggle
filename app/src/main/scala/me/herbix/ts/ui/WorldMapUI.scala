@@ -309,17 +309,18 @@ class WorldMapUI(g: Game) extends JPanel {
       drawHighLight(g, x, y, w, h)
     }
 
+    // TODO remove debug code
     g.setFont(debugAIFont)
     for (country <- WorldMap.normalCountries.values ++ List(WorldMap.countryChina)) {
       if (gameUI != null && gameUI.agent != null && gameUI.agent.isInstanceOf[SimpleAgent]) {
-        val (x, y, w, h) = MapValue.getCountryPosSize(country)
+        val (x, y, _, _) = MapValue.getCountryPosSize(country)
         val agent = gameUI.agent.asInstanceOf[SimpleAgent]
-        val threat = agent.countryThreat.getOrElse(country, 0f)
-        val importance = agent.countryImportance.getOrElse(country, 0f)
+        val str = agent.countryState.get(country).map(_.toString).getOrElse("")
         g.setColor(Color.YELLOW)
-        g.drawString(f"$threat%.1f:$importance%.1f", x, y)
+        g.drawString(str, x, y)
       }
     }
+    // debug code end
   }
 
   val debugAIFont = new Font("Arial", 0, 20)
