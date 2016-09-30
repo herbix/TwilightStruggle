@@ -5,28 +5,32 @@ import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Region.RegionState.RegionState
 import me.herbix.ts.logic.Region.{Region, RegionState}
 import me.herbix.ts.logic._
-import me.herbix.ts.util.{InfluenceProvider, OperationModifyInfluenceHint, OperationHint}
+import me.herbix.ts.logic.card.Cards
+import me.herbix.ts.util._
 
 /**
   * Created by Chaofan on 2016/9/27.
   */
 class SimpleAgent(game: Game, operationCallback: (OperationHint, Operation) => Unit) extends RandomAgent(game, operationCallback) {
 
+  var playerId = 0
+  var agentFaction = Neutral
+  var opponentFaction = Neutral
+
   var regionStates = Map.empty[Region, RegionState]
 
   var countryState = Map.empty[Country, CountryState]
 
   override def pickOperation(hint: OperationHint): Operation = {
-    val playerId = game.playerId
-    val faction = game.playerFaction
-    val opponentFaction = Faction.getOpposite(faction)
+    playerId = game.playerId
+    agentFaction = game.playerFaction
+    opponentFaction = Faction.getOpposite(agentFaction)
 
-    var influenceProvider: InfluenceProvider = game
-
-    updateCountryState(influenceProvider)
+    updateCountryState(game)
 
     hint match {
       case h: OperationModifyInfluenceHint =>
+        var influenceProvider: InfluenceProvider = game
         var detail = Map.empty[Country, Int]
         var continue = false
         do {
@@ -35,17 +39,9 @@ class SimpleAgent(game: Game, operationCallback: (OperationHint, Operation) => U
 
           if (continue) {
             val country = if (h.isAdd)
-              valid.maxBy(c => {
-                val s = countryState(c)
-                if (influenceProvider.getController(c) == faction)
-                  s.threat * 0.4
-                else if (influenceProvider.getController(c) == opponentFaction)
-                  s.importance / 4
-                else
-                  s.importance - s.threat * 0.6
-              })
+              valid.maxBy(c => countryState(c).addInfluenceScore)
             else
-              valid.maxBy(c => countryState(c).importance)
+              valid.maxBy(c => countryState(c).removeInfluenceScore)
 
             if (detail.contains(country)) {
               detail += country -> (detail(country) + 1)
@@ -58,7 +54,28 @@ class SimpleAgent(game: Game, operationCallback: (OperationHint, Operation) => U
           }
         } while (continue)
 
-        new OperationModifyInfluence(playerId, faction, h.isAdd, detail)
+        new OperationModifyInfluence(playerId, agentFaction, h.isAdd, detail)
+
+      case h: OperationSelectCardAndActionHint =>
+        val scoringCardCount = game.hand(agentFaction).count(!_.canHeld(game))
+        if (scoringCardCount > 0 && game.turn >= game.turnRoundCount - scoringCardCount + 1) {
+          val scoringCards = game.hand(agentFaction).filter(!_.canHeld(game)).toSeq
+          new OperationSelectCardAndAction(playerId, agentFaction, scoringCards.head, Action.Event)
+        } else {
+          val cards = h.validCards(game).filter(c => c != Cards.chinaCard && h.validCardActions(game, c).contains(Action.Operation))
+          if (cards.nonEmpty) {
+            new OperationSelectCardAndAction(playerId, agentFaction, cards.head, Action.Operation)
+          } else {
+            super.pickOperation(hint)
+          }
+        }
+
+      case h: OperationSelectOperationHint =>
+        if (h.canInfluence(game)) {
+          new OperationSelectOperation(playerId, agentFaction, Action.Influence)
+        } else {
+          super.pickOperation(hint)
+        }
 
       case _ => super.pickOperation(hint)
     }
@@ -73,15 +90,16 @@ class SimpleAgent(game: Game, operationCallback: (OperationHint, Operation) => U
 
   def updateCountryStateForCountry(influenceProvider: InfluenceProvider, country: Country): CountryState = {
     new CountryState(
+      this,
+      influenceProvider,
+      country,
       importance = calculateImportanceForCountry(influenceProvider, country),
-      threat = calculateThreatForCountry(4, influenceProvider, country)
+      threat = calculateGainForFactionAndCountry(4, influenceProvider, getOpposite(game.playerFaction), country),
+      gain = calculateGainForFactionAndCountry(4, influenceProvider, game.playerFaction, country)
     )
   }
 
   def calculateImportanceForCountry(influenceProvider: InfluenceProvider, country: Country): Float = {
-    val faction = game.playerFaction
-    val opponentFaction = Faction.getOpposite(faction)
-
     val region = country.regions.filter(regionStates.contains).head
     val regionState = regionStates(region)
     val info = Region.ScoringInfo(region)
@@ -92,10 +110,10 @@ class SimpleAgent(game: Game, operationCallback: (OperationHint, Operation) => U
       case RegionState.Presence =>
         val battlefieldDiv =
           WorldMap.regionCountries(region).count(c => c.isBattlefield && influenceProvider.getController(c) == opponentFaction) -
-            WorldMap.regionCountries(region).count(c => c.isBattlefield && influenceProvider.getController(c) == faction)
+            WorldMap.regionCountries(region).count(c => c.isBattlefield && influenceProvider.getController(c) == agentFaction)
         val allDiv =
           WorldMap.regionCountries(region).count(influenceProvider.getController(_) == opponentFaction) -
-            WorldMap.regionCountries(region).count(influenceProvider.getController(_) == faction)
+            WorldMap.regionCountries(region).count(influenceProvider.getController(_) == agentFaction)
         val div = Math.max(battlefieldDiv, allDiv) + 1
         if (battlefieldDiv < 0 && allDiv < 0) {
           if (country.isBattlefield) 0 else info._2 - info._1
@@ -113,8 +131,8 @@ class SimpleAgent(game: Game, operationCallback: (OperationHint, Operation) => U
     val battlefieldImportance = if (country.isBattlefield) 1 else 0
 
     val opponentNearImportance =
-      if ((country.adjacentCountries.contains(WorldMap.countryUS) && faction == Faction.USSR) ||
-        (country.adjacentCountries.contains(WorldMap.countryUSSR) && faction == Faction.US))
+      if ((country.adjacentCountries.contains(WorldMap.countryUS) && agentFaction == USSR) ||
+        (country.adjacentCountries.contains(WorldMap.countryUSSR) && agentFaction == US))
         1
       else
         0
@@ -122,33 +140,31 @@ class SimpleAgent(game: Game, operationCallback: (OperationHint, Operation) => U
     baseImportant + battlefieldImportance + opponentNearImportance
   }
 
-  def calculateThreatForCountry(cardOp: Float, influenceProvider: InfluenceProvider, country: Country): Float = {
-    val faction = game.playerFaction
+  def calculateGainForFactionAndCountry(cardOp: Float, influenceProvider: InfluenceProvider, faction: Faction, country: Country): Float = {
     val opponentFaction = Faction.getOpposite(faction)
 
     val threatInfluence =
-      if (country.adjacentCountries.exists(influenceProvider.influence(_, opponentFaction) > 0) ||
-        influenceProvider.influence(country, opponentFaction) > 0)
-        if (influenceProvider.getController(country) == faction)
-          Math.max(cardOp / 2, cardOp - (influenceProvider.getInfluenceDiff(country, faction) - country.stability + 1))
+      if ((country.adjacentCountries + country).exists(influenceProvider.influence(_, faction) > 0))
+        if (influenceProvider.getController(country) == opponentFaction)
+          Math.max(cardOp / 2, cardOp - (influenceProvider.getInfluenceDiff(country, opponentFaction) - country.stability + 1))
         else
           cardOp
       else
         0
 
     val threatRealignment =
-      if (game.canRealignment(opponentFaction, country))
+      if (game.canRealignment(faction, country))
         Math.min(
-          0.5f * cardOp * (country.adjacentCountries.count(influenceProvider.getController(_) == opponentFaction) +
-            (if (influenceProvider.influence(country, faction) < influenceProvider.influence(country, opponentFaction)) 1 else 0)),
-          influenceProvider.influence(country, faction)
+          0.5f * cardOp * (country.adjacentCountries.count(influenceProvider.getController(_) == faction) +
+            (if (influenceProvider.influence(country, opponentFaction) < influenceProvider.influence(country, faction)) 1 else 0)),
+          influenceProvider.influence(country, opponentFaction)
         )
       else
         0
 
     val threatCoup =
-      if (game.canCoup(opponentFaction, country) &&
-        (!country.isBattlefield || game.defcon > 2 || game.flags.hasFlag(opponentFaction, Flags.NuclearSubs)))
+      if (game.canCoup(faction, country) &&
+        (!country.isBattlefield || game.defcon > 2 || game.flags.hasFlag(faction, Flags.NuclearSubs)))
         3.5f + cardOp - country.stability * 2
       else
         0
