@@ -50,4 +50,20 @@ trait InfluenceProvider {
     Map(US -> usState, USSR -> ussrState)
   }
 
+  def getBattlefieldCount(region: Region): Int = {
+    WorldMap.regionCountries(region).count(_.isBattlefield)
+  }
+
+  def getBattlefieldCountForFaction(region: Region, faction: Faction): Int = {
+    WorldMap.regionCountries(region).count(country => country.isBattlefield && getController(country) == faction)
+  }
+
+  def getNonBattlefieldCountForFaction(region: Region, faction: Faction): Int = {
+    WorldMap.regionCountries(region).count(country => !country.isBattlefield && getController(country) == faction)
+  }
+
+  def getAllCountForFaction(region: Region, faction: Faction): Int = {
+    WorldMap.regionCountries(region).count(getController(_) == faction)
+  }
+
 }

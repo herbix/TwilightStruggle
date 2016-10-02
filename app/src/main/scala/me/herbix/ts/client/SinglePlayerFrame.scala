@@ -169,7 +169,7 @@ object SinglePlayerFrame extends JFrame {
 
     val player1Agent =
       if (radio1Agent.isSelected && radio2Agent.isSelected) {
-        agentList1.getSelectedItem.asInstanceOf[AgentClassDelegate].agentClass
+        agentList2.getSelectedItem.asInstanceOf[AgentClassDelegate].agentClass
       } else {
         null
       }
@@ -234,7 +234,9 @@ object SinglePlayerFrame extends JFrame {
           }
         })
       }, player1Agent != null)
-      gameUI1.agent = agent
+      if (gameUI1 != null) {
+        gameUI1.agent = agent
+      }
     } else {
       val gameUI2 = new GameUI(1)
 

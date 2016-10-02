@@ -636,13 +636,17 @@ class DetailUI(game: Game) extends JPanel {
       return
     }
 
-    paintScoreList(g,
-      paintList :+
-        (Lang.battlefieldCountry -> battlefieldCountries.size) :+
-        (Lang.opponentNear -> nearOpponentCountries.size) :+
-        (Lang.cardInfo(73)._1 -> shuttleDiplomacyCount) :+
-        (Lang.sum -> vp),
-      x, color)
+    paintList :+= Lang.battlefieldCountry -> battlefieldCountries.size
+
+    if (nearOpponentCountries.nonEmpty) {
+      paintList :+= Lang.opponentNear -> nearOpponentCountries.size
+    }
+
+    if (shuttleDiplomacyCount != 0) {
+      paintList :+= Lang.cardInfo(73)._1 -> shuttleDiplomacyCount
+    }
+
+    paintScoreList(g, paintList :+ (Lang.sum -> vp), x, color)
   }
 
   def paintSEAsiaRegionInfoDetail(g: Graphics2D): Unit = {

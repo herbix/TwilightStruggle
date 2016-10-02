@@ -1253,6 +1253,12 @@ abstract class Game extends GameTrait with InfluenceProvider {
     scoring(Region.Africa)
     scoring(Region.MidAmerica)
     scoring(Region.SouthAmerica)
+    if (hand(US).has(Cards.chinaCard)) {
+      addVp(US, 1)
+    }
+    if (hand(USSR).has(Cards.chinaCard)) {
+      addVp(USSR, 1)
+    }
     checkVp()
   }
 
