@@ -1,0 +1,69 @@
+Each player has 5 cards they can use for the What If-events. They are Dummy, +1, +1, +2 and cancel opponent's card (or -1, -1, -2 for USSR). The Dummy can be reused, the others can not.
+
+USSR generally wants low rolls, US wants high rolls
+
+Here are the 6 events
+
+Yalta and Potsdam
+
+1: USSR receives 1 additional Influence anywhere in Europe during setup and may take one of Vietnam Revolts or Arab-Israeli War into hand before drawing
+
+2-3: No effect
+
+4-5: US may take Marshall Plan into hand before drawing.
+
+6: 4-5 result and US goes first in all Early War turns.
+
+VJ Day
+
+1: 2-3 result and US/Japan Mutual Defense Pact moved to Mid War deck, add 1 USSR Influence in each of South Korea and Japan in setup.
+
+2-3: Add 1 Influence in South Korea during setup.
+
+4-5: No effect.
+
+6: Remove Korean War from the game. On turn 1, US ignores Defcon restrictions and Defcon cannot go below 2.
+
+Chinese Civil War
+
+1: Remove Ussuri River Skirmish from the game.
+
+2-3: No effect
+
+4-5: China Card begins face down.
+
+6: 4-5 and Taiwan is now a permanent battleground country. Add 3 US influence in Taiwan during setup. Replace Formosan Resolution with Nationalist China card.
+
+Nationalist China is a recurring 2 OPS US Early War event with the following effect: Place 3 influence in Asia, no more than 1 per country.
+
+Israel:
+
+1: 2-3 and USSR receives 2 Influence anywhere in the Middle East during setup (no more than 1 per country).
+
+2-3: USSR receives 1 Influence in Syria in setup.
+
+4-5: No effect.
+
+6: US receives 1 Influence in each of Israel, Lebanon and Jordan during setup.
+
+VE Day
+
+1: 2-3 and USSR receives 1 Influence in West Germany and 1 in Austria during setup.
+
+2-3: USSR receives 2 additional Eastern European influence during setup.
+
+4-5: No effect.
+
+6: Both players receive 2 influence in East Germany (USSR does not receive the 3 they normally get). Blockade has no effect. Replace Europe Scoring with Europe Scoring Allied Berlin.
+
+Europe Scoring Allied Berlin is similar to Europe Scoring, except that domination scores 6 instead of 7 and Control scores 6 instead of winning the game.
+
+1945 UK Election
+
+1: US influence in UK reduced by 2
+
+2-3: No effect
+
+4-5: Socialist Governments has no effect on turn 1 and 2.
+
+6: Move Socialist Governments to the Mid War deck, Suez Crisis has no effect.
