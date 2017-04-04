@@ -39,6 +39,7 @@ object NewRoomDialog extends JDialog {
   variant.addItem(new GameVariantDelegate(GameVariant.Standard))
   variant.addItem(new GameVariantDelegate(GameVariant.LateWar))
   variant.addItem(new GameVariantDelegate(GameVariant.ChineseCivilWar))
+  variant.addItem(new GameVariantDelegate(GameVariant.TurnZero))
   variant.setLocation(125, 30)
   variant.setSize(100, 20)
   variant.setFocusable(false)
@@ -103,6 +104,7 @@ object NewRoomDialog extends JDialog {
       case GameVariant.Standard => "标准"
       case GameVariant.LateWar => "冷战后期"
       case GameVariant.ChineseCivilWar => "中国内战"
+      case GameVariant.TurnZero => "第零回合"
     }
   }
 }

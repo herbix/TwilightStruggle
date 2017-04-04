@@ -94,8 +94,8 @@ class CountryState(game: Game,
     var importance = calculateBaseImportance(faction)
 
     if (country.isBattlefield) importance += 1
-    if ((country.adjacentCountries.contains(WorldMap.countryUS) && faction == USSR) ||
-      (country.adjacentCountries.contains(WorldMap.countryUSSR) && faction == US)) {
+    if ((country.adjacentCountries.contains(game.theWorldMap.countryUS) && faction == USSR) ||
+      (country.adjacentCountries.contains(game.theWorldMap.countryUSSR) && faction == US)) {
       importance += 1
     }
 

@@ -219,7 +219,7 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
   }
 
   def roomOperation(): Unit = {
-    val game = if (RoomDialog.gameUI != null) RoomDialog.gameUI.game else null
+    implicit val game = if (RoomDialog.gameUI != null) RoomDialog.gameUI.game else null
     val input = readOperation(roomIn)
     println("roomOperation " + input.toString)
     SwingUtilities.invokeLater(new Runnable {

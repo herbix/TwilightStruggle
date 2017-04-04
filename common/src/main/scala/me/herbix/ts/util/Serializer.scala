@@ -6,7 +6,7 @@ import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.State.State
 import me.herbix.ts.logic._
-import me.herbix.ts.logic.card.{Cards, Card}
+import me.herbix.ts.logic.card.Card
 
 import scala.collection.mutable
 
@@ -15,7 +15,7 @@ import scala.collection.mutable
   */
 object Serializer {
 
-  def readOperation(in: DataInputStream): Operation = {
+  def readOperation(in: DataInputStream)(implicit game: Game): Operation = {
     val playerId = in.readInt()
     val faction = Faction(in.readInt())
     val opId = in.readByte()
@@ -30,13 +30,13 @@ object Serializer {
         for (i <- 0 until len) {
           val id = in.readByte()
           val v = in.readInt()
-          detail += (WorldMap.getCountryFromId(id) -> v)
+          detail += (game.theWorldMap.getCountryFromId(id) -> v)
         }
         new OperationModifyInfluence(playerId, faction, isAdd, detail.toMap)
       case 2 =>
-        new OperationSelectCard(playerId, faction, Option(Cards.fromId(in.readByte())))
+        new OperationSelectCard(playerId, faction, Option(game.theCards.fromId(in.readByte())))
       case 3 =>
-        val card = Cards.fromId(in.readByte())
+        val card = game.theCards.fromId(in.readByte())
         new OperationSelectCardAndAction(playerId, faction, card, Action(in.readInt()))
       case 4 =>
         new OperationSelectOperation(playerId, faction, Action(in.readInt()))
@@ -45,7 +45,7 @@ object Serializer {
         val detail = mutable.Set.empty[Country]
         for (i <- 0 until len) {
           val id = in.readByte()
-          detail += WorldMap.getCountryFromId(id)
+          detail += game.theWorldMap.getCountryFromId(id)
         }
         new OperationSelectCountry(playerId, faction, detail.toSet)
       case 6 =>
@@ -58,7 +58,7 @@ object Serializer {
         val len = in.readInt()
         val cards = mutable.Set.empty[Card]
         for (i <- 0 until len) {
-          cards += Cards.fromId(in.readByte())
+          cards += game.theCards.fromId(in.readByte())
         }
         new OperationSelectCards(playerId, faction, cards.toSet)
       case 10 =>
@@ -83,7 +83,7 @@ object Serializer {
     out.writeInt(vp)
     out.writeByte(defcon)
 
-    val targetCountries = WorldMap.countries.values
+    val targetCountries = game.theWorldMap.countries.values
       .filter(c => influence(c, US) != 0 || influence(c, USSR) != 0)
     out.writeInt(targetCountries.size)
     for (country <- targetCountries) {
@@ -138,14 +138,14 @@ object Serializer {
     game.vp = in.readInt()
     game.defcon = in.readByte()
 
-    for (c <- WorldMap.countries.values) {
+    for (c <- game.theWorldMap.countries.values) {
       game.countryInfluence(c)(US) = 0
       game.countryInfluence(c)(USSR) = 0
     }
     val countryCount = in.readInt()
     for (i <- 1 to countryCount) {
       val id = in.readByte()
-      val country = WorldMap.getCountryFromId(id)
+      val country = game.theWorldMap.getCountryFromId(id)
       game.countryInfluence(country)(US) = in.readShort()
       game.countryInfluence(country)(USSR) = in.readShort()
     }
@@ -177,13 +177,13 @@ object Serializer {
 
     readStack[State](stateStack, in, State(in.readInt()))
     readStack[Faction](operatingPlayerStack, in, Faction(in.readByte()))
-    readStack[Card](currentCardStack, in, Cards.fromId(in.readByte()))
+    readStack[Card](currentCardStack, in, game.theCards.fromId(in.readByte()))
     readStack[Any](currentCardDataStack, in, readData(in, game))
 
     currentRealignments = List.empty
     val currentRealignmentSize = in.readInt()
     for (i <- 1 to currentRealignmentSize) {
-      currentRealignments :+= WorldMap.countries(in.readUTF())
+      currentRealignments :+= game.theWorldMap.countries(in.readUTF())
     }
 
     skipHeadlineCard2 = in.readBoolean()
@@ -266,11 +266,11 @@ object Serializer {
     }
   }
 
-  def readCardSet(cards: CardSet, in: DataInputStream): Unit = {
+  def readCardSet(cards: CardSet, in: DataInputStream)(implicit game: Game): Unit = {
     cards.clear()
     val len = in.readInt()
     for (i <- 1 to len) {
-      val card = Cards.fromId(in.readByte())
+      val card = game.theCards.fromId(in.readByte())
       cards.add(card)
     }
   }
@@ -286,7 +286,7 @@ object Serializer {
     flags.clear()
     val len = in.readInt()
     for (i <- 1 to len) {
-      val flag = Flags.fromId(in.readByte())
+      val flag = FlagsTrait.fromId(in.readByte())
       flags.add(flag)
     }
   }
@@ -305,7 +305,7 @@ object Serializer {
     flags.foreach(flag => dataSet(flag) = null)
     val len = in.readInt()
     for (i <- 1 to len) {
-      val flag = Flags.fromId(in.readByte())
+      val flag = FlagsTrait.fromId(in.readByte())
       val data = readData(in, game)
       dataSet(flag) = data
     }
@@ -367,13 +367,13 @@ object Serializer {
       case 2 => in.readBoolean()
       case 3 => Region(in.readByte())
       case 4 =>
-        val cardSet = new CardSet
-        readCardSet(cardSet, in)
+        val cardSet = new CardSet(game)
+        readCardSet(cardSet, in)(game)
         cardSet
-      case 5 => Cards.fromId(in.readByte())
+      case 5 => game.theCards.fromId(in.readByte())
       case 6 =>
         val int = in.readInt()
-        val country = WorldMap.getCountryFromId(in.readByte())
+        val country = game.theWorldMap.getCountryFromId(in.readByte())
         (int, country)
       case 7 => game.hand(US)
       case 8 => game.hand(USSR)

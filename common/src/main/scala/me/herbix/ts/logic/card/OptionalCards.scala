@@ -1,14 +1,10 @@
 package me.herbix.ts.logic.card
 
 import me.herbix.ts.logic.Faction.{Faction, _}
-import me.herbix.ts.logic.Region.{Region, RegionState}
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
-
 import me.herbix.ts.util.ConditionBuilder._
 import me.herbix.ts.util.OperationHint
-
-import scala.collection.mutable
 
 /**
   * Created by Chaofan on 2016/7/24.
@@ -19,7 +15,7 @@ object Card104CambridgeFive extends CardMultiStep(104, 2, USSR, false) {
 
   @prepare
   def showCards(game: Game): Unit = {
-    val eventCards = new CardSet
+    val eventCards = new CardSet(game)
     game.hand(US).filter(!_.canHeld(game)).foreach(eventCards.add)
     game.currentCardData = eventCards
     game.clearSnapshots()
@@ -45,7 +41,7 @@ object Card104CambridgeFive extends CardMultiStep(104, 2, USSR, false) {
 object Card105SpecialRelationship extends CardMultiStep(105, 2, US, false) {
   @prepare
   def checkUKAndNATO(game: Game, input: Operation): Int = {
-    val uk = WorldMap.countries("UK")
+    val uk = game.theWorldMap.countries("UK")
     if (game.getController(uk) == US) {
       if (game.flags.hasFlag(Flags.NATO)) 2 else 1
     } else {
@@ -128,11 +124,11 @@ object Card107Che extends CardMultiStep(107, 3, USSR, false) {
 
 object Card108OurManInTehran extends CardMultiStep(108, 2, US, true) {
   override def canEvent(game: Game, faction: Faction) =
-    WorldMap.countries.values.exists(c => game.getController(c) == US && c.regions(Region.MidEast))
+    game.theWorldMap.countries.values.exists(c => game.getController(c) == US && c.regions(Region.MidEast))
 
   @prepare
   def pick5CardsFromDeck(game: Game, input: Operation): Unit = {
-    val eventCards = new CardSet
+    val eventCards = new CardSet(game)
     for (i <- 1 to 5) {
       eventCards.add(game.pickCardFromDeck())
     }
@@ -162,7 +158,7 @@ object Card109YuriAndSamantha extends CardInstant(109, 2, USSR, true) {
 
 object Card110AwacsSale extends CardInstant(110, 3, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val saudiArabia = WorldMap.countries("Saudi Arabia")
+    val saudiArabia = game.theWorldMap.countries("Saudi Arabia")
     game.modifyInfluence(US, true, Map(saudiArabia -> 2))
     game.addFlag(US, Flags.AwacsSale)
     true

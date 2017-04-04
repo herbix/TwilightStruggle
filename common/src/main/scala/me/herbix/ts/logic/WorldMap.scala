@@ -7,7 +7,12 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/13.
   */
-object WorldMap {
+object WorldMap extends WorldMapTrait
+
+trait WorldMapTrait {
+
+  private implicit val worldMap = this
+
   var countryId = -1
   def nextId(): Int = {
     countryId += 1

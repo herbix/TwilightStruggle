@@ -7,7 +7,7 @@
     <groupId>me.herbix.ts</groupId>
     <artifactId>twilightstruggle</artifactId>
     <packaging>pom</packaging>
-    <version>1.3.2</version>
+    <version>1.4.0</version>
     <modules>
         <module>stepanno</module>
         <module>app</module>

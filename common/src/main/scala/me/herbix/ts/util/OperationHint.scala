@@ -3,7 +3,7 @@ package me.herbix.ts.util
 import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic._
-import me.herbix.ts.logic.card.{Card, Cards}
+import me.herbix.ts.logic.card.Card
 
 /**
   * Created by Chaofan on 2016/7/20.
@@ -24,7 +24,7 @@ object OperationHint {
     def realValid(game: Game, detail: Map[Country, Int]): Boolean = {
       game.calculateInfluenceCost(detail, game.playerFaction, ignoreControl) <= getPoint(game, detail) &&
         valid(game, detail) && (isAdd || detail.forall(e => game.influence(e._1, targetFaction) >= e._2)) &&
-        game.excludeChina(detail) && detail.forall(e => e._1 != WorldMap.countryUS && e._1 != WorldMap.countryUSSR)
+        game.excludeChina(detail) && detail.forall(e => e._1 != game.theWorldMap.countryUS && e._1 != game.theWorldMap.countryUSSR)
     }
 
     def getPoint(game: Game, pendingInfluenceChange: Map[Country, Int]): Int =
@@ -79,7 +79,7 @@ object OperationHint {
 
     def realValid(game: Game, detail: Set[Country]): Boolean = {
       count - detail.size >= 0 && valid(game, detail) && game.excludeChina(detail) &&
-        detail.forall(c => c != WorldMap.countryUS && c != WorldMap.countryUSSR)
+        detail.forall(c => c != game.theWorldMap.countryUS && c != game.theWorldMap.countryUSSR)
     }
 
     new OperationSelectCountryHint(count, countSecondary, realValid, mustAllPoints)
@@ -113,13 +113,13 @@ class OperationModifyInfluenceHint(val point: Int,
                                    val modifyOp: Boolean
                                   ) extends OperationHint(classOf[OperationModifyInfluence]) {
   def validCountries(game: Game, detail: Map[Country, Int]): Set[Country] = {
-    WorldMap.countries.values.filter(c => {
+    game.theWorldMap.countries.values.filter(c => {
       val input = if (detail.contains(c)) {
         detail + (c -> (detail(c) + 1))
       } else {
         detail + (c -> 1)
       }
-      valid(game, input) && c != WorldMap.countryUS && c != WorldMap.countryUSSR
+      valid(game, input) && c != game.theWorldMap.countryUS && c != game.theWorldMap.countryUSSR
     }).toSet
   }
 }
@@ -128,14 +128,14 @@ class OperationSelectCardHint(val canNull: Boolean,
                               val valid: (Game, Card) => Boolean
                              ) extends OperationHint(classOf[OperationSelectCard]) {
   def validCards(game: Game): Set[Card] = {
-    Cards.allCards.filter(valid(game, _)).toSet
+    game.theCards.allCards.filter(valid(game, _)).toSet
   }
 }
 
 class OperationSelectCardsHint(val valid: (Game, Card) => Boolean
                               ) extends OperationHint(classOf[OperationSelectCards]) {
   def validCards(game: Game): Set[Card] = {
-    Cards.allCards.filter(valid(game, _)).toSet
+    game.theCards.allCards.filter(valid(game, _)).toSet
   }
 }
 
@@ -146,7 +146,7 @@ class OperationSelectCardAndActionHint(val presetCard: Card,
                                        val canOperation: (Game, Card) => Boolean
                                       ) extends OperationHint(classOf[OperationSelectCardAndAction]) {
   def validCards(game: Game): Set[Card] = {
-    Cards.allCards.filter(canPlay(game, _)).toSet
+    game.theCards.allCards.filter(canPlay(game, _)).toSet
   }
   def validCardActions(game: Game, card: Card): Set[Action] = {
     var result = Set.empty[Action]
@@ -176,7 +176,7 @@ class OperationSelectCountryHint(val count: Int,
                                  val mustAllPoints: Boolean
                                 ) extends OperationHint(classOf[OperationSelectCountry]) {
   def validCountries(game: Game, detail: Set[Country]): Set[Country] = {
-    WorldMap.countries.values.filter(c => {
+    game.theWorldMap.countries.values.filter(c => {
       !detail.contains(c) && valid(game, detail + c)
     }).toSet
   }

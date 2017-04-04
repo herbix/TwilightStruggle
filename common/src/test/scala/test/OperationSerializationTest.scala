@@ -14,9 +14,9 @@ import org.junit.Test
   */
 class OperationSerializationTest {
 
-  val game = GameFactory.createGameByVariant(GameVariant.Standard)
+  implicit val game = GameFactory.createGameByVariant(GameVariant.Standard)
 
-  def c(name: String): Country = WorldMap.countries(name)
+  def c(name: String): Country = game.theWorldMap.countries(name)
 
   @Test
   def doTest(): Unit = {

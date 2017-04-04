@@ -72,7 +72,7 @@ object Card007SocialistGovernments extends CardMultiStep(7, 3, USSR, false) {
 
 object Card008Fidel extends CardInstant(8, 2, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val cuba = WorldMap.countries("Cuba")
+    val cuba = game.theWorldMap.countries("Cuba")
     game.modifyInfluence(US, false, Map(cuba -> game.influence(cuba, US)))
     game.modifyInfluence(USSR, true, Map(cuba -> cuba.stability))
     true
@@ -81,7 +81,7 @@ object Card008Fidel extends CardInstant(8, 2, USSR, true) {
 
 object Card009VietnamRevolts extends CardInstant(9, 2, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val vietnam = WorldMap.countries("Vietnam")
+    val vietnam = game.theWorldMap.countries("Vietnam")
     game.modifyInfluence(USSR, true, Map(vietnam -> 2))
     game.addFlag(USSR, Flags.VietnamRevolts)
     true
@@ -102,7 +102,7 @@ object Card010Blockade extends CardMultiStep(10, 1, USSR, true) {
       game.handRemove(US, card)
       game.discardCard(card, US, true, true)
     } else {
-      val wGermany = WorldMap.countries("W.Germany")
+      val wGermany = game.theWorldMap.countries("W.Germany")
       game.modifyInfluence(US, false, Map(wGermany -> game.influence(wGermany, US)))
     }
     game.operatingPlayerRollBack()
@@ -111,10 +111,9 @@ object Card010Blockade extends CardMultiStep(10, 1, USSR, true) {
 
 object Card011KoreanWar extends CardInstant(11, 2, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val southKorea = WorldMap.countries("S.Korea")
+    val southKorea = game.theWorldMap.countries("S.Korea")
     val modifier = southKorea.adjacentCountries.count(game.getController(_) == US)
-    val modifier2 = if (game.flags.hasFlag(Flags.ChineseCivilWar)) 1 else 0
-    game.war(USSR, southKorea, modifier + modifier2, 4, 2, 2)
+    game.war(USSR, southKorea, modifier, 4, 2, 2)
     true
   }
   override def afterPlay(game: Game, faction: Faction): Unit = {
@@ -124,7 +123,7 @@ object Card011KoreanWar extends CardInstant(11, 2, USSR, true) {
 
 object Card012RomanianAbdication extends CardInstant(12, 1, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val romania = WorldMap.countries("Romania")
+    val romania = game.theWorldMap.countries("Romania")
     game.modifyInfluence(US, false, Map(romania -> game.influence(romania, US)))
     game.modifyInfluence(USSR, true, Map(romania -> Math.max(0, romania.stability - game.influence(romania, USSR))))
     true
@@ -134,7 +133,7 @@ object Card012RomanianAbdication extends CardInstant(12, 1, USSR, true) {
 object Card013ArabIsraeliWar extends CardInstant(13, 2, USSR, false) {
   override def canEvent(game: Game, faction: Faction) = !game.flags.hasFlag(Flags.CampDavid)
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val israel = WorldMap.countries("Israel")
+    val israel = game.theWorldMap.countries("Israel")
     val modifier = israel.adjacentCountries.count(game.getController(_) == US) +
       (if (game.getController(israel) == US) 1 else 0)
     game.war(USSR, israel, modifier, 4, 2, 2)
@@ -154,7 +153,7 @@ object Card014COMECON extends CardMultiStep(14, 3, USSR, true) {
 
 object Card015Nasser extends CardInstant(15, 1, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val egypt = WorldMap.countries("Egypt")
+    val egypt = game.theWorldMap.countries("Egypt")
     game.modifyInfluence(US, false, Map(egypt -> (game.influence(egypt, US) + 1) / 2))
     game.modifyInfluence(USSR, true, Map(egypt -> 2))
     true
@@ -188,7 +187,7 @@ object Card016WarsawPact extends CardMultiStep(16, 3, USSR, true) {
 
 object Card017DeGaulle extends CardInstant(17, 3, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val france = WorldMap.countries("France")
+    val france = game.theWorldMap.countries("France")
     game.modifyInfluence(US, false, Map(france -> 2))
     game.modifyInfluence(USSR, true, Map(france -> 1))
     game.addFlag(USSR, Flags.DeGaulle)
@@ -206,8 +205,10 @@ object Card018CaptureNazi extends CardInstant(18, 1, Neutral, true) {
 object Card019TrumanDoctrine extends CardMultiStep(19, 1, US, true) {
   @step1(cardEventSelectCountry, 1, false, selectCountry.inRegion(Region.Europe).notControlled)
   def removeUSSRInfluence(game: Game, input: Operation): Unit = {
-    val country = input.asInstanceOf[OperationSelectCountry].detail.head
-    game.modifyInfluence(USSR, false, Map(country -> game.influence(country, USSR)))
+    val countryOption = input.asInstanceOf[OperationSelectCountry].detail.headOption
+    for (country <- countryOption) {
+      game.modifyInfluence(USSR, false, Map(country -> game.influence(country, USSR)))
+    }
   }
 }
 
@@ -329,7 +330,7 @@ object Card026CIACreated extends CardMultiStep(26, 1, US, true) {
 
 object Card027USJapanPact extends CardInstant(27, 4, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val japan = WorldMap.countries("Japan")
+    val japan = game.theWorldMap.countries("Japan")
     val change = game.influence(japan, USSR) + japan.stability - game.influence(japan, US)
     if (change > 0) {
       game.modifyInfluence(US, true, Map(japan -> change))
@@ -363,8 +364,6 @@ object Card030Decolonization extends CardMultiStep(30, 2, USSR, false) {
 }
 
 object Card031RedScarePurge extends CardInstant(31, 4, Neutral, false) {
-  override def canEvent(game: Game, faction: Faction): Boolean =
-    !game.flags.hasFlag(Flags.ChineseCivilWar) || faction != USSR
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addFlag(Faction.getOpposite(faction), Flags.RedScarePurge)
     true
@@ -434,7 +433,6 @@ object Card034NuclearTestBan extends CardInstant(34, 4, Neutral, false) {
 }
 
 object Card035Taiwan extends CardInstant(35, 2, US, true) {
-  override def canEvent(game: Game, faction: Faction): Boolean = !game.flags.hasFlag(Flags.ChineseCivilWar)
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addFlag(Faction.US, Flags.Taiwan)
     true

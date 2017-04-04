@@ -1,14 +1,16 @@
 package me.herbix.ts.util
 
+import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.Region.RegionState._
-import me.herbix.ts.logic.{WorldMap, Game, Country}
-import me.herbix.ts.logic.Faction._
+import me.herbix.ts.logic.{WorldMapTrait, Country, WorldMap}
 
 /**
   * Created by Chaofan on 2016/9/29.
   */
 trait InfluenceProvider {
+
+  val theWorldMap: WorldMapTrait = WorldMap
 
   def influence(country: Country, faction: Faction): Int
 
@@ -28,7 +30,7 @@ trait InfluenceProvider {
   }
 
   def getRegionState(region: Region): Map[Faction, RegionState] = {
-    val targetCountries = WorldMap.regionCountries(region)
+    val targetCountries = theWorldMap.regionCountries(region)
     val battlefieldCount = targetCountries.count(_.isBattlefield)
     val usBattlefield = targetCountries.count(country => country.isBattlefield && getController(country) == US)
     val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && getController(country) == US)
@@ -51,19 +53,19 @@ trait InfluenceProvider {
   }
 
   def getBattlefieldCount(region: Region): Int = {
-    WorldMap.regionCountries(region).count(_.isBattlefield)
+    theWorldMap.regionCountries(region).count(_.isBattlefield)
   }
 
   def getBattlefieldCountForFaction(region: Region, faction: Faction): Int = {
-    WorldMap.regionCountries(region).count(country => country.isBattlefield && getController(country) == faction)
+    theWorldMap.regionCountries(region).count(country => country.isBattlefield && getController(country) == faction)
   }
 
   def getNonBattlefieldCountForFaction(region: Region, faction: Faction): Int = {
-    WorldMap.regionCountries(region).count(country => !country.isBattlefield && getController(country) == faction)
+    theWorldMap.regionCountries(region).count(country => !country.isBattlefield && getController(country) == faction)
   }
 
   def getAllCountForFaction(region: Region, faction: Faction): Int = {
-    WorldMap.regionCountries(region).count(getController(_) == faction)
+    theWorldMap.regionCountries(region).count(getController(_) == faction)
   }
 
 }

@@ -11,7 +11,7 @@ import me.herbix.ts.util.{OperationHint, HistoryRegion, HistoryCardOperation, Hi
   */
 object Card082IranianHostage extends CardInstant(82, 3, USSR, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val iran = WorldMap.countries("Iran")
+    val iran = game.theWorldMap.countries("Iran")
     game.modifyInfluence(US, false, Map(iran -> game.influence(iran, US)))
     game.modifyInfluence(USSR, true, Map(iran -> 2))
     game.addFlag(US, Flags.IranianHostage)
@@ -22,8 +22,8 @@ object Card082IranianHostage extends CardInstant(82, 3, USSR, true) {
 object Card083TheIronLady extends CardInstant(83, 3, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
     game.addVpAndCheck(US, 1)
-    game.modifyInfluence(USSR, true, Map(WorldMap.countries("Argentina") -> 1))
-    val uk = WorldMap.countries("UK")
+    game.modifyInfluence(USSR, true, Map(game.theWorldMap.countries("Argentina") -> 1))
+    val uk = game.theWorldMap.countries("UK")
     game.modifyInfluence(USSR, false, Map(uk -> game.influence(uk, USSR)))
     game.addFlag(US, Flags.IronLady)
     true
@@ -32,7 +32,7 @@ object Card083TheIronLady extends CardInstant(83, 3, US, true) {
 
 object Card084ReaganBombsLibya extends CardInstant(84, 2, US, true) {
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val libya = WorldMap.countries("Libya")
+    val libya = game.theWorldMap.countries("Libya")
     game.addVpAndCheck(US, game.influence(libya, USSR) / 2)
     true
   }
@@ -87,7 +87,7 @@ object Card088BarracksBombing extends CardMultiStep(88, 2, USSR, true) {
 
   @prepare
   def removeLebanonInfluence(game: Game): Unit = {
-    val lebanon = WorldMap.countries("Lebanon")
+    val lebanon = game.theWorldMap.countries("Lebanon")
     game.modifyInfluence(US, false, Map(lebanon -> game.influence(lebanon, US)))
   }
 
@@ -102,7 +102,7 @@ object Card089ShootDownKAL007 extends CardMultiStep(89, 4, US, true) {
   def setDefconAndCheckKorea(game: Game): Int = {
     game.setDefcon(game.defcon - 1)
     game.addVpAndCheck(US, 2)
-    if (game.getController(WorldMap.countries("S.Korea")) == US) 1 else 4
+    if (game.getController(game.theWorldMap.countries("S.Korea")) == US) 1 else 4
   }
 
   @step1(cardEventSpecial)
@@ -164,7 +164,7 @@ object Card090Glasnost extends CardMultiStep(90, 4, USSR, true) {
 object Card091OrtegaInNicaragua extends CardMultiStep(91, 2, USSR, true) {
   @prepare
   def removeNicaraguaInfluence(game: Game): Unit = {
-    val nicaragua = WorldMap.countries("Nicaragua")
+    val nicaragua = game.theWorldMap.countries("Nicaragua")
     game.modifyInfluence(US, false, Map(nicaragua -> game.influence(nicaragua, US)))
     game.currentCardData = game.modifyOp(faction, this.op)
   }
@@ -248,7 +248,7 @@ object Card096TearDownThisWall extends CardMultiStep(96, 3, US, true) {
   def removeEGermanyInfluence(game: Game): Unit = {
     game.addFlag(US, Flags.TearDownThisWall)
     game.removeFlag(USSR, Flags.WillyBrandt)
-    val eGermany = WorldMap.countries("E.Germany")
+    val eGermany = game.theWorldMap.countries("E.Germany")
     game.modifyInfluence(US, true, Map(eGermany -> 3))
   }
 
@@ -294,7 +294,7 @@ object Card098AldrichAmes extends CardMultiStep(98, 3, USSR, true) {
     if (game.hand(US).cardCountExcludingChinaCard == 0) {
       return 2
     }
-    val eventCards = new CardSet
+    val eventCards = new CardSet(game)
     game.hand(US).iteratorExcludingChinaCard.foreach(eventCards.add)
     game.currentCardData = eventCards
     game.clearSnapshots()
@@ -334,7 +334,7 @@ object Card100WarGames extends CardInstant(100, 4, Neutral, true) {
 object Card101Solidarity extends CardInstant(101, 2, US, true) {
   override def canEvent(game: Game, faction: Faction) = game.flags.hasFlag(Flags.JohnPaulII)
   override def instantEvent(game: Game, faction: Faction): Boolean = {
-    val poland = WorldMap.countries("Poland")
+    val poland = game.theWorldMap.countries("Poland")
     game.modifyInfluence(US, true, Map(poland -> 3))
     true
   }

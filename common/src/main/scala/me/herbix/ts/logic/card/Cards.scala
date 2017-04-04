@@ -5,10 +5,17 @@ import scala.collection.mutable
 /**
   * Created by Chaofan on 2016/6/17.
   */
-object Cards {
+object Cards extends CardsTrait
+
+trait CardsTrait {
   private val cardMap = mutable.Map[Int, Card]()
 
-  def addCard(card: Card): Unit = cardMap += card.id -> card
+  protected def addCard(card: Card): Unit = cardMap += card.id -> card
+  protected def removeCard(card: Card): Unit = cardMap -= card.id
+  protected def replaceCard(from: Card, to: Card): Unit = {
+    removeCard(from)
+    addCard(to)
+  }
 
   addCard(CardUnknown)
 

@@ -5,7 +5,8 @@ import java.awt.{RenderingHints, Image, Color, Font}
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 
-import me.herbix.ts.logic.{Faction, Flags, Flag}
+import me.herbix.ts.logic.chinacivilwar.CCWFlags
+import me.herbix.ts.logic.{FlagsTrait, Faction, Flags, Flag}
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.Faction._
 
@@ -28,7 +29,8 @@ object Resource {
   })
 
   Flags.init()
-  val flag = (0 to Flags.flagId).map(i => {
+  CCWFlags.init()
+  val flag = (0 to FlagsTrait.flagId).map(i => {
     val in = getClass.getResourceAsStream(f"/flags/$i%02d.png")
     if (in != null) {
       val img = ImageIO.read(in)

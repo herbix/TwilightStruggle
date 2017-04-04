@@ -4,7 +4,6 @@ import me.herbix.ts.agent.random.RandomAgent
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic._
-import me.herbix.ts.logic.card.Cards
 import me.herbix.ts.util._
 
 /**
@@ -71,7 +70,7 @@ class SimpleAgent(game: Game, operationCallback: (OperationHint, Operation) => U
           val scoringCards = game.hand(agentFaction).filter(!_.canHeld(game)).toSeq
           new OperationSelectCardAndAction(playerId, agentFaction, scoringCards.head, Action.Event)
         } else {
-          val cards = h.validCards(game).filter(c => c != Cards.chinaCard && h.validCardActions(game, c).contains(Action.Operation))
+          val cards = h.validCards(game).filter(c => c != game.theCards.chinaCard && h.validCardActions(game, c).contains(Action.Operation))
           if (cards.nonEmpty) {
             new OperationSelectCardAndAction(playerId, agentFaction, cards.head, Action.Operation)
           } else {
@@ -94,7 +93,7 @@ class SimpleAgent(game: Game, operationCallback: (OperationHint, Operation) => U
     regionStates = Region.MainRegionSet.map(region =>
       region -> new RegionState(game, this, influenceProvider, region)
     ).toMap
-    countryState = WorldMap.normalCountries.values.map(country =>
+    countryState = game.theWorldMap.normalCountries.values.map(country =>
       country -> new CountryState(game, this, influenceProvider, 4, 4, country)
     ).toMap
   }

@@ -342,12 +342,12 @@ object ControlSubUICard {
 
 abstract class ControlSubUICard(parent: ControlUI, array: Array[String]) extends ControlSubUIText(parent, array) {
   var img = Resource.card(0)
-  var card = Cards.fromId(0)
+  var card = parent.game.theCards.fromId(0)
 
   var isLocked = false
   var pendingCardSelection: mutable.Set[Card] = null
 
-  def resetCard() = setCard(Cards.fromId(0))
+  def resetCard() = setCard(parent.game.theCards.fromId(0))
 
   def setCard(card: Card): Unit = {
     if (isLocked) return

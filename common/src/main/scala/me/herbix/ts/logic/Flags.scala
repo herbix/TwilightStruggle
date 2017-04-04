@@ -4,6 +4,7 @@ import me.herbix.ts.logic.FlagType.FlagType
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.card.Card049MissileEnvy
+import me.herbix.ts.logic.chinacivilwar.CCWFlags
 
 import scala.collection.mutable
 
@@ -18,8 +19,8 @@ object FlagType extends Enumeration {
 import FlagType._
 
 class Flag (val flagType: FlagType, val isGoodFlag: Boolean, val priority: Int = 100) extends Ordered[Flag] {
-  val id = Flags.newFlagId()
-  Flags.flags(id) = this
+  val id = FlagsTrait.newFlagId()
+  FlagsTrait.flags(id) = this
 
   def canRealignmentOrCoup(game: Game, country: Country): Option[Boolean] = canRealignmentOrCoup(country)
   def canRealignment(game: Game, country: Country): Option[Boolean] = canRealignment(country)
@@ -90,7 +91,7 @@ class Flags {
   }
 }
 
-object Flags {
+object FlagsTrait {
   var flagId = -1
   def newFlagId() = {
     flagId += 1
@@ -101,7 +102,13 @@ object Flags {
   def fromId(id: Int) = {
     flags.getOrElse(id, null)
   }
+}
 
+trait FlagsTrait {
+  def init(): Unit = {}
+}
+
+object Flags extends FlagsTrait {
   val Space1 = new Flag(ThisTurn, false)
   val Space2 = new Flag(ThisTurn, false)
   val SpaceAwardTwoSpace = new Flag(Always, true)
@@ -167,7 +174,4 @@ object Flags {
   val NORAD = new Flag(Always, true)
   val Samantha = new Flag(ThisTurn, true)
   val AwacsSale = new Flag(Always, true)
-  val ChineseCivilWar = new Flag(Always, false)
-
-  def init(): Unit = {}
 }

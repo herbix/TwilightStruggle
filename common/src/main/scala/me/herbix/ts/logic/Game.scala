@@ -28,16 +28,19 @@ abstract class Game extends GameTrait with InfluenceProvider {
   var extraInfluence = 0
   var optionalCards = true
   var drawGameWinner = US
-  var gameVariant = GameVariant.Standard
+  val gameVariant = GameVariant.Standard
+  
+  // properties
+  val theCards: CardsTrait = Cards
 
   // game info
   private var randomSeed = 0l
   private val random = new Random
 
   // game tabletop
-  val countryInfluence = WorldMap.countries.values.map(c => c -> mutable.Map(US -> 0, USSR -> 0)).toMap
-  countryInfluence(WorldMap.countryUS)(US) = 100
-  countryInfluence(WorldMap.countryUSSR)(USSR) = 100
+  val countryInfluence = theWorldMap.countries.values.map(c => c -> mutable.Map(US -> 0, USSR -> 0)).toMap
+  countryInfluence(theWorldMap.countryUS)(US) = 100
+  countryInfluence(theWorldMap.countryUSSR)(USSR) = 100
 
   var turn = 1
   var round = 0
@@ -48,9 +51,9 @@ abstract class Game extends GameTrait with InfluenceProvider {
   var vp = 0
   var defcon = 5
 
-  val hand = Map(US -> new CardSet, USSR -> new CardSet)
-  val deck = new CardSet
-  val discards = new CardSet
+  val hand = Map(US -> new CardSet(this), USSR -> new CardSet(this))
+  val deck = new CardSet(this)
+  val discards = new CardSet(this)
 
   val flags = new Flags
 
@@ -318,77 +321,22 @@ abstract class Game extends GameTrait with InfluenceProvider {
   }
 
   protected def initGame(): Unit = {
-    gameVariant match {
-      case GameVariant.Standard => initGameStandard()
-      case GameVariant.ChineseCivilWar => initGameChineseCivilWar()
-      case GameVariant.LateWar => initGameLateWar()
-      case _ =>
-    }
-  }
-
-  def initGameStandard() = {
     initGameExceptChinaCard()
 
-    handAdd(USSR, Cards.chinaCard)
-    recordHistory(new HistoryGetCard(USSR, Cards.chinaCard))
-  }
-
-  def initGameChineseCivilWar() = {
-    initGameExceptChinaCard()
-    addFlag(Neutral, Flags.ChineseCivilWar)
-  }
-
-  def initGameLateWar() = {
-    turn = 8
-    setDefcon(4)
-    space(USSR) = SpaceLevel.Orbit
-    space(US) = SpaceLevel.Landed
-    addFlag(US, Flags.SpaceAwardMayDiscard)
-    vp = -4
-
-    addFlag(USSR, Flags.USJapanPact)
-    addFlag(US, Flags.MarshallPlan)
-    addFlag(USSR, Flags.NATO)
-    addFlag(US, Flags.WarsawPact)
-    addFlag(USSR, Flags.DeGaulle)
-    addFlag(US, Flags.FlowerPower)
-
-    deckJoin(Cards.earlyWarSet.filter(!Cards.isCardStarred(_)))
-    deckJoin(Cards.midWarSet.filter(!Cards.isCardStarred(_)))
-    deckJoin(Cards.lateWarSet)
-    if (optionalCards) {
-      deckJoin(Cards.earlyWarOptionalSet.filter(!Cards.isCardStarred(_)))
-      deckJoin(Cards.midWarOptionalSet.filter(!Cards.isCardStarred(_)))
-      deckJoin(Cards.lateWarOptionalSet)
-    }
-    deckAdd(Card044BearTrap)
-    deckAdd(Card065CampDavidAccords)
-    deckAdd(Card068JohnPaulII)
-    deckAdd(Card064PanamaCanalReturned)
-
-    pickGameStartHands(9)
-
-    handAdd(USSR, Cards.chinaCard)
-    recordHistory(new HistoryGetCard(USSR, Cards.chinaCard))
-
-    modifyInfluence(USSR, true, WorldMap.ussrLateWarStart)
-    modifyInfluence(US, true, WorldMap.usLateWarStart)
-
-    recordHistory(new HistoryTurnRound(turn, -1, Neutral))
-
-    stateStack.push(selectHeadlineCard)
+    handAdd(USSR, theCards.chinaCard)
+    recordHistory(new HistoryGetCard(USSR, theCards.chinaCard))
   }
 
   def initGameExceptChinaCard(): Unit = {
-    deckJoin(Cards.earlyWarSet)
+    deckJoin(theCards.earlyWarSet)
     if (optionalCards) {
-      deckJoin(Cards.earlyWarOptionalSet)
+      deckJoin(theCards.earlyWarOptionalSet)
     }
 
     pickGameStartHands(8)
 
-    modifyInfluence(USSR, true, WorldMap.ussrStandardStart)
-    modifyInfluence(US, true, WorldMap.usStandardStart)
+    modifyInfluence(USSR, true, theWorldMap.ussrStandardStart)
+    modifyInfluence(US, true, theWorldMap.usStandardStart)
 
     operatingPlayer = USSR
     stateStack.push(putStartUSSR)
@@ -460,20 +408,13 @@ abstract class Game extends GameTrait with InfluenceProvider {
     if (detail2.nonEmpty) {
       recordHistory(new HistoryModifyInfluence(faction, isAdd, detail2))
     }
-    if (gameVariant == GameVariant.ChineseCivilWar) {
-      if (influence(WorldMap.countryChina, USSR) >= 3) {
-        removeFlag(Neutral, Flags.ChineseCivilWar)
-        handAdd(USSR, Cards.chinaCard)
-        recordHistory(new HistoryGetCard(USSR, Cards.chinaCard))
-      }
-    }
   }
 
   def discardCard(card: Card, from: Faction, force: Boolean = false, showInHistory: Boolean = false): Unit = {
     if (showInHistory) {
       recordHistory(new HistoryDiscardCard(from, card))
     }
-    if (card == Cards.chinaCard) {
+    if (card == theCards.chinaCard) {
       val opposite = Faction.getOpposite(from)
       handAdd(opposite, card)
       recordHistory(new HistoryGetCard(opposite, card))
@@ -753,14 +694,14 @@ abstract class Game extends GameTrait with InfluenceProvider {
     recordHistory(new HistoryTurnRound(turn, -1, Neutral))
 
     if (turn == 4) {
-      deckJoin(Cards.midWarSet)
+      deckJoin(theCards.midWarSet)
       if (optionalCards) {
-        deckJoin(Cards.midWarOptionalSet)
+        deckJoin(theCards.midWarOptionalSet)
       }
     } else if (turn == 8) {
-      deckJoin(Cards.lateWarSet)
+      deckJoin(theCards.lateWarSet)
       if (optionalCards) {
-        deckJoin(Cards.lateWarOptionalSet)
+        deckJoin(theCards.lateWarOptionalSet)
       }
     }
 
@@ -803,7 +744,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
 
   def tryNextRound(): Unit = {
     if (stateStack.isEmpty) {
-      if (flags.hasFlag(US, Flags.NORAD) && getController(WorldMap.countries("Canada")) == US &&
+      if (flags.hasFlag(US, Flags.NORAD) && getController(theWorldMap.countries("Canada")) == US &&
         flags.getFlagData(US, Flags.NORAD) != defcon && defcon == 2) {
         stateStack.push(noradInfluence)
       } else if (nextRound()) {
@@ -977,7 +918,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
   }
 
   def canCoup(faction: Faction, filter: Country => Boolean = _ => true): Boolean = {
-    WorldMap.countries.exists(e => filter(e._2) && canCoup(faction, e._2))
+    theWorldMap.countries.exists(e => filter(e._2) && canCoup(faction, e._2))
   }
 
   def canCoupWithoutFlags(faction: Faction, country: Country): Boolean = {
@@ -985,7 +926,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
   }
 
   def canCoupWithoutFlags(faction: Faction, filter: Country => Boolean = _ => true): Boolean = {
-    WorldMap.countries.exists(e => filter(e._2) && canCoupWithoutFlags(faction, e._2))
+    theWorldMap.countries.exists(e => filter(e._2) && canCoupWithoutFlags(faction, e._2))
   }
 
   def getCurrentRealignmentRest(faction: Faction): Int =
@@ -1193,7 +1134,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
     val domination = info._2
     val control = info._3
 
-    val targetCountries = WorldMap.regionCountries(region) - WorldMap.countryChina
+    val targetCountries = theWorldMap.regionCountries(region) - theWorldMap.countryChina
     val battlefieldCount = targetCountries.count(_.isBattlefield)
     var usBattlefield = targetCountries.count(country => country.isBattlefield && getController(country) == US)
     val usNonBattlefield = targetCountries.count(country => !country.isBattlefield && getController(country) == US)
@@ -1202,7 +1143,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
     val usAll = usBattlefield + usNonBattlefield
     val ussrAll = ussrBattlefield + ussrNonBattlefield
 
-    val taiwan = WorldMap.countries("Taiwan")
+    val taiwan = theWorldMap.countries("Taiwan")
     if (taiwan.regions(region) && getController(taiwan) == US && flags.hasFlag(US, Flags.Taiwan)) {
       usBattlefield += 1
     }
@@ -1225,12 +1166,12 @@ abstract class Game extends GameTrait with InfluenceProvider {
     usVp += usBattlefield
     ussrVp += ussrBattlefield
 
-    usVp += targetCountries.count(country => getController(country) == US && country.adjacentCountries(WorldMap.countryUSSR))
-    ussrVp += targetCountries.count(country => getController(country) == USSR && country.adjacentCountries(WorldMap.countryUS))
+    usVp += targetCountries.count(country => getController(country) == US && country.adjacentCountries(theWorldMap.countryUSSR))
+    ussrVp += targetCountries.count(country => getController(country) == USSR && country.adjacentCountries(theWorldMap.countryUS))
 
     if (useShuttleDiplomacy) {
       ussrVp -= (if (targetCountries.exists(country => {
-        getController(country) == USSR && country.adjacentCountries(WorldMap.countryUS) && country.isBattlefield
+        getController(country) == USSR && country.adjacentCountries(theWorldMap.countryUS) && country.isBattlefield
       })) 1 else 0)
     }
 
@@ -1253,10 +1194,10 @@ abstract class Game extends GameTrait with InfluenceProvider {
     scoring(Region.Africa)
     scoring(Region.MidAmerica)
     scoring(Region.SouthAmerica)
-    if (hand(US).has(Cards.chinaCard)) {
+    if (hand(US).has(theCards.chinaCard)) {
       addVp(US, 1)
     }
-    if (hand(USSR).has(Cards.chinaCard)) {
+    if (hand(USSR).has(theCards.chinaCard)) {
       addVp(USSR, 1)
     }
     checkVp()
@@ -1274,20 +1215,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
     recordHistory(new HistoryPokeChest(faction))
   }
 
-  def endGameByVpLateWar() = {
-    if (vp < 20) {
-      gameOver(USSR)
-    } else {
-      gameOver(US)
-    }
-  }
-
   def endGameByVp(): Unit = {
-    if (gameVariant == GameVariant.LateWar) {
-      endGameByVpLateWar()
-      return
-    }
-
     if (vp < 0) {
       gameOver(USSR)
     } else if (vp > 0) {
@@ -1530,15 +1458,9 @@ abstract class Game extends GameTrait with InfluenceProvider {
     }
   }
 
-  def excludeChina(set: Set[Country]): Boolean = {
-    !set(WorldMap.countryChina) ||
-      (gameVariant == GameVariant.ChineseCivilWar && influence(WorldMap.countryChina, USSR) < 3 && playerFaction == USSR)
-  }
+  def excludeChina(set: Set[Country]): Boolean = true
 
-  def excludeChina(map: Map[Country, Int]): Boolean = {
-    !map.contains(WorldMap.countryChina) || (gameVariant == GameVariant.ChineseCivilWar &&
-      influence(WorldMap.countryChina, USSR) + map(WorldMap.countryChina) <= 3 && playerFaction == USSR)
-  }
+  def excludeChina(map: Map[Country, Int]): Boolean = true
 
   class GameOverException(val winner: Faction) extends Exception
 

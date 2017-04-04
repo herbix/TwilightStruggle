@@ -9,10 +9,12 @@ import me.herbix.ts.util.Serializer
 /**
   * Created by Chaofan on 2016/9/14.
   */
-class GameState private(val data: Array[Byte]) extends Game {
+class GameState private(val data: Array[Byte], variant: GameVariant) extends Game {
+
+  override val gameVariant = variant
 
   def this(game: Game) = {
-    this(Serializer.writeGameState(game))
+    this(Serializer.writeGameState(game), game.gameVariant)
 
     playerId = game.playerId
     playerFaction = game.playerFaction
@@ -21,7 +23,6 @@ class GameState private(val data: Array[Byte]) extends Game {
     extraInfluence = game.extraInfluence
     optionalCards = game.optionalCards
     drawGameWinner = game.drawGameWinner
-    gameVariant = game.gameVariant
 
     reset()
   }

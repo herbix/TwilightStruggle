@@ -1,12 +1,12 @@
 package me.herbix.ts.ui
 
-import java.awt.event._
 import java.awt._
+import java.awt.event._
 import javax.swing.{JButton, JPanel}
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic._
-import me.herbix.ts.logic.card.{Cards, Card}
+import me.herbix.ts.logic.card.Card
 import me.herbix.ts.util._
 
 import scala.collection.immutable.List
@@ -198,7 +198,7 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
         100 + (w - cardWidth) * n / (c - 1)
       else
         100 + (w - cardWidth) * (n - 1) / (c - 1) + cardWidth
-      cards(n) = if (shouldNotShowCards) Cards.fromId(0) else card
+      cards(n) = if (shouldNotShowCards) game.theCards.fromId(0) else card
       cardsEnabled(n) = getCardEnabled(card)
       n += 1
     }

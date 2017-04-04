@@ -8,4 +8,5 @@ object GameVariant extends Enumeration {
   val Standard = Value
   val ChineseCivilWar = Value
   val LateWar = Value
+  val TurnZero = Value
 }

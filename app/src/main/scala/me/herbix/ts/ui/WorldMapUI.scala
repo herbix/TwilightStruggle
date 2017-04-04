@@ -160,7 +160,7 @@ class WorldMapUI(g: Game) extends JPanel {
       }
     }
     def findCountry(x: Int, y: Int): Country =
-      WorldMap.countries.values.find(c => {
+      game.theWorldMap.countries.values.find(c => {
         val rect = MapValue.getCountryPosSize(c)
         val nx = x / scale
         val ny = y / scale
@@ -224,7 +224,7 @@ class WorldMapUI(g: Game) extends JPanel {
     g.setFont(influenceTokenTextFont)
     val fm = g.getFontMetrics
 
-    for ((name, country) <- WorldMap.normalCountries) {
+    for ((name, country) <- game.theWorldMap.normalCountries) {
       val influenceChanged = pendingInfluenceChange.contains(country)
       val usInfluenceChanged = influenceChanged && pendingInfluenceFaction == US
       val ussrInfluenceChanged = influenceChanged && pendingInfluenceFaction == USSR
@@ -273,7 +273,7 @@ class WorldMapUI(g: Game) extends JPanel {
       }
     }
 
-    val country = WorldMap.countryChina
+    val country = game.theWorldMap.countryChina
     val influenceChanged = pendingInfluenceChange.contains(country)
     val ussrInfluenceChanged = influenceChanged && pendingInfluenceFaction == USSR
     val factor = if (pendingInfluenceIsAdd) 1 else -1
@@ -311,7 +311,7 @@ class WorldMapUI(g: Game) extends JPanel {
 
     // TODO remove debug code
     g.setFont(debugAIFont)
-    for (country <- WorldMap.normalCountries.values ++ List(WorldMap.countryChina)) {
+    for (country <- game.theWorldMap.normalCountries.values ++ List(game.theWorldMap.countryChina)) {
       if (gameUI != null && gameUI.agent != null && gameUI.agent.isInstanceOf[SimpleAgent]) {
         val (x, y, _, _) = MapValue.getCountryPosSize(country)
         val agent = gameUI.agent.asInstanceOf[SimpleAgent]

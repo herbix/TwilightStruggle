@@ -40,14 +40,14 @@ abstract class Card(val id: Int, val op: Int, val faction: Faction, val isRemove
   override def toString: String = f"Card($id)"
   override def compare(that: Card): Int = {
     if (that.op < op) 1 else if (that.op > op) -1 else
-    if (that == Cards.chinaCard) -1 else if (this == Cards.chinaCard) 1 else
+    if (that.id == 6 /*that == Cards.chinaCard*/) -1 else if (this.id == 6 /*this == Cards.chinaCard*/) 1 else
     if (that.id < id) 1 else if (that.id > id) -1 else
     if (that.## < ##) 1 else if (that.## > ##) -1 else 0
   }
 
   /**
     * transfer to next state
- *
+    *
     * @param game game instance
     * @param faction US or USSR
     * @param input the operation

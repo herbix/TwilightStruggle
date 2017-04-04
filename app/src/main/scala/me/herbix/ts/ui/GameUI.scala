@@ -9,7 +9,7 @@ import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
-import me.herbix.ts.logic.card.{Card, Cards}
+import me.herbix.ts.logic.card.Card
 import me.herbix.ts.util._
 
 import scala.collection.mutable
@@ -141,14 +141,14 @@ class GameUI(playerId: Int) extends JFrame {
       worldMapUI.pendingInfluenceIsAdd = controlUI.uiInfluence.isAdd
 
       worldMapUI.availableCountries =
-        WorldMap.countries.values.filter(c => {
+        game.theWorldMap.countries.values.filter(c => {
           val pendingInfluenceChange = controlUI.uiInfluence.pendingInfluenceChange
           val input = if (pendingInfluenceChange.contains(c)) {
             pendingInfluenceChange + (c -> (pendingInfluenceChange(c) + 1))
           } else {
             pendingInfluenceChange + (c -> 1)
           }
-          controlUI.uiInfluence.checkInfluence(input) && c != WorldMap.countryUS && c != WorldMap.countryUSSR
+          controlUI.uiInfluence.checkInfluence(input) && c != game.theWorldMap.countryUS && c != game.theWorldMap.countryUSSR
         }).toSet
 
       worldMapUI.repaint()
@@ -184,7 +184,7 @@ class GameUI(playerId: Int) extends JFrame {
     controlUI.uiSelectCountry.updateListeners :+= (() => {
       if (controlUI.uiType == controlUI.UIType.SelectCountry) {
         worldMapUI.availableCountries =
-          WorldMap.normalCountries.values.filter(c => {
+          game.theWorldMap.normalCountries.values.filter(c => {
             controlUI.uiSelectCountry.checkSelection(pendingCountrySelection + c)
           }).toSet
         worldMapUI.repaint()
@@ -269,7 +269,7 @@ class GameUI(playerId: Int) extends JFrame {
     })
 
     def debugAddCard(id: Int, target: String): Unit = {
-      val card = Cards.fromId(id)
+      val card = game.theCards.fromId(id)
       if (card == null) return
 
       val game1 = game

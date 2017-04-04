@@ -1,6 +1,9 @@
 package me.herbix.ts.logic
 
 import me.herbix.ts.logic.GameVariant.GameVariant
+import me.herbix.ts.logic.chinacivilwar.GameChineseCivilWar
+import me.herbix.ts.logic.latewar.GameLateWar
+import me.herbix.ts.logic.turnzero.GameTurnZero
 
 /**
   * Created by Chaofan on 2016/8/8.
@@ -8,9 +11,18 @@ import me.herbix.ts.logic.GameVariant.GameVariant
 object GameFactory {
 
   def createGameByVariant(variant: GameVariant): Game = {
-    val result = new GameRecordingHistory
-    result.gameVariant = variant
-    result
+    variant match {
+      case GameVariant.ChineseCivilWar =>
+        new GameChineseCivilWar
+      case GameVariant.Standard =>
+        new GameRecordingHistory
+      case GameVariant.LateWar =>
+        new GameLateWar
+      case GameVariant.TurnZero =>
+        new GameTurnZero
+      case _ =>
+        null
+    }
   }
 
 }
