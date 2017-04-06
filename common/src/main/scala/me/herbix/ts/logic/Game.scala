@@ -28,10 +28,10 @@ abstract class Game extends GameTrait with InfluenceProvider {
   var extraInfluence = 0
   var optionalCards = true
   var drawGameWinner = US
-  val gameVariant = GameVariant.Standard
+  lazy val gameVariant = GameVariant.Standard
   
   // properties
-  val theCards: CardsTrait = Cards
+  lazy val theCards: CardsTrait = Cards
 
   // game info
   private var randomSeed = 0l
@@ -1458,9 +1458,9 @@ abstract class Game extends GameTrait with InfluenceProvider {
     }
   }
 
-  def excludeChina(set: Set[Country]): Boolean = true
+  def excludeChina(set: Set[Country]): Boolean = !set(theWorldMap.countryChina)
 
-  def excludeChina(map: Map[Country, Int]): Boolean = true
+  def excludeChina(map: Map[Country, Int]): Boolean = !map.contains(theWorldMap.countryChina)
 
   class GameOverException(val winner: Faction) extends Exception
 

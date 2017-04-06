@@ -5,6 +5,7 @@ package me.herbix.ts.logic
   */
 object State extends Enumeration {
   type State = Value
+  def newState = Value
 
   val start = Value
   val waitOther = Value

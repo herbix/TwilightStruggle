@@ -1,4 +1,4 @@
-package me.herbix.ts.logic.chinacivilwar
+package me.herbix.ts.logic.chinesecivilwar
 
 import me.herbix.ts.logic.Faction.{Faction, _}
 import me.herbix.ts.logic._
@@ -9,8 +9,8 @@ import me.herbix.ts.util.HistoryGetCard
   */
 class GameChineseCivilWar extends GameRecordingHistory {
 
-  override val theCards = CCWCards
-  override val gameVariant = GameVariant.ChineseCivilWar
+  lazy override val theCards = CCWCards
+  lazy override val gameVariant = GameVariant.ChineseCivilWar
 
   override protected def initGame(): Unit = {
     initGameExceptChinaCard()

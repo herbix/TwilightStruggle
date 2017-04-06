@@ -9,12 +9,14 @@ import me.herbix.ts.util.Serializer
 /**
   * Created by Chaofan on 2016/9/14.
   */
-class GameState private(val data: Array[Byte], variant: GameVariant) extends Game {
+class GameState private(val data: Array[Byte], game: Game) extends Game {
 
-  override val gameVariant = variant
+  lazy override val gameVariant = game.gameVariant
+  lazy override val theCards = game.theCards
+  lazy override val theWorldMap = game.theWorldMap
 
   def this(game: Game) = {
-    this(Serializer.writeGameState(game), game.gameVariant)
+    this(Serializer.writeGameState(game), game)
 
     playerId = game.playerId
     playerFaction = game.playerFaction

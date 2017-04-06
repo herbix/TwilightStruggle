@@ -4,7 +4,7 @@ import me.herbix.ts.logic.FlagType.FlagType
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.card.Card049MissileEnvy
-import me.herbix.ts.logic.chinacivilwar.CCWFlags
+import me.herbix.ts.logic.chinesecivilwar.CCWFlags
 
 import scala.collection.mutable
 

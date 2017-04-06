@@ -10,7 +10,7 @@ import me.herbix.ts.logic.{WorldMapTrait, Country, WorldMap}
   */
 trait InfluenceProvider {
 
-  val theWorldMap: WorldMapTrait = WorldMap
+  lazy val theWorldMap: WorldMapTrait = WorldMap
 
   def influence(country: Country, faction: Faction): Int
 

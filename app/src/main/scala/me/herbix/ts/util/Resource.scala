@@ -5,7 +5,7 @@ import java.awt.{RenderingHints, Image, Color, Font}
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 
-import me.herbix.ts.logic.chinacivilwar.CCWFlags
+import me.herbix.ts.logic.chinesecivilwar.CCWFlags
 import me.herbix.ts.logic.{FlagsTrait, Faction, Flags, Flag}
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.Faction._

@@ -1,7 +1,7 @@
 package me.herbix.ts.logic
 
 import me.herbix.ts.logic.GameVariant.GameVariant
-import me.herbix.ts.logic.chinacivilwar.GameChineseCivilWar
+import me.herbix.ts.logic.chinesecivilwar.GameChineseCivilWar
 import me.herbix.ts.logic.latewar.GameLateWar
 import me.herbix.ts.logic.turnzero.GameTurnZero
 

@@ -1,4 +1,4 @@
-package me.herbix.ts.logic.chinacivilwar
+package me.herbix.ts.logic.chinesecivilwar
 
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic._

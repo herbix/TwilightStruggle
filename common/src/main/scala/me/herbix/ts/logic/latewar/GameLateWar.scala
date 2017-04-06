@@ -11,7 +11,7 @@ import me.herbix.ts.util.{HistoryTurnRound, HistoryGetCard}
   */
 class GameLateWar extends GameRecordingHistory {
 
-  override val gameVariant = GameVariant.LateWar
+  lazy override val gameVariant = GameVariant.LateWar
 
   override def initGame() = {
     turn = 8

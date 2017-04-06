@@ -7,6 +7,9 @@ import me.herbix.ts.logic.{GameVariant, GameRecordingHistory}
   */
 class GameTurnZero extends GameRecordingHistory {
 
-  override val gameVariant = GameVariant.TurnZero
+  lazy override val gameVariant = GameVariant.TurnZero
+
+  lazy override val theCards = TZCards
+  lazy override val theWorldMap = TZWorldMap
 
 }

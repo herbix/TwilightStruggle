@@ -50,6 +50,29 @@ trait WorldMapTrait {
     }
   }
 
+  def removeCountry(country: Country): Unit = {
+    val name = country.name
+    countries -= name
+    countryMap -= country.id
+
+    for (to <- country.adjacentCountries) {
+      country.adjacentCountries -= country
+    }
+
+    country.adjacentCountries.clear()
+
+    val areas = country.regions
+    for (area <- areas) {
+      regionCountries(area) -= country
+    }
+  }
+
+  def replaceCountry(from: Country, to: Country): Unit = {
+    val links = from.adjacentCountries.map(_.name).toSet
+    removeCountry(from)
+    addCountry(to, links)
+  }
+
   addCountry(countryUS)
   addCountry(countryUSSR)
 
