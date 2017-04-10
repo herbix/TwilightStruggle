@@ -8,7 +8,7 @@ import scala.collection.mutable
 object Cards extends CardsTrait
 
 trait CardsTrait {
-  private val cardMap = mutable.Map[Int, Card]()
+  protected val cardMap = mutable.Map[Int, Card]()
 
   protected def addCard(card: Card): Unit = cardMap += card.id -> card
   protected def removeCard(card: Card): Unit = cardMap -= card.id

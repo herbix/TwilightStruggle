@@ -42,7 +42,7 @@ class OperationModifyInfluence(playerId: Int, faction: Faction, val isAdd: Boole
 class OperationSelectCard(playerId: Int, faction: Faction, val card: Option[Card]) extends Operation(playerId, faction) {
   override protected val opId: Byte = 2
   override protected def writeData(out: DataOutputStream): Unit = {
-    out.writeByte(card.map(_.id).getOrElse(-1))
+    out.writeInt(card.map(_.id).getOrElse(-1))
   }
 }
 
@@ -50,7 +50,7 @@ class OperationSelectCardAndAction(playerId: Int, faction: Faction, val card: Ca
   extends Operation(playerId, faction) {
   override protected val opId: Byte = 3
   override protected def writeData(out: DataOutputStream): Unit = {
-    out.writeByte(if (card != null) card.id else -1)
+    out.writeInt(if (card != null) card.id else -1)
     out.writeInt(action.id)
   }
 }
@@ -98,7 +98,7 @@ class OperationSelectCards(playerId: Int, faction: Faction, val cards: Set[Card]
   override protected def writeData(out: DataOutputStream): Unit = {
     out.writeInt(cards.size)
     for (card <- cards) {
-      out.writeByte(card.id)
+      out.writeInt(card.id)
     }
   }
 }

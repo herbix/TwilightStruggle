@@ -266,14 +266,16 @@ class DetailUI(game: Game) extends JPanel {
   def paintCard(g: Graphics2D): Unit = {
     val period = game.theCards.getCardPeriod(card)
     val titleColor = period match {
+      case 1 => Resource.cardTitleEarlyWar
       case 2 => Resource.cardTitleMidWar
       case 3 => Resource.cardTitleLateWar
-      case _ => Resource.cardTitleEarlyWar
+      case _ => Resource.cardTitleSpecial
     }
     val titleText = period match {
+      case 1 => Lang.earlyWar
       case 2 => Lang.midWar
       case 3 => Lang.lateWar
-      case _ => Lang.earlyWar
+      case _ => Lang.special
     }
 
     g.translate(10, 20)

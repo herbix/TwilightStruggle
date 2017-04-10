@@ -5,6 +5,7 @@ import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card._
+import me.herbix.ts.logic.turnzero.CardTZ02NationalistChina
 
 import scala.collection.mutable
 
@@ -55,6 +56,7 @@ object Lang {
   val earlyWar = "冷战早期"
   val midWar = "冷战中期"
   val lateWar = "冷战后期"
+  val special = "特殊"
 
   val goodFlag = "有利标记"
   val badFlag = "不利标记"
@@ -277,7 +279,7 @@ object Lang {
     case Region.SouthEastAsia => "东南亚"
   }
 
-  val cardInfo = new Array[(String, String)](120)
+  val cardInfo = new Array[(String, String)](300)
   for (item <- CardInfo.infoItems) {
     val id = item.name.toInt
     val title = item.lines.head.content + (if (item("star") != null) "*" else "")
@@ -379,7 +381,7 @@ object Lang {
   cardTips += Card022IndependentReds -> Array("请选择%s个独立的红色国家")
   cardTips += Card023MarshallPlan -> Array("请在西欧%s国各加1影响力")
   cardTips += Card024IndoPakistaniWar -> Array("请选择印巴战争被入侵国")
-  cardTips += Card026CIACreated -> Array("请确认对方手牌")
+  cardTips += Card026CIACreated -> Array("已经确认对方手牌")
   cardTips += Card028SuezCrisis -> Array("请移除%s美国影响力")
   cardTips += Card029EastEuropeanUnrest -> Array("请选择%s个东欧国家")
   cardTips += Card030Decolonization -> Array("请选择非洲或东南亚%s国")
@@ -394,7 +396,7 @@ object Lang {
   cardTips += Card049MissileEnvy -> Array("请选择一张交给对手的牌")
   cardTips += Card053SouthAfricaUnrest -> Array("请选择增加影响力的国家")
   cardTips += Card056MuslimRevolution -> Array("请选择%s个穆斯林革命国家")
-  cardTips += Card062LoneGunman -> Array("请确认对方手牌")
+  cardTips += Card062LoneGunman -> Array("已经确认对方手牌")
   cardTips += Card063ColonialRearGuards -> Array("请选择非洲或东南亚%s国")
   cardTips += Card066PuppetGovernments -> Array("请选择%s个无影响力国")
   cardTips += Card067GrainSales -> Array("请选择打出或归还")
@@ -418,6 +420,7 @@ object Lang {
   cardTips += Card105SpecialRelationship -> Array("请选择英国的%s个邻国", "请选择%s个西欧国家")
   cardTips += Card107Che -> Array("请政变%1$s个国家（行动力%2$s）", "请政变%1$s个国家（行动力%2$s）")
   cardTips += Card108OurManInTehran -> Array("请弃掉任意张牌")
+  cardTips += CardTZ02NationalistChina -> Array("请在亚洲放置%s影响力")
 
   val spaceInfo = new Array[(String, String)](11)
   spaceInfo(0) = ("遥望天空",
@@ -463,6 +466,18 @@ object Lang {
       "可以进行8个行动轮。\n" +
       "航天飞机 -> 空间基地：3行动力，掷骰1-2"
     )
+
+  val crisisInfo = Array.ofDim[(String, String)](6, 4)
+  for (item <- CrisisInfo.infoItems) {
+    val crisis = item.name.substring(0, 1).toInt - 1
+    val stage = item.name.substring(2).toInt - 1
+
+    val title = item.lines.head.content
+    val desc = item.lines
+      .drop(1)
+      .map(_.content).mkString("\n")
+    crisisInfo(crisis)(stage) = (title, desc)
+  }
 
   def toString(flagData: Any): String = {
     flagData match {

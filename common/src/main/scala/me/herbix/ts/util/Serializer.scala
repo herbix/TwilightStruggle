@@ -34,9 +34,9 @@ object Serializer {
         }
         new OperationModifyInfluence(playerId, faction, isAdd, detail.toMap)
       case 2 =>
-        new OperationSelectCard(playerId, faction, Option(game.theCards.fromId(in.readByte())))
+        new OperationSelectCard(playerId, faction, Option(game.theCards.fromId(in.readInt())))
       case 3 =>
-        val card = game.theCards.fromId(in.readByte())
+        val card = game.theCards.fromId(in.readInt())
         new OperationSelectCardAndAction(playerId, faction, card, Action(in.readInt()))
       case 4 =>
         new OperationSelectOperation(playerId, faction, Action(in.readInt()))
@@ -58,7 +58,7 @@ object Serializer {
         val len = in.readInt()
         val cards = mutable.Set.empty[Card]
         for (i <- 0 until len) {
-          cards += game.theCards.fromId(in.readByte())
+          cards += game.theCards.fromId(in.readInt())
         }
         new OperationSelectCards(playerId, faction, cards.toSet)
       case 10 =>
@@ -112,7 +112,7 @@ object Serializer {
 
     writeStack[State](stateStack, out, s => out.writeInt(s.id))
     writeStack[Faction](operatingPlayerStack, out, f => out.writeByte(f.id))
-    writeStack[Card](currentCardStack, out, c => out.writeByte(c.id))
+    writeStack[Card](currentCardStack, out, c => out.writeInt(c.id))
     writeStack[Any](currentCardDataStack, out, a => writeData(a, game, out))
 
     out.writeInt(currentRealignments.size)
@@ -177,7 +177,7 @@ object Serializer {
 
     readStack[State](stateStack, in, State(in.readInt()))
     readStack[Faction](operatingPlayerStack, in, Faction(in.readByte()))
-    readStack[Card](currentCardStack, in, game.theCards.fromId(in.readByte()))
+    readStack[Card](currentCardStack, in, game.theCards.fromId(in.readInt()))
     readStack[Any](currentCardDataStack, in, readData(in, game))
 
     currentRealignments = List.empty
@@ -262,7 +262,7 @@ object Serializer {
   def writeCardSet(cards: CardSet, out: DataOutputStream): Unit = {
     out.writeInt(cards.cardCount)
     for (card <- cards) {
-      out.writeByte(card.id)
+      out.writeInt(card.id)
     }
   }
 
@@ -270,7 +270,7 @@ object Serializer {
     cards.clear()
     val len = in.readInt()
     for (i <- 1 to len) {
-      val card = game.theCards.fromId(in.readByte())
+      val card = game.theCards.fromId(in.readInt())
       cards.add(card)
     }
   }
@@ -352,7 +352,7 @@ object Serializer {
         writeCardSet(cardSet, out)
       case card: Card =>
         out.writeByte(5)
-        out.writeByte(card.id)
+        out.writeInt(card.id)
       case (int: Int, country: Country) =>
         out.writeByte(6)
         out.writeInt(int)
@@ -370,7 +370,7 @@ object Serializer {
         val cardSet = new CardSet(game)
         readCardSet(cardSet, in)(game)
         cardSet
-      case 5 => game.theCards.fromId(in.readByte())
+      case 5 => game.theCards.fromId(in.readInt())
       case 6 =>
         val int = in.readInt()
         val country = game.theWorldMap.getCountryFromId(in.readByte())

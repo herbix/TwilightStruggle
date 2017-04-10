@@ -5,6 +5,7 @@ import javax.swing._
 import javax.swing.event.{ListSelectionEvent, ListSelectionListener}
 
 import me.herbix.ts.logic.card.{Card, Cards}
+import me.herbix.ts.logic.turnzero.TZCards
 import me.herbix.ts.util.{InfoItem, CardInfo, Lang, Resource}
 
 /**
@@ -50,8 +51,10 @@ object HelpDialog extends JFrame {
 
   setLocationRelativeTo(getOwner)
 
-  helpListModel.addElement(new ListItem("============卡牌列表============"))
+  helpListModel.addElement(new ListItem("=========标准版卡牌列表========="))
   (1 to 110).map(Cards.fromId).foreach(card => helpListModel.addElement(new ListItem(card)))
+  helpListModel.addElement(new ListItem("========第零回合卡牌列表========"))
+  (1 to 12).map(x => TZCards.fromId(x + TZCards.IdInc)).foreach(card => helpListModel.addElement(new ListItem(card)))
 
   helpList.addListSelectionListener(new ListSelectionListener {
     override def valueChanged(e: ListSelectionEvent): Unit = {
@@ -68,7 +71,16 @@ object HelpDialog extends JFrame {
   class ListItem(val ref: Any) {
     override def toString: String = {
       ref match {
-        case card: Card => f"${card.id}%03d ${Lang.cardInfo(card.id)._1}%s"
+        case card: Card =>
+          if (card.id < 200) {
+            f"${card.id}%03d ${Lang.cardInfo(card.id)._1}%s"
+          } else {
+            card.id - TZCards.IdInc match {
+              case 1 => f"${2}%03d ${Lang.cardInfo(card.id)._1}%s"
+              case 2 => f"${35}%03d ${Lang.cardInfo(card.id)._1}%s"
+              case x => f"TZ${x - 2}%02d ${Lang.cardInfo(card.id)._1}%s"
+            }
+          }
         case _ => ref.toString
       }
     }

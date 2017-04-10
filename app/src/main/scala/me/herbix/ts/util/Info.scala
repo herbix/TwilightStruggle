@@ -89,3 +89,5 @@ case class InfoLine(val content: String, val properties: Map[String, String] = M
 object CardInfo extends Info(getClass.getResourceAsStream("/cards.txt")) {
   val info = infoItems.map(item => (item.name.toInt, item)).toMap
 }
+
+object CrisisInfo extends Info(getClass.getResourceAsStream("/turnzero/crisis.txt"))

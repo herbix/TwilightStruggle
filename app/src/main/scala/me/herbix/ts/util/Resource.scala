@@ -1,14 +1,13 @@
 package me.herbix.ts.util
 
-import java.awt.image.BufferedImage
-import java.awt.{RenderingHints, Image, Color, Font}
+import java.awt.{Color, Font, Image}
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 
-import me.herbix.ts.logic.chinesecivilwar.CCWFlags
-import me.herbix.ts.logic.{FlagsTrait, Faction, Flags, Flag}
-import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.Faction._
+import me.herbix.ts.logic.chinesecivilwar.CCWFlags
+import me.herbix.ts.logic.turnzero.{TZCards, TZFlags}
+import me.herbix.ts.logic.{Faction, Flags, FlagsTrait}
 
 import scala.collection.mutable
 
@@ -19,6 +18,9 @@ object Resource {
   val worldMap = ImageIO.read(getClass.getResourceAsStream("/worldmap.jpg"))
   val card = (0 to 110)
     .map(i => (i, ImageIO.read(getClass.getResourceAsStream(f"/cards/$i%03d.png"))))
+    .toMap ++
+      (1 to 12)
+    .map(i => (i + TZCards.IdInc, ImageIO.read(getClass.getResourceAsStream(f"/turnzero/cards/$i%02d.png"))))
     .toMap
   val cardBg = card.map(pair => {
     pair._1 match {
@@ -30,14 +32,21 @@ object Resource {
 
   Flags.init()
   CCWFlags.init()
+  TZFlags.init()
   val flag = (0 to FlagsTrait.flagId).map(i => {
-    val in = getClass.getResourceAsStream(f"/flags/$i%02d.png")
+    val (dir, id) =
+      if (i > 46) {
+        ("turnzero/flags", i - 46)
+      } else {
+        ("flags", i)
+      }
+    val in = getClass.getResourceAsStream(f"/$dir/$id%02d.png")
     if (in != null) {
       val img = ImageIO.read(in)
       (i, Map(US -> img, USSR -> img, Neutral -> img))
     } else {
-      val inA = getClass.getResourceAsStream(f"/flags/$i%02dA.png")
-      val inS = getClass.getResourceAsStream(f"/flags/$i%02dS.png")
+      val inA = getClass.getResourceAsStream(f"/$dir/$id%02dA.png")
+      val inS = getClass.getResourceAsStream(f"/$dir/$id%02dS.png")
       (i, Map(US -> ImageIO.read(inA), USSR -> ImageIO.read(inS)))
     }
   }).toMap
@@ -96,6 +105,7 @@ object Resource {
   val cardTitleEarlyWar = new Color(0xff01abce)
   val cardTitleMidWar = new Color(0xff0088aa)
   val cardTitleLateWar = new Color(0xff282f42)
+  val cardTitleSpecial = new Color(0xff282f42)
 
   val cardStarNeutral1 = Color.WHITE
   val cardStarNeutral2 = new Color(0xfff04b47)
