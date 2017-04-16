@@ -40,11 +40,11 @@ class GameTurnZero extends GameRecordingHistory {
     recordHistory(new HistoryAddCardToDeck(to, 1))
   }
 
-  def removeCardFromGame(card: Card): Unit = {
-    if (theCards.earlyWarSetValue.contains(card)) {
+  def removeCardFromGame(card: Card, period: Int): Unit = {
+    if (period == 1) {
       theCards.earlyWarSetValue -= card
       recordHistory(new HistoryRemoveCardFromDeck(card, 1))
-    } else if (theCards.midWarSetValue.contains(card)) {
+    } else if (period == 2) {
       theCards.midWarSetValue -= card
       recordHistory(new HistoryRemoveCardFromDeck(card, 2))
     }
@@ -82,7 +82,7 @@ class GameTurnZero extends GameRecordingHistory {
     val usModifier = if (ussrCard.cancelEffect) 0 else usCard.modifier
     val ussrModifier = if (usCard.cancelEffect) 0 else ussrCard.modifier
 
-    val diceValue = 6 //rollDice()
+    val diceValue = rollDice()
     val modified = diceValue + usModifier + ussrModifier
 
     recordHistory(new HistoryRollDice(Neutral, diceValue, usModifier + ussrModifier))
@@ -196,6 +196,9 @@ class GameTurnZero extends GameRecordingHistory {
   }
 
   override def initGame(): Unit = {
+    theCards.reset()
+    theWorldMap.reset()
+
     pickStateCraftHands()
 
     modifyInfluence(USSR, true, theWorldMap.ussrStandardStart)

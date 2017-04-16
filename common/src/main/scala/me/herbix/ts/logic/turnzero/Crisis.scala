@@ -109,7 +109,7 @@ object CrisisIsrael extends Crisis(4) {
 
 object CrisisChineseCivilWar extends Crisis(5) {
   override def effect1(game: GameTurnZero): Unit = {
-    game.removeCardFromGame(Card076UssuriRiverSkirmish)
+    game.removeCardFromGame(Card076UssuriRiverSkirmish, 2)
   }
 
   override def effect23(game: GameTurnZero): Unit = noEffect
@@ -145,7 +145,7 @@ object CrisisVJDay extends Crisis(6) {
   override def effect45(game: GameTurnZero): Unit = noEffect
 
   override def effect6(game: GameTurnZero): Unit = {
-    game.removeCardFromGame(Card011KoreanWar)
+    game.removeCardFromGame(Card011KoreanWar, 1)
     game.addFlag(US, TZFlags.defconLock)
   }
 }
