@@ -10,6 +10,7 @@ import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
+import me.herbix.ts.logic.turnzero.TZFlags
 import me.herbix.ts.util._
 import me.herbix.ts.util.Resource._
 
@@ -203,7 +204,16 @@ class WorldMapUI(g: Game) extends JPanel {
     g2d.scale(scale, scale)
     g.drawImage(bg, 0, 0, null)
 
-    drawTurnToken(g)
+    if (game.theWorldMap.countries("Taiwan").isBattlefield) {
+      g.drawImage(battlefieldTaiwan, 2209, 712, null)
+    }
+
+    if (game.flags.hasFlag(TZFlags.usGoesFirst)) {
+      drawTurnTokenUSFirst(g)
+    } else {
+      drawTurnToken(g)
+    }
+
     drawDefconToken(g, changedModel.defcon)
     drawVPToken(g, changedModel.vp)
 
@@ -360,17 +370,26 @@ class WorldMapUI(g: Game) extends JPanel {
     (x, y)
   }
 
-  def drawTokenString(g: Graphics, x: Int, y: Int, turn: String): Unit = {
-    g.setColor(Color.BLACK)
+  def drawTokenString(g: Graphics, color: Color, x: Int, y: Int, string: String): Unit = {
+    g.setColor(color)
     val fm = g.getFontMetrics
-    g.drawString(turn, x - fm.stringWidth(turn) / 2, y + fm.getHeight / 2 - 4)
+    g.drawString(string, x - fm.stringWidth(string) / 2, y + fm.getHeight / 2 - 4)
   }
 
   def drawTurnToken(g: Graphics): Unit = {
     val (x, y) = getTokenCenter(MapValue.turnArea, 1, 10, Math.min(game.turn, 10))
     drawToken(g, tokenColor, x - tokenSize / 2, y - tokenSize / 2)
     g.setFont(tokenFont)
-    drawTokenString(g, x, y, "Turn")
+    drawTokenString(g, Color.BLACK, x, y, "Turn")
+  }
+
+  def drawTurnTokenUSFirst(g: Graphics): Unit = {
+    val (x, y) = getTokenCenter(MapValue.turnArea, 1, 10, Math.min(game.turn, 10))
+    drawToken(g, usColor, x - tokenSize / 2, y - tokenSize / 2)
+    g.setFont(tokenFont)
+    drawTokenString(g, Color.WHITE, x, y - 8, "Turn")
+    g.setFont(tokenFontSmall)
+    drawTokenString(g, Color.WHITE, x, y + 12, "US First")
   }
 
   def drawDefconToken(g: Graphics, highlighted: Boolean): Unit = {
@@ -387,8 +406,8 @@ class WorldMapUI(g: Game) extends JPanel {
     val (x, y) = getTokenCenter(MapValue.vpUs20, MapValue.vpUssr20, MapValue.vpSize, 20, -20,
       Math.max(-20, Math.min(20, game.vp)))
     drawToken(g, tokenColor, x - tokenSize / 2, y - tokenSize / 2)
-    g.setFont(tokenFont2)
-    drawTokenString(g, x, y, "VP")
+    g.setFont(tokenFontLarger)
+    drawTokenString(g, Color.BLACK, x, y, "VP")
     if (highlighted) {
       drawHighLight(g, x-tokenSize/2, y-tokenSize/2, tokenSize, tokenSize)
     }

@@ -11,7 +11,7 @@ object WorldMap extends WorldMapTrait
 
 trait WorldMapTrait {
 
-  private implicit val worldMap = this
+  protected implicit val worldMap = this
 
   var countryId = -1
   def nextId(): Int = {
@@ -29,7 +29,7 @@ trait WorldMapTrait {
 
   def getCountryFromId(id: Int): Country = countryMap.getOrElse(id, null)
 
-  private def addCountry(country: Country, link: Set[String] = Set()): Unit = {
+  protected def addCountry(country: Country, link: Set[String] = Set()): Unit = {
     val name = country.name
     countries(name) = country
     countryMap(country.id) = country

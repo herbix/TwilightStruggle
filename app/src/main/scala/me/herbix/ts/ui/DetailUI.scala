@@ -9,6 +9,7 @@ import me.herbix.ts.logic.Region.{Region, RegionState}
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.Card
+import me.herbix.ts.logic.turnzero.GameTurnZero
 import me.herbix.ts.util.Resource._
 import me.herbix.ts.util.{Lang, MapValue, Resource}
 
@@ -393,8 +394,11 @@ class DetailUI(game: Game) extends JPanel {
         Lang.flagInfo(flag.id)._2
       else
         String.format(Lang.flagInfo(flag.id)._2, Lang.getFactionName(flagFaction), Lang.toString(flagData))
-      ) +
-        (if (flag.flagType == FlagType.ThisTurn) "\n" + Lang.thisTurnFlag else "")
+      ) + (flag.flagType match {
+        case FlagType.ThisTurn => "\n" + Lang.thisTurnFlag
+        case FlagType.DuringSetup => "\n" + Lang.duringSetupFlag
+        case _ => ""
+      })
 
 
     paintName(g, name)
@@ -469,7 +473,11 @@ class DetailUI(game: Game) extends JPanel {
     g.drawString(str1, (180-w1) / 2, 27)
 
     if (region != Region.SouthEastAsia) {
-      val info = Region.ScoringInfo(region)
+      val info = if (region == Region.Europe && game.isInstanceOf[GameTurnZero] && game.asInstanceOf[GameTurnZero].isEuropeAlliedBerlin) {
+        game.asInstanceOf[GameTurnZero].EuropeAlliedBerlinInfo
+      } else {
+        Region.ScoringInfo(region)
+      }
 
       paintRegionInfo(g, Lang.presence, info._1.toString, Resource.regionContentFont, Resource.regionContentFont2, 59)
       paintRegionInfo(g, Lang.domination, info._2.toString, Resource.regionContentFont, Resource.regionContentFont2, 86)

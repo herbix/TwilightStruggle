@@ -6,6 +6,7 @@ import javax.swing.JPanel
 
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.{Card016WarsawPact, Card020OlympicGames, Card067GrainSales}
+import me.herbix.ts.logic.turnzero.CardStateCraft
 import me.herbix.ts.util._
 
 import scala.collection.immutable.List
@@ -86,7 +87,18 @@ class HistoryUI(g: Game) extends JPanel {
         String.format(Lang.historyPlayHeadline, Lang.getFactionName(h.faction), Lang.cardInfo(h.card.id)._1)
       case h: HistoryEvent =>
         val faction = if (h.card.faction != Faction.Neutral) h.card.faction else h.faction
-        String.format(Lang.historyEvent, Lang.getFactionName(faction), Lang.cardInfo(h.card.id)._1)
+        h.card match {
+          case stateCraft: CardStateCraft =>
+            val modifier =
+              if (stateCraft.isDummy) ""
+              else if (stateCraft.cancelEffect) "[C]"
+              else if (stateCraft.modifier > 0) "[+" + stateCraft.modifier + "]"
+              else "[" + stateCraft.modifier + "]"
+
+            String.format(Lang.historyEvent, Lang.getFactionName(faction), Lang.cardInfo(h.card.id)._1 + modifier)
+          case _ =>
+            String.format(Lang.historyEvent, Lang.getFactionName(faction), Lang.cardInfo(h.card.id)._1)
+        }
       case h: HistoryCardAction =>
         if (!h.oppositeCard || h.action == Action.Space) {
           String.format(Lang.historyCardAction, Lang.getFactionName(h.faction), Lang.cardInfo(h.card.id)._1, Lang.getActionName(h.action))

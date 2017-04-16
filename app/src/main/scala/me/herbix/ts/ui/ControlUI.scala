@@ -9,6 +9,7 @@ import me.herbix.ts.logic
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card._
+import me.herbix.ts.logic.turnzero.{TZFlags, GameTurnZero, TZState}
 import me.herbix.ts.util._
 
 import scala.collection.mutable
@@ -124,12 +125,14 @@ class ControlUI(val game: Game) extends JPanel {
         case State.quagmirePlayScoringCard => Lang.selectQuagmireScoringCard
         case State.cardOperationRealignment => Lang.operationRealignment
         case State.cardOperationCoup => Lang.operationCoup
-        case State.cubaMissileRemove => Lang.cardTips(Card040CubaMissile)(0)
+        case State.cubaMissileRemove => Lang.cardTips(Card040CubaMissile.id)(0)
         case State.selectTake8Rounds => Lang.take8rounds
         case State.EventStates(_) =>
           val card = game.currentCard
           val step = card.asInstanceOf[CardMultiStep].getStep(game)
-          Lang.cardTips(card)(step - 1)
+          Lang.cardTips(card.id)(step - 1)
+        case TZState.chooseStateCraft => Lang.chooseStateCarft
+        case TZState.solveFlags => Lang.turnZeroFlagInfo(game.asInstanceOf[GameTurnZero].currentSolvingFlag.id)
         case _ => ""
       }
     } catch {
@@ -178,7 +181,7 @@ class ControlUI(val game: Game) extends JPanel {
       case _ => waitOtherUI()
     }
 
-    if (state != State.selectHeadlineCard || oldUI != uiMap(uiType)) {
+    if ((state != TZState.chooseStateCraft && state != State.selectHeadlineCard) || oldUI != uiMap(uiType)) {
       oldUI.reset()
     }
 
@@ -822,7 +825,7 @@ class ControlSubUISelectMultipleCards(parent: ControlUI)
   }
 }
 
-class ControlSubUISummit(parent: ControlUI) extends ControlSubUIText(parent, Array("", "", Lang.cardTips(Card045Summit)(0))) {
+class ControlSubUISummit(parent: ControlUI) extends ControlSubUIText(parent, Array("", "", Lang.cardTips(Card045Summit.id)(0))) {
 
   val buttonImprove = addButton(Lang.improve, 10, 120, 60, 30)
   val buttonKeep = addButton(Lang.keep, 70, 120, 60, 30)
@@ -840,7 +843,7 @@ class ControlSubUISummit(parent: ControlUI) extends ControlSubUIText(parent, Arr
 }
 
 class ControlSubUIHowILearnStopWorry(parent: ControlUI)
-  extends ControlSubUIText(parent, Array("", "", Lang.cardTips(Card046HowILearnStopWorry)(0))) {
+  extends ControlSubUIText(parent, Array("", "", Lang.cardTips(Card046HowILearnStopWorry.id)(0))) {
 
   val buttons = (1 to 5).map(i => addButton(i.toString, 5 + (5 - i) * 38, 120, 38, 30) -> i).toMap
 
@@ -852,7 +855,7 @@ class ControlSubUIHowILearnStopWorry(parent: ControlUI)
 }
 
 class ControlSubUIGrainSales(parent: ControlUI)
-  extends ControlSubUICard(parent, Array(Lang.cardTips(Card067GrainSales)(0))) {
+  extends ControlSubUICard(parent, Array(Lang.cardTips(Card067GrainSales.id)(0))) {
 
   val buttonPlay = addButton(Lang.play, 120, 70, 70, 30)
   val buttonReturn = addButton(Lang.giveBack, 120, 130, 70, 30)

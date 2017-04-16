@@ -4,6 +4,7 @@ import me.herbix.ts.logic.Action.Action
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.card.Card
+import me.herbix.ts.logic.turnzero.Crisis
 import me.herbix.ts.logic.{Country, Flag, Faction}
 
 /**
@@ -49,3 +50,6 @@ class HistoryRegion(val faction: Faction, val region: Region) extends History
 class HistoryAddFlag(faction: Faction, flag: Flag, data: Any) extends HistoryFlag(faction, flag, data)
 class HistoryRemoveFlag(faction: Faction, flag: Flag, data: Any) extends HistoryFlag(faction, flag, data)
 class HistoryYesNo(val faction: Faction, val fromCard: Card, val value: Boolean) extends History
+class HistoryRemoveCardFromDeck(card: Card, val period: Int) extends HistoryCard(card)
+class HistoryAddCardToDeck(card: Card, val period: Int) extends HistoryCard(card)
+class HistoryCrisis(val crisis: Crisis) extends History

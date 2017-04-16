@@ -35,7 +35,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
 
   // game info
   private var randomSeed = 0l
-  private val random = new Random
+  protected val random = new Random
 
   // game tabletop
   val countryInfluence = theWorldMap.countries.values.map(c => c -> mutable.Map(US -> 0, USSR -> 0)).toMap
@@ -135,8 +135,12 @@ abstract class Game extends GameTrait with InfluenceProvider {
     anotherGame.nextState(input)
   }
 
+  protected def nextState(input: Operation, currentState: State): Unit = {
+    nextStateStandard(input, currentState)
+  }
+
   @tailrec
-  private def nextState(input: Operation, currentState: State): Unit = {
+  private def nextStateStandard(input: Operation, currentState: State): Unit = {
     currentState match {
       case State.start => nextStateMayWait(input, nextStateStart)
       case State.putStartUSSR => nextStatePutStart(input, putStartUS, US)
@@ -164,9 +168,9 @@ abstract class Game extends GameTrait with InfluenceProvider {
     checkFlags()
     if (stateStack.top == cardEventEnd) {
       stateStack.pop()
-      nextState(null, stateStack.top)
+      nextStateStandard(null, stateStack.top)
     } else if (stateStack.top == cardOperation || stateStack.top == cardEventOperation || stateStack.top == cardEventAnotherCard) {
-      nextState(null, stateStack.top)
+      nextStateStandard(null, stateStack.top)
     }
   }
 
@@ -191,7 +195,8 @@ abstract class Game extends GameTrait with InfluenceProvider {
           case State.waitOther =>
             val top2 = stateStack(1)
             nextState(input, top2)
-          case other => nextState(input, other)
+          case other =>
+            nextState(input, other)
         }
     }
   }
@@ -244,7 +249,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
     discards.clear()
   }
 
-  private def nextStateMayWait(input: Operation, nextStateReal: Operation => Unit): Unit = {
+  protected def nextStateMayWait(input: Operation, nextStateReal: Operation => Unit): Unit = {
     if (pendingInput == null) {
       pendingInput = input
       if (input.playerId == playerId) {
@@ -556,12 +561,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
 
   @tailrec
   private def nextRound(): Boolean = {
-    if (phasingPlayer == USSR) {
-      phasingPlayer = US
-    } else {
-      phasingPlayer = USSR
-      round += 1
-    }
+    increaseRoundCounter()
     operatingPlayer = phasingPlayer
     if (hand(phasingPlayer).canPlayCardCount(this, phasingPlayer) == 0 && !isAfterFinalRound) {
       nextRound()
@@ -572,6 +572,15 @@ abstract class Game extends GameTrait with InfluenceProvider {
       } else {
         false
       }
+    }
+  }
+
+  def increaseRoundCounter(): Unit = {
+    if (phasingPlayer == USSR) {
+      phasingPlayer = US
+    } else {
+      phasingPlayer = USSR
+      round += 1
     }
   }
 
@@ -1128,8 +1137,10 @@ abstract class Game extends GameTrait with InfluenceProvider {
     }
   }
 
-  def scoring(region: Region): Unit = {
-    val info = Region.ScoringInfo(region)
+  def scoring(region: Region): Unit =
+    scoring(Region.ScoringInfo(region), region)
+
+  protected def scoring(info: (Int, Int, Int), region: Region): Unit = {
     val presence = info._1
     val domination = info._2
     val control = info._3

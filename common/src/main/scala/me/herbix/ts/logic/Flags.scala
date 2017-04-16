@@ -13,7 +13,7 @@ import scala.collection.mutable
   */
 object FlagType extends Enumeration {
   type FlagType = Value
-  val Always, ThisTurn = Value
+  val Always, ThisTurn, DuringSetup = Value
 }
 
 import FlagType._

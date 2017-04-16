@@ -5,7 +5,7 @@ import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card._
-import me.herbix.ts.logic.turnzero.CardTZ02NationalistChina
+import me.herbix.ts.logic.turnzero.{TZFlags, CardTZ02NationalistChina}
 
 import scala.collection.mutable
 
@@ -94,6 +94,7 @@ object Lang {
   val selectQuagmireScoringCard = "请打出一张计分牌"
 
   val thisTurnFlag = "回合结束时标记失效。"
+  val duringSetupFlag = "此标记在开局时生效。"
 
   val removeFromGame = "此牌于事件发动后移出游戏"
 
@@ -115,6 +116,8 @@ object Lang {
   val control = "控制"
 
   val success = "胜利"
+
+  val chooseStateCarft = "请选择一张状态修改牌"
 
   val sum = "总数"
   val battlefieldCountry = "战场国"
@@ -370,57 +373,68 @@ object Lang {
       "“红色恐慌/党内清洗”不可被苏联作为事件打出。\n" +
       "“乌苏里江冲突”，“尼克松打出中国牌”视作美国持有“中国牌”。\n" +
       "“朝鲜战争”掷骰得点-1。")
+  addFlagInfo("斯大林目标欧洲", "苏联开局时增加1点在欧洲任意位置的影响力。")
+  addFlagInfo("斯大林目标亚洲", "苏联开局时可以取“越南起义”或“阿以战争”加入手牌（开局手牌数不变）。")
+  addFlagInfo("杜鲁门的意识", "美国开局时可以取“马歇尔计划”加入手牌（开局手牌数不变）。")
+  addFlagInfo("强硬的杜鲁门", "美国可以在冷战早期先于苏联行动。")
+  addFlagInfo("苏联席卷东欧", "苏联开局时在东欧增加2点影响力。")
+  addFlagInfo("西欧盟军奋进", "“封锁”无效。")
+  addFlagInfo("联合政府领导英国", "“社会主义政府”在第1~2回合无效。")
+  addFlagInfo("保守党领导英国", "“苏伊士运河危机”无效。")
+  addFlagInfo("以色列的危机", "苏联开局时在中东增加2点影响力（每个国家最多1点）")
+  addFlagInfo("美国速援蒋介石", "台湾成为战场国。")
+  addFlagInfo("识局势的日本", "核战等级不可小于2，美国无视核战等级限制。")
 
-  val cardTips = mutable.Map.empty[Card, Array[String]]
-  cardTips += Card007SocialistGovernments -> Array("请从西欧移除%s美国影响力")
-  cardTips += Card010Blockade -> Array("请弃一张3以上行动力的牌")
-  cardTips += Card014COMECON -> Array("请在东欧%s国各加1影响力")
-  cardTips += Card016WarsawPact -> Array("是否要移除美国的影响力", "请选择%s个东欧国家", "请在东欧增加%s影响力")
-  cardTips += Card019TrumanDoctrine -> Array("请移除欧洲%s国苏联影响力")
-  cardTips += Card020OlympicGames -> Array("是否要参加奥运会")
-  cardTips += Card022IndependentReds -> Array("请选择%s个独立的红色国家")
-  cardTips += Card023MarshallPlan -> Array("请在西欧%s国各加1影响力")
-  cardTips += Card024IndoPakistaniWar -> Array("请选择印巴战争被入侵国")
-  cardTips += Card026CIACreated -> Array("已经确认对方手牌")
-  cardTips += Card028SuezCrisis -> Array("请移除%s美国影响力")
-  cardTips += Card029EastEuropeanUnrest -> Array("请选择%s个东欧国家")
-  cardTips += Card030Decolonization -> Array("请选择非洲或东南亚%s国")
-  cardTips += Card032UNIntervention -> Array("请选择要打出的牌")
-  cardTips += Card033DeStalinization -> Array("请先移除%s苏联影响力", "请放置%s苏联影响力")
-  cardTips += Card036BrushWar -> Array("请选择被入侵国")
-  cardTips += Card040CubaMissile -> Array("请选择去除影响力的国家")
-  cardTips += Card043SALTNegotiations -> Array("请从弃牌中回收一张牌")
-  cardTips += Card045Summit -> Array("请改变核战等级")
-  cardTips += Card046HowILearnStopWorry -> Array("请改变核战等级")
-  cardTips += Card047Junta -> Array("请选择%s个中南美国家", "", "请调整%1$s个国家（剩余%2$s）", "请政变%1$s个国家（行动力%2$s）")
-  cardTips += Card049MissileEnvy -> Array("请选择一张交给对手的牌")
-  cardTips += Card053SouthAfricaUnrest -> Array("请选择增加影响力的国家")
-  cardTips += Card056MuslimRevolution -> Array("请选择%s个穆斯林革命国家")
-  cardTips += Card062LoneGunman -> Array("已经确认对方手牌")
-  cardTips += Card063ColonialRearGuards -> Array("请选择非洲或东南亚%s国")
-  cardTips += Card066PuppetGovernments -> Array("请选择%s个无影响力国")
-  cardTips += Card067GrainSales -> Array("请选择打出或归还")
-  cardTips += Card070OASFounded -> Array("请在中南美放置%s影响力")
-  cardTips += Card074VoiceOfAmerica -> Array("请移除非欧洲%s苏联影响力")
-  cardTips += Card075LiberationTheology -> Array("请在中美洲放置%s影响力")
-  cardTips += Card076UssuriRiverSkirmish -> Array("请在亚洲放置%s影响力")
-  cardTips += Card077AskNotWhatYourCountry -> Array("请弃掉任意张牌")
-  cardTips += Card085StarWars -> Array("请从弃牌中选一张牌")
-  cardTips += Card087Reformer -> Array("请在欧洲增加%s影响力", "请在欧洲增加%s影响力")
-  cardTips += Card088BarracksBombing -> Array("请移除中东%s美国影响力")
-  cardTips += Card089ShootDownKAL007 -> Array("", "请用%s行动力来增加影响力", "请调整%1$s个国家（剩余%2$s）")
-  cardTips += Card090Glasnost -> Array("", "请用%s行动力来增加影响力", "请调整%1$s个国家（剩余%2$s）")
-  cardTips += Card091OrtegaInNicaragua -> Array("请政变%1$s个国家（行动力%2$s）")
-  cardTips += Card095LatinAmericaDebtCrisis -> Array("请弃一张3以上行动力的牌", "请选择%s个南美国家")
-  cardTips += Card096TearDownThisWall -> Array("", "请调整%1$s个国家（剩余%2$s）", "请政变%1$s个国家（行动力%2$s）")
-  cardTips += Card098AldrichAmes -> Array("请弃对手一张牌")
-  cardTips += Card099PershingII -> Array("请移除西欧%s国1美国影响力")
-  cardTips += Card102IranIraqWar -> Array("请选择两伊战争被入侵国")
-  cardTips += Card104CambridgeFive -> Array("请选择一张计分牌", "请在相应区域增加%s影响力")
-  cardTips += Card105SpecialRelationship -> Array("请选择英国的%s个邻国", "请选择%s个西欧国家")
-  cardTips += Card107Che -> Array("请政变%1$s个国家（行动力%2$s）", "请政变%1$s个国家（行动力%2$s）")
-  cardTips += Card108OurManInTehran -> Array("请弃掉任意张牌")
-  cardTips += CardTZ02NationalistChina -> Array("请在亚洲放置%s影响力")
+  val cardTips = mutable.Map.empty[Int, Array[String]]
+  cardTips += Card007SocialistGovernments.id -> Array("请从西欧移除%s美国影响力")
+  cardTips += Card010Blockade.id -> Array("请弃一张3以上行动力的牌")
+  cardTips += Card014COMECON.id -> Array("请在东欧%s国各加1影响力")
+  cardTips += Card016WarsawPact.id -> Array("是否要移除美国的影响力", "请选择%s个东欧国家", "请在东欧增加%s影响力")
+  cardTips += Card019TrumanDoctrine.id -> Array("请移除欧洲%s国苏联影响力")
+  cardTips += Card020OlympicGames.id -> Array("是否要参加奥运会")
+  cardTips += Card022IndependentReds.id -> Array("请选择%s个独立的红色国家")
+  cardTips += Card023MarshallPlan.id -> Array("请在西欧%s国各加1影响力")
+  cardTips += Card024IndoPakistaniWar.id -> Array("请选择印巴战争被入侵国")
+  cardTips += Card026CIACreated.id -> Array("已经确认对方手牌")
+  cardTips += Card028SuezCrisis.id -> Array("请移除%s美国影响力")
+  cardTips += Card029EastEuropeanUnrest.id -> Array("请选择%s个东欧国家")
+  cardTips += Card030Decolonization.id -> Array("请选择非洲或东南亚%s国")
+  cardTips += Card032UNIntervention.id -> Array("请选择要打出的牌")
+  cardTips += Card033DeStalinization.id -> Array("请先移除%s苏联影响力", "请放置%s苏联影响力")
+  cardTips += Card036BrushWar.id -> Array("请选择被入侵国")
+  cardTips += Card040CubaMissile.id -> Array("请选择去除影响力的国家")
+  cardTips += Card043SALTNegotiations.id -> Array("请从弃牌中回收一张牌")
+  cardTips += Card045Summit.id -> Array("请改变核战等级")
+  cardTips += Card046HowILearnStopWorry.id -> Array("请改变核战等级")
+  cardTips += Card047Junta.id -> Array("请选择%s个中南美国家", "", "请调整%1$s个国家（剩余%2$s）", "请政变%1$s个国家（行动力%2$s）")
+  cardTips += Card049MissileEnvy.id -> Array("请选择一张交给对手的牌")
+  cardTips += Card053SouthAfricaUnrest.id -> Array("请选择增加影响力的国家")
+  cardTips += Card056MuslimRevolution.id -> Array("请选择%s个穆斯林革命国家")
+  cardTips += Card062LoneGunman.id -> Array("已经确认对方手牌")
+  cardTips += Card063ColonialRearGuards.id -> Array("请选择非洲或东南亚%s国")
+  cardTips += Card066PuppetGovernments.id -> Array("请选择%s个无影响力国")
+  cardTips += Card067GrainSales.id -> Array("请选择打出或归还")
+  cardTips += Card070OASFounded.id -> Array("请在中南美放置%s影响力")
+  cardTips += Card074VoiceOfAmerica.id -> Array("请移除非欧洲%s苏联影响力")
+  cardTips += Card075LiberationTheology.id -> Array("请在中美洲放置%s影响力")
+  cardTips += Card076UssuriRiverSkirmish.id -> Array("请在亚洲放置%s影响力")
+  cardTips += Card077AskNotWhatYourCountry.id -> Array("请弃掉任意张牌")
+  cardTips += Card085StarWars.id -> Array("请从弃牌中选一张牌")
+  cardTips += Card087Reformer.id -> Array("请在欧洲增加%s影响力", "请在欧洲增加%s影响力")
+  cardTips += Card088BarracksBombing.id -> Array("请移除中东%s美国影响力")
+  cardTips += Card089ShootDownKAL007.id -> Array("", "请用%s行动力来增加影响力", "请调整%1$s个国家（剩余%2$s）")
+  cardTips += Card090Glasnost.id -> Array("", "请用%s行动力来增加影响力", "请调整%1$s个国家（剩余%2$s）")
+  cardTips += Card091OrtegaInNicaragua.id -> Array("请政变%1$s个国家（行动力%2$s）")
+  cardTips += Card095LatinAmericaDebtCrisis.id -> Array("请弃一张3以上行动力的牌", "请选择%s个南美国家")
+  cardTips += Card096TearDownThisWall.id -> Array("", "请调整%1$s个国家（剩余%2$s）", "请政变%1$s个国家（行动力%2$s）")
+  cardTips += Card098AldrichAmes.id -> Array("请弃对手一张牌")
+  cardTips += Card099PershingII.id -> Array("请移除西欧%s国1美国影响力")
+  cardTips += Card102IranIraqWar.id -> Array("请选择两伊战争被入侵国")
+  cardTips += Card104CambridgeFive.id -> Array("请选择一张计分牌", "请在相应区域增加%s影响力")
+  cardTips += Card105SpecialRelationship.id -> Array("请选择英国的%s个邻国", "请选择%s个西欧国家")
+  cardTips += Card107Che.id -> Array("请政变%1$s个国家（行动力%2$s）", "请政变%1$s个国家（行动力%2$s）")
+  cardTips += Card108OurManInTehran.id -> Array("请弃掉任意张牌")
+  cardTips += CardTZ02NationalistChina.id -> Array("请在亚洲放置%s影响力")
 
   val spaceInfo = new Array[(String, String)](11)
   spaceInfo(0) = ("遥望天空",
@@ -486,5 +500,13 @@ object Lang {
       case _ => null
     }
   }
+
+  val turnZeroFlagInfo = mutable.Map[Int, String](
+    51 -> "请在东欧放置%s点影响力",
+    47 -> "请在欧洲放置%s点影响力",
+    55 -> "请在中东放置%s点影响力",
+    48 -> "请选择要加入起始手牌的牌",
+    49 -> "请选择要加入起始手牌的牌"
+  )
 
 }

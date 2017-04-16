@@ -36,7 +36,7 @@ object Resource {
   val flag = (0 to FlagsTrait.flagId).map(i => {
     val (dir, id) =
       if (i > 46) {
-        ("turnzero/flags", i - 46)
+        ("turnzero/flags", i - 47)
       } else {
         ("flags", i)
       }
@@ -65,6 +65,8 @@ object Resource {
   val buttonCloseHover = ImageIO.read(getClass.getResourceAsStream("/other/close-hover.png"))
 
   val chineseCivilWarBg = ImageIO.read(getClass.getResourceAsStream("/other/ccw-bg.png"))
+
+  val battlefieldTaiwan = ImageIO.read(getClass.getResourceAsStream("/turnzero/other/battlefield-taiwan.png"))
 
   val textFont = new Font(Lang.heiti, 0, 16)
   val textFont2 = new Font(Lang.lishu, 0, 32)
@@ -133,7 +135,8 @@ object Resource {
   val availableCountry = new Color(128, 255, 128, 120)
 
   val tokenFont = new Font("Arial", Font.BOLD, 18)
-  val tokenFont2 = new Font("Arial", Font.BOLD, 24)
+  val tokenFontLarger = new Font("Arial", Font.BOLD, 24)
+  val tokenFontSmall = new Font("Arial", Font.PLAIN, 12)
 
   val mapHighlightColor = new Color(0xffffff00)
 
