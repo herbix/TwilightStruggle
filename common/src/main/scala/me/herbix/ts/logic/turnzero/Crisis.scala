@@ -28,7 +28,7 @@ object Crisis {
   val setB = Set(CrisisIsrael, CrisisChineseCivilWar, CrisisVJDay)
 }
 
-object CrisisYaltaAndPotsdam extends Crisis(1) {
+object CrisisYaltaAndPotsdam extends Crisis(0) {
   override def effect1(game: GameTurnZero): Unit = {
     game.addFlag(USSR, TZFlags.ussrEuropePlus1)
     game.addFlag(USSR, TZFlags.ussrVietnamOrArab)
@@ -46,7 +46,7 @@ object CrisisYaltaAndPotsdam extends Crisis(1) {
   }
 }
 
-object CrisisVEDay extends Crisis(2) {
+object CrisisVEDay extends Crisis(1) {
   override def effect1(game: GameTurnZero): Unit = {
     effect23(game)
     game.modifyInfluence(USSR, true, Map(
@@ -69,7 +69,7 @@ object CrisisVEDay extends Crisis(2) {
   }
 }
 
-object Crisis1945UKElection extends Crisis(3) {
+object Crisis1945UKElection extends Crisis(2) {
   override def effect1(game: GameTurnZero): Unit = {
     game.modifyInfluence(US, false, Map(game.theWorldMap.countries("UK") -> 2))
   }
@@ -86,7 +86,7 @@ object Crisis1945UKElection extends Crisis(3) {
   }
 }
 
-object CrisisIsrael extends Crisis(4) {
+object CrisisIsrael extends Crisis(3) {
   override def effect1(game: GameTurnZero): Unit = {
     effect23(game)
     game.addFlag(USSR, TZFlags.ussrMidEastPlus2)
@@ -107,7 +107,7 @@ object CrisisIsrael extends Crisis(4) {
   }
 }
 
-object CrisisChineseCivilWar extends Crisis(5) {
+object CrisisChineseCivilWar extends Crisis(4) {
   override def effect1(game: GameTurnZero): Unit = {
     game.removeCardFromGame(Card076UssuriRiverSkirmish, 2)
   }
@@ -126,7 +126,7 @@ object CrisisChineseCivilWar extends Crisis(5) {
   }
 }
 
-object CrisisVJDay extends Crisis(6) {
+object CrisisVJDay extends Crisis(5) {
   override def effect1(game: GameTurnZero): Unit = {
     effect23(game)
     game.modifyInfluence(USSR, true, Map(

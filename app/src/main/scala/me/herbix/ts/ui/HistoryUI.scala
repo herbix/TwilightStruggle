@@ -172,6 +172,12 @@ class HistoryUI(g: Game) extends JPanel {
           case _ => if(h.value) Lang.yes else Lang.no
         }
         String.format(Lang.historyYesNo, Lang.getFactionName(h.faction), value)
+      case h: HistoryAddCardToDeck =>
+        String.format(Lang.historyAddCardToDeck, Lang.cardInfo(h.card.id)._1, Lang.getPeriodName(h.period))
+      case h: HistoryRemoveCardFromDeck =>
+        String.format(Lang.historyRemoveCardFromDeck, Lang.cardInfo(h.card.id)._1, Lang.getPeriodName(h.period))
+      case h: HistoryCrisis =>
+        String.format(Lang.historyCrisis, Lang.crisisInfo(h.crisis.id)(0)._1)
       case h => h.toString
     }
     var height = 25

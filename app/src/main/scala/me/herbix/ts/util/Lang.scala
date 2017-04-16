@@ -166,6 +166,9 @@ object Lang {
   val historyRemoveFlagNeutral = "双方失去了标记“%s”"
   val historyRegion = "%s选择了%s"
   val historyYesNo = "%s选择了%s"
+  val historyAddCardToDeck = "“%s”被加入%s牌堆"
+  val historyRemoveCardFromDeck = "“%s”被从%s牌堆移除"
+  val historyCrisis = "开始处理危机牌“%s”"
 
   val countryNames = mutable.Map[String, String]()
 
@@ -499,6 +502,13 @@ object Lang {
       case region: Region => getRegionName(region)
       case _ => null
     }
+  }
+
+  def getPeriodName(period: Int) = period match {
+    case 1 => "前期"
+    case 2 => "中期"
+    case 3 => "后期"
+    case 4 => "特殊"
   }
 
   val turnZeroFlagInfo = mutable.Map[Int, String](
