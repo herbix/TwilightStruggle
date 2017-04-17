@@ -9,7 +9,7 @@ import me.herbix.ts.logic.Region.{Region, RegionState}
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.Card
-import me.herbix.ts.logic.turnzero.GameTurnZero
+import me.herbix.ts.logic.turnzero.{Crisis, GameTurnZero}
 import me.herbix.ts.util.Resource._
 import me.herbix.ts.util.{Lang, MapValue, Resource}
 
@@ -22,7 +22,7 @@ class DetailUI(game: Game) extends JPanel {
 
   object DetailMode extends Enumeration {
     type DetailMode = Value
-    val CountryMode, CardMode, FlagMode, SpaceMode, RegionMode, EmptyMode = Value
+    val CountryMode, CardMode, FlagMode, SpaceMode, RegionMode, CrisisMode, EmptyMode = Value
   }
 
   import DetailMode._
@@ -35,6 +35,8 @@ class DetailUI(game: Game) extends JPanel {
   var flagFaction: Faction = US
   var space: SpaceLevel = null
   var region: Region = null
+  var crisis: Crisis = null
+  var crisisEffect: Int = 0
 
   def setCountry(country: Country): Unit = {
     mode = CountryMode
@@ -68,6 +70,13 @@ class DetailUI(game: Game) extends JPanel {
     repaint()
   }
 
+  def setCrisis(crisis: Crisis, crisisEffect: Int): Unit = {
+    mode = CrisisMode
+    this.crisis = crisis
+    this.crisisEffect = crisisEffect
+    repaint()
+  }
+
   override def paint(g: Graphics): Unit = {
     super.paint(g)
 
@@ -87,6 +96,8 @@ class DetailUI(game: Game) extends JPanel {
         paintSpace(g2d)
       case DetailMode.RegionMode =>
         paintRegion(g2d)
+      case DetailMode.CrisisMode =>
+        paintCrisis(g2d)
       case _ =>
     }
   }
@@ -709,6 +720,28 @@ class DetailUI(game: Game) extends JPanel {
       v = v.substring(0, 5) + "..."
     }
     g.drawString(v, x + 85 - fm.stringWidth(v), y)
+  }
+
+  def paintCrisis(g: Graphics2D): Unit = {
+    val titleColor = Resource.cardTitleLateWar
+    val titleText = Lang.crisisCard
+
+    g.translate(10, 20)
+
+    paintTitle(g, titleColor, titleText, Neutral, 0)
+
+    val info = Lang.crisisInfo(crisis.id)(crisisEffect)
+    val name = info._1
+    val desc = (crisisEffect match {
+      case 0 => "1:\n"
+      case 1 => "2~3:\n"
+      case 2 => "4~5:\n"
+      case 3 => "6:\n"
+      case 4 => ""
+    }) + info._2
+
+    paintName(g, name)
+    paintDesc(g, desc)
   }
 
 }

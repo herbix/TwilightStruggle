@@ -90,4 +90,6 @@ object CardInfo extends Info(getClass.getResourceAsStream("/cards.txt")) {
   val info = infoItems.map(item => (item.name.toInt, item)).toMap
 }
 
-object CrisisInfo extends Info(getClass.getResourceAsStream("/turnzero/crisis.txt"))
+object CrisisInfo extends Info(getClass.getResourceAsStream("/turnzero/crisis.txt")) {
+  val info = infoItems.map(item => (item.name, item)).toMap
+}

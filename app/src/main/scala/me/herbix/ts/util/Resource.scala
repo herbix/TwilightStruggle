@@ -51,6 +51,12 @@ object Resource {
     }
   }).toMap
 
+  val crisis = (1 to 6).map(i => {
+    ImageIO.read(getClass.getResourceAsStream(f"/turnzero/crisis/crisis$i%d.png"))
+  }).toArray
+
+  val crisisBack = ImageIO.read(getClass.getResourceAsStream("/turnzero/crisis/crisis-back.png"))
+
   val nuclearIcon = new ImageIcon(Resource.flag(Flags.Defcon2Penalty.id)(Faction.Neutral).getScaledInstance(25, 25, Image.SCALE_SMOOTH))
 
   val tokenSpaceUs = ImageIO.read(getClass.getResourceAsStream("/tokens/spaceus.png"))
@@ -81,6 +87,9 @@ object Resource {
   val influenceTokenTextFont = new Font(Lang.heiti, Font.BOLD, 32)
   val tokenColor = Color.YELLOW
   val tokenSize = 46
+
+  val crisisWidth = 500
+  val crisisHeight = crisisWidth * crisisBack.getHeight / crisisBack.getWidth
 
   import me.herbix.ts.logic.Region._
 
@@ -143,4 +152,6 @@ object Resource {
   val regionContentColor = new Color(0xfffff7e2)
   val regionContentFont = new Font(Lang.heiti, Font.BOLD, 19)
   val regionContentFont2 = new Font("Arial", Font.BOLD, 19)
+
+  val historyUIFont = new Font(Lang.songti, Font.PLAIN, 10)
 }

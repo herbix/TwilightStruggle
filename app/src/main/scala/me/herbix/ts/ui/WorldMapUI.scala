@@ -10,7 +10,7 @@ import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
-import me.herbix.ts.logic.turnzero.TZFlags
+import me.herbix.ts.logic.turnzero.{CrisisUnknown, Crisis, GameTurnZero, TZFlags}
 import me.herbix.ts.util._
 import me.herbix.ts.util.Resource._
 
@@ -25,6 +25,7 @@ class WorldMapUI(g: Game) extends JPanel {
   val game = g.asInstanceOf[GameRecordingHistory]
 
   game.stateUpdateListeners :+= (() => {
+    updateCrisisPositions()
     updateChangedModel()
     repaint()
   })
@@ -65,6 +66,9 @@ class WorldMapUI(g: Game) extends JPanel {
   var regionHoverListeners: List[Region => Unit] = List()
 
   val changedModel = new ChangedModel()
+
+  val crisisPositions = new Array[(Int, Int)](6)
+  var crisisHoverListeners: List[(Crisis, Int) => Unit] = List()
 
   var gameUI: GameUI = null
 
@@ -108,6 +112,8 @@ class WorldMapUI(g: Game) extends JPanel {
     var oldHoverCountry: Country = null
     var oldHoverSpaceLevel: SpaceLevel = null
     var oldHoverRegion: Region = null
+    var oldHoverCrisis: Crisis = null
+    var oldHoverCrisisEffect: Int = 4
     override def mousePressed(e: MouseEvent): Unit = {
       if (e.getButton != MouseEvent.BUTTON1) {
         dragging = true
@@ -128,6 +134,23 @@ class WorldMapUI(g: Game) extends JPanel {
       }
     }
     override def mouseMoved(e: MouseEvent): Unit = {
+      game match {
+        case game: GameTurnZero =>
+          if (game.turn == 0 && game.round <= 6) {
+            val (crisis, effect) = findCrisis(game, e.getX, e.getY)
+            if (crisis != oldHoverCrisis || effect != oldHoverCrisisEffect) {
+              oldHoverCrisis = crisis
+              oldHoverCrisisEffect = effect
+              if (crisis != null) {
+                crisisHoverListeners.foreach(_(crisis, effect))
+              }
+            }
+            if (crisis != null) {
+              return
+            }
+          }
+        case _ =>
+      }
       val country = findCountry(e.getX, e.getY)
       if (country != oldHoverCountry) {
         oldHoverCountry = country
@@ -186,8 +209,38 @@ class WorldMapUI(g: Game) extends JPanel {
         val ny = y / scale
         val cx = pos._1
         val cy = pos._2
-        nx >= cx && nx < cx +size._1 && ny >= cy && ny < cy + size._2
+        nx >= cx && nx < cx + size._1 && ny >= cy && ny < cy + size._2
       }).orNull
+    def findCrisis(game: GameTurnZero, x: Int, y: Int): (Crisis, Int) =
+      crisisPositions.lastIndexWhere(pos => {
+        if (pos == null) {
+          false
+        } else {
+          val size = (crisisWidth, crisisHeight)
+          val nx = x / scale
+          val ny = y / scale
+          val cx = pos._1 - crisisWidth / 2
+          val cy = pos._2 - crisisHeight / 2
+          nx >= cx && nx < cx + size._1 && ny >= cy && ny < cy + size._2
+        }
+      }) match {
+        case -1 => (null, 4)
+        case n =>
+          if (n + 1 > game.round)
+            (CrisisUnknown, 4)
+          else {
+            val crisis = game.crisisDeck(n)
+            val ny = y / scale
+            val cy = crisisPositions(n)._2 - crisisHeight / 2
+            val ty = (ny - cy) * crisisBack.getHeight / crisisHeight
+            val effect = (4 to 1 by -1).find(i => {
+              val info = CrisisInfo.info((crisis.id + 1) + "-" + i)
+              val start = info("start")
+              start != null && start.toInt <= ty
+            }).getOrElse(5) - 1
+            (crisis, effect)
+          }
+      }
   }
 
   addMouseListener(mouseAdapter)
@@ -319,6 +372,11 @@ class WorldMapUI(g: Game) extends JPanel {
       drawHighLight(g, x, y, w, h)
     }
 
+    game match {
+      case gameTZ: GameTurnZero => if (game.turn == 0) drawCrisis(g, gameTZ)
+      case _ =>
+    }
+
     // TODO remove debug code
     g.setFont(debugAIFont)
     for (country <- game.theWorldMap.normalCountries.values ++ List(game.theWorldMap.countryChina)) {
@@ -447,6 +505,56 @@ class WorldMapUI(g: Game) extends JPanel {
     g.setColor(Resource.mapHighlightColor)
     g.drawRect(x, y, w, h)
     g2d.setStroke(stroke)
+  }
+
+  def drawCrisis(g: Graphics, game: GameTurnZero): Unit = {
+    val crisisProgress = game.round - 1
+    if (crisisProgress > 6) {
+      return
+    }
+    for (i <- 0 to 5) {
+      val position = crisisPositions(i)
+      val image =
+        if (i <= crisisProgress)
+          Resource.crisis(game.crisisDeck(i).id)
+        else
+          Resource.crisisBack
+      drawCrisisCard(g, position._1, position._2, image)
+      if (i < crisisProgress) {
+        val start = CrisisInfo.info((game.crisisDeck(i).id + 1) + "-" + (game.crisisEffect(i) + 1))("start").toInt
+        val g2d = g.asInstanceOf[Graphics2D]
+        val stroke = g2d.getStroke
+        g2d.setStroke(new BasicStroke(3))
+        g2d.setColor(Color.RED)
+        g2d.drawOval(position._1 - crisisWidth / 2 + 25, position._2 - crisisHeight / 2 + start * crisisHeight / crisisBack.getHeight + 5, 30, 30)
+        g2d.setStroke(stroke)
+      }
+    }
+  }
+
+  def drawCrisisCard(g: Graphics, x: Int, y: Int, image: BufferedImage) = {
+    g.drawImage(image, x - crisisWidth / 2, y - crisisHeight / 2, crisisWidth, crisisHeight, null)
+    g.setColor(Color.DARK_GRAY)
+    g.drawRect(x - crisisWidth / 2, y - crisisHeight / 2, crisisWidth, crisisHeight)
+  }
+
+  def updateCrisisPositions(): Unit = {
+    game match {
+      case game: GameTurnZero =>
+        if (game.turn != 0) return
+        val crisisProgress = game.round - 1
+        var x = 750
+        for (i <- 0 to crisisProgress) {
+          crisisPositions(i) = (x, 1100)
+          x += 100
+        }
+        x = 1750
+        for (i <- crisisProgress + 1 to 5) {
+          crisisPositions(i) = (x, 1100)
+          x -= 100
+        }
+      case _ =>
+    }
   }
 
   def updateChangedModel(): Unit = {

@@ -10,6 +10,7 @@ import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.SpaceLevel.SpaceLevel
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.Card
+import me.herbix.ts.logic.turnzero.Crisis
 import me.herbix.ts.util._
 
 import scala.collection.mutable
@@ -176,6 +177,10 @@ class GameUI(playerId: Int) extends JFrame {
 
     worldMapUI.regionHoverListeners :+= ((region: Region) => {
       detailUI.setRegion(region)
+    })
+
+    worldMapUI.crisisHoverListeners :+= ((crisis: Crisis, effect: Int) => {
+      detailUI.setCrisis(crisis, effect)
     })
 
     controlUI.uiSelectCountry.pendingCountrySelection = pendingCountrySelection

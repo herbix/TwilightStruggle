@@ -22,7 +22,8 @@ class GameTurnZero extends GameRecordingHistory {
   lazy override val theCards = TZCards
   lazy override val theWorldMap = TZWorldMap
 
-  val crisisDeck = new Array[Crisis](6)
+  lazy val crisisDeck = new Array[Crisis](6)
+  lazy val crisisEffect = new Array[Int](6)
 
   var currentSolvingFlag: Flag = null
 
@@ -93,6 +94,12 @@ class GameTurnZero extends GameRecordingHistory {
       else modified
 
     crisisDeck(round - 1).effect(ranged, this)
+    crisisEffect(round - 1) = ranged match {
+      case 1 => 0
+      case 2|3 => 1
+      case 4|5 => 2
+      case 6 => 3
+    }
 
     round += 1
     pendingInput = null

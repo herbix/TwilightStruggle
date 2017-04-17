@@ -7,6 +7,7 @@ import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic.State.State
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card.Card
+import me.herbix.ts.logic.turnzero.{Crisis, GameTurnZero}
 
 import scala.collection.mutable
 
@@ -121,6 +122,25 @@ object Serializer {
     }
 
     out.writeBoolean(skipHeadlineCard2)
+
+    game match {
+      case g: GameTurnZero =>
+        for (i <- 0 until 6) {
+          val crisis = g.crisisDeck(i)
+          if (crisis == null) {
+            out.writeByte(-1)
+          } else {
+            out.writeByte(crisis.id)
+          }
+          out.writeByte(g.crisisEffect(i))
+        }
+        if (g.currentSolvingFlag == null) {
+          out.writeInt(-1)
+        } else {
+          out.writeInt(g.currentSolvingFlag.id)
+        }
+      case _ =>
+    }
   }
 
   def readGameState(implicit game: Game, in: DataInputStream): Unit = {
@@ -187,6 +207,18 @@ object Serializer {
     }
 
     skipHeadlineCard2 = in.readBoolean()
+
+    game match {
+      case g: GameTurnZero =>
+        for (i <- 0 until 6) {
+          val crisisId = in.readByte()
+          g.crisisDeck(i) = if (crisisId < 0) null else Crisis.fromId(crisisId)
+          g.crisisEffect(i) = in.readByte()
+        }
+        val currentSolvingFlagId: Int = in.readInt()
+        g.currentSolvingFlag = if (currentSolvingFlagId < 0) null else FlagsTrait.fromId(currentSolvingFlagId)
+      case _ =>
+    }
   }
 
   def writeGameState(game: Game): Array[Byte] = {

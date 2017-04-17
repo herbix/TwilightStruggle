@@ -61,6 +61,8 @@ object Lang {
   val goodFlag = "有利标记"
   val badFlag = "不利标记"
 
+  val crisisCard = "危机牌"
+
   val selectHeadline = "请选择头条牌"
 
   val selectCardAndAction = "请选择要打出的牌"
@@ -484,7 +486,7 @@ object Lang {
       "航天飞机 -> 空间基地：3行动力，掷骰1-2"
     )
 
-  val crisisInfo = Array.ofDim[(String, String)](6, 4)
+  val crisisInfo = Array.ofDim[(String, String)](7, 5)
   for (item <- CrisisInfo.infoItems) {
     val crisis = item.name.substring(0, 1).toInt - 1
     val stage = item.name.substring(2).toInt - 1

@@ -242,7 +242,7 @@ class ControlUI(val game: Game) extends JPanel {
     uiSelectOperation.realignment.setEnabled(canRealignment)
     uiSelectOperation.coup.setEnabled(canCoup)
     if (game.phasingPlayer != Faction.getOpposite(game.playerFaction) && canCoup &&
-      ((game.defcon == 2 && !game.flags.hasFlag(game.playerFaction, Flags.NuclearSubs)) || game.flags.hasFlag(game.playerFaction, Flags.CubaMissile))) {
+      ((game.defcon == 2 && !game.flags.hasFlag(game.playerFaction, Flags.NuclearSubs) && !game.flags.hasFlag(TZFlags.defconLock)) || game.flags.hasFlag(game.playerFaction, Flags.CubaMissile))) {
       uiSelectOperation.coup.setIcon(Resource.nuclearIcon)
     } else {
       uiSelectOperation.coup.setIcon(null)

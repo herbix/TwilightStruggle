@@ -4,10 +4,13 @@ import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.Flags
 import me.herbix.ts.logic.card._
 
+import scala.collection.mutable
+
 /**
   * Created by Chaofan on 2017/4/15.
   */
 abstract class Crisis(val id: Int) {
+  Crisis.byId(id) = this
   def effect(value: Int, game: GameTurnZero): Unit =
     value match {
       case 1 => effect1(game)
@@ -24,6 +27,11 @@ abstract class Crisis(val id: Int) {
 }
 
 object Crisis {
+  def byId = mutable.Map[Int, Crisis]()
+  def fromId(id: Int): Crisis = {
+    Crisis.byId(id)
+  }
+
   val setA = Set(CrisisYaltaAndPotsdam, CrisisVEDay, Crisis1945UKElection)
   val setB = Set(CrisisIsrael, CrisisChineseCivilWar, CrisisVJDay)
 }
@@ -148,4 +156,11 @@ object CrisisVJDay extends Crisis(5) {
     game.removeCardFromGame(Card011KoreanWar, 1)
     game.addFlag(US, TZFlags.defconLock)
   }
+}
+
+object CrisisUnknown extends Crisis(6) {
+  override def effect1(game: GameTurnZero): Unit = ???
+  override def effect6(game: GameTurnZero): Unit = ???
+  override def effect23(game: GameTurnZero): Unit = ???
+  override def effect45(game: GameTurnZero): Unit = ???
 }
