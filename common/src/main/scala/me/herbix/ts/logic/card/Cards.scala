@@ -8,6 +8,8 @@ import scala.collection.mutable
 object Cards extends CardsTrait
 
 trait CardsTrait {
+  val PromoteOffset = 150
+
   protected val cardMap = mutable.Map[Int, Card]()
 
   protected def addCard(card: Card): Unit = cardMap += card.id -> card
@@ -144,17 +146,20 @@ trait CardsTrait {
 
   def isEarlyWarCard(card: Card): Boolean = {
     val i = card.id
-    i <= 35 || (i >= 103 && i <= 106)
+    val j = i - PromoteOffset
+    i <= 35 || (i >= 103 && i <= 106) || (j >= 5 && j <= 7)
   }
 
   def isMidWarCard(card: Card): Boolean = {
     val i = card.id
-    (i >= 36 && i <= 81) || (i >= 107 && i <= 108)
+    val j = i - PromoteOffset
+    (i >= 36 && i <= 81) || (i >= 107 && i <= 108) || (j >= 1 && j <= 3) || j == 8
   }
 
   def isLateWarCard(card: Card): Boolean = {
     val i = card.id
-    (i >= 82 && i <= 102) || (i >= 109 && i <= 110)
+    val j = i - PromoteOffset
+    (i >= 82 && i <= 102) || (i >= 109 && i <= 110) || j == 4
   }
 
   def getCardPeriod(card: Card): Int =

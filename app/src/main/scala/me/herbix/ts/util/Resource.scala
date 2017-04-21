@@ -5,6 +5,7 @@ import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 
 import me.herbix.ts.logic.Faction._
+import me.herbix.ts.logic.card.Cards
 import me.herbix.ts.logic.chinesecivilwar.CCWFlags
 import me.herbix.ts.logic.turnzero.{TZCards, TZFlags}
 import me.herbix.ts.logic.{Faction, Flags, FlagsTrait}
@@ -18,6 +19,9 @@ object Resource {
   val worldMap = ImageIO.read(getClass.getResourceAsStream("/worldmap.jpg"))
   val card = (0 to 110)
     .map(i => (i, ImageIO.read(getClass.getResourceAsStream(f"/cards/$i%03d.png"))))
+    .toMap ++
+      (1 to 8)
+    .map(i => (i + Cards.PromoteOffset, ImageIO.read(getClass.getResourceAsStream(f"/cards/p$i%02d.png"))))
     .toMap ++
       (1 to 12)
     .map(i => (i + TZCards.IdInc, ImageIO.read(getClass.getResourceAsStream(f"/turnzero/cards/$i%02d.png"))))

@@ -43,7 +43,7 @@ object TZCards extends CardsTrait {
 
   override def isEarlyWarCard(card: Card): Boolean = {
     val i = card.id
-    i <= 35 || (i >= 103 && i <= 106) || (i >= IdInc + 1 && i <= IdInc + 2)
+    super.isEarlyWarCard(card) || (i >= IdInc + 1 && i <= IdInc + 2)
   }
 
   def usStateCraft = cardMap.filter(e => e._1 <= IdInc + 12 && e._1 >= IdInc + 8).values
