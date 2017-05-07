@@ -13,6 +13,7 @@ class GameChineseCivilWar extends GameRecordingHistory {
   lazy override val gameVariant = GameVariant.ChineseCivilWar
 
   override protected def initGame(): Unit = {
+    theWorldMap.reset()
     initGameExceptChinaCard()
     addFlag(Neutral, CCWFlags.ChineseCivilWar)
   }

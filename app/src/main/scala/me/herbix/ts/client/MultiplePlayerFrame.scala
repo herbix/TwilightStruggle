@@ -29,6 +29,8 @@ object MultiplePlayerFrame extends JFrame {
 
   var extraInfluence = 0
   var hasOptional = false
+  var hasPromo1 = false
+  var hasPromo2 = false
   var drawWinner = Faction.Neutral
   var gameVariant = GameVariant.Standard
 
@@ -123,6 +125,8 @@ object MultiplePlayerFrame extends JFrame {
         extraInfluence = NewRoomDialog.slider.getValue
         drawWinner = if (NewRoomDialog.us.isSelected) Faction.US else Faction.USSR
         hasOptional = NewRoomDialog.optional.isSelected
+        hasPromo1 = NewRoomDialog.promo1.isSelected
+        hasPromo2 = NewRoomDialog.promo2.isSelected
         gameVariant = NewRoomDialog.variant.getSelectedItem.asInstanceOf[GameVariantDelegate].gameVariant
         showInfo()
       }
@@ -134,7 +138,7 @@ object MultiplePlayerFrame extends JFrame {
       s"游戏变体：${new GameVariantDelegate(gameVariant)}<br/>" +
       s"苏联让点：$extraInfluence<br/>" +
       s"平局胜者：${Lang.getFactionName(drawWinner)}<br/>" +
-      s"可选牌：　${if (hasOptional) "有" else "无"}<br/>" +
+      s"额外牌：　${if (hasOptional) "可选 " else ""}${if (hasPromo1) "扩展1 " else ""}${if (hasPromo2) "扩展2 " else ""}<br/>" +
       "</body></html>"
     )
   }

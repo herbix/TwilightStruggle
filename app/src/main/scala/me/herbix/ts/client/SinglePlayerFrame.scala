@@ -18,6 +18,8 @@ object SinglePlayerFrame extends JFrame {
 
   var extraInfluence = 0
   var hasOptional = true
+  var hasPromo1 = true
+  var hasPromo2 = true
   var drawWinner = Faction.US
   var gameVariant = GameVariant.Standard
 
@@ -123,7 +125,7 @@ object SinglePlayerFrame extends JFrame {
       s"游戏变体：${new GameVariantDelegate(gameVariant)}<br/>" +
       s"苏联让点：$extraInfluence<br/>" +
       s"平局胜者：${Lang.getFactionName(drawWinner)}<br/>" +
-      s"可选牌：　${if (hasOptional) "有" else "无"}<br/>" +
+      s"额外牌：　${if (hasOptional) "可选 " else ""}${if (hasPromo1) "扩展1 " else ""}${if (hasPromo2) "扩展2 " else ""}<br/>" +
       "</body></html>"
     )
   }
@@ -135,6 +137,8 @@ object SinglePlayerFrame extends JFrame {
         extraInfluence = NewRoomDialog.slider.getValue
         drawWinner = if (NewRoomDialog.us.isSelected) Faction.US else Faction.USSR
         hasOptional = NewRoomDialog.optional.isSelected
+        hasPromo1 = NewRoomDialog.promo1.isSelected
+        hasPromo2 = NewRoomDialog.promo2.isSelected
         gameVariant = NewRoomDialog.variant.getSelectedItem.asInstanceOf[GameVariantDelegate].gameVariant
         showInfo()
       }
@@ -153,11 +157,15 @@ object SinglePlayerFrame extends JFrame {
     game1.extraInfluence = extraInfluence
     game1.drawGameWinner = drawWinner
     game1.optionalCards = hasOptional
+    game1.promo1Cards = hasPromo1
+    game1.promo2Cards = hasPromo2
     game1.playerId = 0
 
     game2.extraInfluence = extraInfluence
     game2.drawGameWinner = drawWinner
     game2.optionalCards = hasOptional
+    game2.promo1Cards = hasPromo1
+    game2.promo2Cards = hasPromo2
     game2.playerId = 1
 
     game1.anotherGame = game2
@@ -204,6 +212,8 @@ object SinglePlayerFrame extends JFrame {
       game3.extraInfluence = extraInfluence
       game3.drawGameWinner = drawWinner
       game3.optionalCards = hasOptional
+      game3.promo1Cards = hasPromo1
+      game3.promo2Cards = hasPromo2
       game3.playerId = 2
       game3.isSpectator = true
 

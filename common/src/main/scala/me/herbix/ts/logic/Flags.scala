@@ -174,4 +174,7 @@ object Flags extends FlagsTrait {
   val NORAD = new Flag(Always, true)
   val Samantha = new Flag(ThisTurn, true)
   val AwacsSale = new Flag(Always, true)
+
+  val Mobutu = new Flag(Always, true)
+  val KremlinFlu = new Flag(Always, false)
 }

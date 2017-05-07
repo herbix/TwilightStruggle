@@ -1,6 +1,7 @@
 package me.herbix.ts.logic
 
 import me.herbix.ts.logic.Region.{Region, _}
+import me.herbix.ts.logic.turnzero.TZWorldMap._
 
 import scala.collection.mutable
 
@@ -168,7 +169,22 @@ trait WorldMapTrait {
   addCountry(new Country("Botswana", 2, false, Africa), Set("Angola", "Zimbabwe"))
   addCountry(new Country("South Africa", 3, true, Africa), Set("Angola", "Botswana"))
 
-  val normalCountries = countries.filter(e => !e._2.regions(Special))
+  val normalZaire = countries("Zaire")
+  val highStabilityZaire = new Country(normalZaire.id, "Zaire", 3, true, Set(Africa))
+
+  def replaceWithHighStabilityZaire(): Unit = {
+    removeCountry(normalZaire)
+    addCountry(highStabilityZaire, Set("Angola", "Cameroon", "Zimbabwe"))
+  }
+
+  def reset(): Unit = {
+    if (countries("Zaire") eq highStabilityZaire) {
+      removeCountry(highStabilityZaire)
+      addCountry(normalZaire, Set("Angola", "Cameroon", "Zimbabwe"))
+    }
+  }
+
+  def normalCountries = countries.filter(e => !e._2.regions(Special))
 
   val ussrStandardStart = Map(
     countries("Syria") -> 1,

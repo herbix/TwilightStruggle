@@ -8,7 +8,6 @@ import scala.collection.mutable
 object Cards extends CardsTrait
 
 trait CardsTrait {
-  val PromoteOffset = 150
 
   protected val cardMap = mutable.Map[Int, Card]()
 
@@ -132,6 +131,15 @@ trait CardsTrait {
   addCard(Card109YuriAndSamantha)
   addCard(Card110AwacsSale)
 
+  addCard(CardP01NonAlignMovement)
+  addCard(CardP02Mobutu)
+  addCard(CardP03BerlinWall)
+  addCard(CardP04Stanislav)
+  addCard(CardP05KremlinFlu)
+  addCard(CardP06FirstLightning)
+  addCard(CardP07WhoLostChina)
+  addCard(CardP08DoNotWaitForTheTranslation)
+
   def fromId(id: Int): Card = cardMap.getOrElse(id, null)
 
   def earlyWarSet = cardMap.filter(e => (e._1 > 0 && e._1 <= 35 && e._1 != 6) || e._1 == 103).values
@@ -142,23 +150,30 @@ trait CardsTrait {
   def lateWarOptionalSet = cardMap.filter(e => e._1 > 108 && e._1 <= 110).values
   def chinaCard = cardMap(6)
 
+  def promo1Set = cardMap.filter(e => e._1 >= PromoCards.Offset + 1 && e._1 <= PromoCards.Offset + 4).values
+  def promo2Set = cardMap.filter(e => e._1 >= PromoCards.Offset + 5 && e._1 <= PromoCards.Offset + 8).values
+  def midWarPromo1Set = promo1Set.filter(isMidWarCard)
+  def lateWarPromo1Set = promo1Set.filter(isLateWarCard)
+  def earlyWarPromo2Set = promo2Set.filter(isEarlyWarCard)
+  def midWarPromo2Set = promo2Set.filter(isMidWarCard)
+
   def allCards = cardMap.values
 
   def isEarlyWarCard(card: Card): Boolean = {
     val i = card.id
-    val j = i - PromoteOffset
+    val j = i - PromoCards.Offset
     i <= 35 || (i >= 103 && i <= 106) || (j >= 5 && j <= 7)
   }
 
   def isMidWarCard(card: Card): Boolean = {
     val i = card.id
-    val j = i - PromoteOffset
+    val j = i - PromoCards.Offset
     (i >= 36 && i <= 81) || (i >= 107 && i <= 108) || (j >= 1 && j <= 3) || j == 8
   }
 
   def isLateWarCard(card: Card): Boolean = {
     val i = card.id
-    val j = i - PromoteOffset
+    val j = i - PromoCards.Offset
     (i >= 82 && i <= 102) || (i >= 109 && i <= 110) || j == 4
   }
 

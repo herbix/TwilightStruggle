@@ -93,7 +93,7 @@ object Lang {
   val take8rounds = "是否要进行8个行动轮"
 
   val selectQuagmireDiscard = "请弃一张2以上行动力的牌"
-  val selectQuagmireScoringCard = "请打出一张计分牌"
+  val selectScoringCard = "请打出一张计分牌"
 
   val thisTurnFlag = "回合结束时标记失效。"
   val duringSetupFlag = "此标记在开局时生效。"
@@ -319,7 +319,7 @@ object Lang {
   addFlagInfo("核战等级限制（欧洲）", "双方不能在欧洲调整阵营或发动政变。")
   addFlagInfo("核战等级限制（亚洲）", "双方不能在亚洲调整阵营或发动政变。")
   addFlagInfo("核战等级限制（中东）", "双方不能在中东调整阵营或发动政变。")
-  addFlagInfo("越南起义", "在本回合内，苏联如果将行动力全和在东南亚，则可以行动力+1。")
+  addFlagInfo("越南起义", "在本回合内，苏联如果将行动力全部用在东南亚，则可以行动力+1。")
   addFlagInfo("戴高乐领导法国", "取消“北大西洋公约组织”对法国的效果，苏联可在法国调整阵营或发动政变。")
   addFlagInfo("遏制政策", "勃列日涅夫主义", "遏制政策/勃列日涅夫主义", "本回合%s打出的所有行动牌行动力+1（上限为4）。")
   addFlagInfo("美日共同防卫协定", "苏联不能在日本进行政变或调整阵营。")
@@ -372,6 +372,10 @@ object Lang {
       "打出“困境”时，此标记失效。")
   addFlagInfo("尤里和萨曼莎", "本回合剩下的行动轮内，每当美国发动政变，苏联就得1VP。")
   addFlagInfo("出售预警机给沙特", "不可作为事件打出“穆斯林革命”。")
+
+  addFlagInfo("扎伊尔总统蒙博托", "扎伊尔的稳定度变为3。")
+  addFlagInfo("克里姆林流感", "下个行动轮必须要打出一张计分牌，如果没有计分牌，则跳过下个行动轮。")
+
   addFlagInfo("中国内战",
       "双方不持有“中国牌”。\n" +
       "“文化大革命”，“台湾决议”不可作为事件打出。\n" +
@@ -386,7 +390,7 @@ object Lang {
   addFlagInfo("西欧盟军奋进", "“封锁”无效。")
   addFlagInfo("联合政府领导英国", "“社会主义政府”在第1~2回合无效。")
   addFlagInfo("保守党领导英国", "“苏伊士运河危机”无效。")
-  addFlagInfo("以色列的危机", "苏联开局时在中东增加2点影响力（每个国家最多1点）")
+  addFlagInfo("以色列的危机", "苏联开局时在中东增加2点影响力（每个国家最多1点）.")
   addFlagInfo("美国速援蒋介石", "台湾成为战场国。")
   addFlagInfo("识局势的日本", "核战等级不可小于2，美国无视核战等级限制。")
 
@@ -440,6 +444,9 @@ object Lang {
   cardTips += Card107Che.id -> Array("请政变%1$s个国家（行动力%2$s）", "请政变%1$s个国家（行动力%2$s）")
   cardTips += Card108OurManInTehran.id -> Array("请弃掉任意张牌")
   cardTips += CardTZ02NationalistChina.id -> Array("请在亚洲放置%s影响力")
+  cardTips += CardP01NonAlignMovement.id -> Array("请选择%s个国家移除影响力")
+  cardTips += CardP04Stanislav.id -> Array("请改变核战等级")
+  cardTips += CardP06FirstLightning.id -> Array("请选择要打出的牌")
 
   val spaceInfo = new Array[(String, String)](11)
   spaceInfo(0) = ("遥望天空",
@@ -514,11 +521,11 @@ object Lang {
   }
 
   val turnZeroFlagInfo = mutable.Map[Int, String](
-    51 -> "请在东欧放置%s点影响力",
-    47 -> "请在欧洲放置%s点影响力",
-    55 -> "请在中东放置%s点影响力",
-    48 -> "请选择要加入起始手牌的牌",
-    49 -> "请选择要加入起始手牌的牌"
+    1 -> "请在欧洲放置%s点影响力",
+    2 -> "请选择要加入起始手牌的牌",
+    3 -> "请选择要加入起始手牌的牌",
+    5 -> "请在东欧放置%s点影响力",
+    9 -> "请在中东放置%s点影响力"
   )
 
 }

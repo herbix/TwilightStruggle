@@ -3,10 +3,9 @@ package me.herbix.ts.logic.card
 import me.herbix.ts.logic.Faction.Faction
 import me.herbix.ts.logic.State._
 import me.herbix.ts.logic._
-import me.herbix.ts.util.{OperationHint, CardCondition, CountryCondition, InfluenceCondition}
+import me.herbix.ts.util.{CardCondition, CountryCondition, InfluenceCondition, OperationHint}
 
 import scala.collection.mutable
-import scala.reflect.ClassTag
 
 /**
   * Created by Chaofan on 2016/7/23.

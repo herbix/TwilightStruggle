@@ -18,6 +18,8 @@ object ClientAgent extends App {
 
   var extraInfluence = 0
   var hasOptional = false
+  var hasPromo1 = false
+  var hasPromo2 = false
   var drawWinner = Faction.Neutral
   var gameVariant = GameVariant.Standard
 
@@ -45,6 +47,8 @@ object ClientAgent extends App {
     extraInfluence = NewRoomDialog.slider.getValue
     drawWinner = if (NewRoomDialog.us.isSelected) Faction.US else Faction.USSR
     hasOptional = NewRoomDialog.optional.isSelected
+    hasPromo1 = NewRoomDialog.promo1.isSelected
+    hasPromo2 = NewRoomDialog.promo2.isSelected
     gameVariant = NewRoomDialog.variant.getSelectedItem.asInstanceOf[GameVariantDelegate].gameVariant
   } else {
     System.exit(0)
@@ -66,10 +70,14 @@ object ClientAgent extends App {
   game1.extraInfluence = extraInfluence
   game1.drawGameWinner = drawWinner
   game1.optionalCards = hasOptional
+  game1.promo1Cards = hasPromo1
+  game1.promo2Cards = hasPromo2
 
   game2.extraInfluence = extraInfluence
   game2.drawGameWinner = drawWinner
   game2.optionalCards = hasOptional
+  game2.promo1Cards = hasPromo1
+  game2.promo2Cards = hasPromo2
 
   game1.anotherGame = game2
   game2.anotherGame = game1

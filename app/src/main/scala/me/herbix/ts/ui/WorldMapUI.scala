@@ -261,6 +261,10 @@ class WorldMapUI(g: Game) extends JPanel {
       g.drawImage(battlefieldTaiwan, 2209, 712, null)
     }
 
+    if (game.theWorldMap.countries("Zaire").stability == 3) {
+      g.drawImage(stability3Zaire, 1209, 1010, null)
+    }
+
     if (game.flags.hasFlag(TZFlags.usGoesFirst)) {
       drawTurnTokenUSFirst(g)
     } else {

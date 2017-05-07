@@ -8,6 +8,8 @@ import me.herbix.ts.logic.{Country, Faction, Flag, FlagsTrait}
   */
 object TZFlags extends FlagsTrait {
 
+  val FlagIdOffset = FlagsTrait.flagId
+
   // Yalta & Potsdam
   val ussrEuropePlus1 = new Flag(DuringSetup, true)
   val ussrVietnamOrArab = new Flag(DuringSetup, true)

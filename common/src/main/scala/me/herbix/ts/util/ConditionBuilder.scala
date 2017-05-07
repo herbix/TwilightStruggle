@@ -12,16 +12,34 @@ object ConditionBuilder {
   def influence = new InfluenceCondition(List.empty)
   def selectCard = new CardCondition(List.empty)
   def selectCountry = new CountryCondition(List.empty)
+
+  val orInfluence: (Game, Map[Country, Int]) => Boolean = (_, _) => throw new NotImplementedError
+  val orCountry: (Game, Set[Country]) => Boolean = (_, _) => throw new NotImplementedError
+  val orCard: (Game, Card) => Boolean = (_, _) => throw new NotImplementedError
+
+  val orSet: Set[(Game, _ <: AnyRef) => Boolean] = Set(orInfluence, orCard, orCountry)
 }
 
 class Condition[T](val items: List[(Game, T) => Boolean]) {
   private def toMethodImpl(game: Game, param: T): Boolean = {
+    var lastCondition = true
+    var followOr = false
     for (item <- items) {
-      if (!item(game, param)) {
-        return false
+      if (!ConditionBuilder.orSet.contains(item)) {
+        if (followOr) {
+          lastCondition ||= item(game, param)
+        } else {
+          if (!lastCondition) {
+            return false
+          }
+          lastCondition = item(game, param)
+        }
+        followOr = false
+      } else {
+        followOr = true
       }
     }
-    true
+    lastCondition
   }
 
   def build: (Game, T) => Boolean = toMethodImpl
@@ -62,6 +80,8 @@ class InfluenceCondition(items: List[(Game, Map[Country, Int]) => Boolean]) exte
   def inRegionShownInCardData = new InfluenceCondition(items :+
     ((game: Game, detail: Map[Country, Int]) => detail.forall(_._1.regions(game.currentCardData.asInstanceOf[Region]))))
 
+  def or = new InfluenceCondition(items :+ ConditionBuilder.orInfluence)
+
   def all = this
 
 }
@@ -93,6 +113,8 @@ class CardCondition(items: List[(Game, Card) => Boolean]) extends Condition[Card
   def canEvent = new CardCondition(items :+
     ((game: Game, card: Card) => card.canEvent(game, game.operatingPlayer)))
 
+  def or = new CardCondition(items :+ ConditionBuilder.orCard)
+
   def all = this
 
 }
@@ -121,6 +143,11 @@ class CountryCondition(items: List[(Game, Set[Country]) => Boolean]) extends Con
 
   def notBattlefield = new CountryCondition(items :+
     ((game: Game, detail: Set[Country]) => detail.forall(!_.isBattlefield)))
+
+  def influenceMoreOrEqual(faction: Faction, count: Int) = new CountryCondition(items :+
+    ((game: Game, detail: Set[Country]) => detail.forall(c => game.influence(c, faction) >= count)))
+
+  def or = new CountryCondition(items :+ ConditionBuilder.orCountry)
 
   def all = this
 

@@ -208,6 +208,8 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
     MultiplePlayerFrame.extraInfluence = roomIn.readInt()
     MultiplePlayerFrame.drawWinner = Faction(roomIn.readInt())
     MultiplePlayerFrame.hasOptional = roomIn.readBoolean()
+    MultiplePlayerFrame.hasPromo1 = roomIn.readBoolean()
+    MultiplePlayerFrame.hasPromo2 = roomIn.readBoolean()
     MultiplePlayerFrame.gameVariant = GameVariant(roomIn.readInt())
     MultiplePlayerFrame.showInfo()
   }
@@ -246,6 +248,8 @@ class NetHandlerClient extends SimpleChannelInboundHandler[Packet] {
     roomOut.writeInt(MultiplePlayerFrame.extraInfluence)
     roomOut.writeInt(MultiplePlayerFrame.drawWinner.id)
     roomOut.writeBoolean(MultiplePlayerFrame.hasOptional)
+    roomOut.writeBoolean(MultiplePlayerFrame.hasPromo1)
+    roomOut.writeBoolean(MultiplePlayerFrame.hasPromo2)
     roomOut.writeInt(MultiplePlayerFrame.gameVariant.id)
     roomOut.flush()
   }

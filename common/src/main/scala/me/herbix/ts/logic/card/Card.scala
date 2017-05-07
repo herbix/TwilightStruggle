@@ -18,6 +18,9 @@ abstract class Card(val id: Int, val op: Int, val faction: Faction, val isRemove
   }
   def canEvent(game: Game, faction: Faction) = true
   def canPlay(game: Game, faction: Faction): Boolean = {
+    if (game.flags.hasFlag(faction, Flags.KremlinFlu)) {
+      return !canHeld(game)
+    }
     if (game.flags.hasFlag(faction, Flags.QuagmireBearTrap)) {
       return !canHeld(game) ||
         ((game.modifyOp(faction, op) >= 2 && canDiscard(game, faction)) &&

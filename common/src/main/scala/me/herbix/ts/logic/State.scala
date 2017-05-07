@@ -20,6 +20,7 @@ object State extends Enumeration {
   val quagmireDiscard, quagmirePlayScoringCard = Value
   val noradInfluence = Value
   val cubaMissileRemove = Value
+  val kremlinFluPlayScoringCard = Value
   val end = Value
 
   object cardEventStep {

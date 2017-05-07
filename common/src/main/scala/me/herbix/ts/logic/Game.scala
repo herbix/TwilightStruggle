@@ -27,6 +27,8 @@ abstract class Game extends GameTrait with InfluenceProvider {
   // config
   var extraInfluence = 0
   var optionalCards = true
+  var promo1Cards = false
+  var promo2Cards = false
   var drawGameWinner = US
   lazy val gameVariant = GameVariant.Standard
   
@@ -163,6 +165,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
       case State.quagmirePlayScoringCard => nextStateQuagmireScoringCard(input)
       case State.noradInfluence => nextStateNORADInfluence(input)
       case State.cubaMissileRemove => nextStateCubaMissileRemove(input)
+      case State.kremlinFluPlayScoringCard => nextStateKremlinFluScoringCard(input)
       case State.EventStates(n) => nextStateCardEvent(input)
     }
     checkFlags()
@@ -326,6 +329,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
   }
 
   protected def initGame(): Unit = {
+    theWorldMap.reset()
     initGameExceptChinaCard()
 
     handAdd(USSR, theCards.chinaCard)
@@ -333,10 +337,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
   }
 
   def initGameExceptChinaCard(): Unit = {
-    deckJoin(theCards.earlyWarSet)
-    if (optionalCards) {
-      deckJoin(theCards.earlyWarOptionalSet)
-    }
+    joinEarlyWarSet()
 
     pickGameStartHands(8)
 
@@ -345,6 +346,39 @@ abstract class Game extends GameTrait with InfluenceProvider {
 
     operatingPlayer = USSR
     stateStack.push(putStartUSSR)
+  }
+
+  def joinEarlyWarSet(): Unit = {
+    deckJoin(theCards.earlyWarSet)
+    if (optionalCards) {
+      deckJoin(theCards.earlyWarOptionalSet)
+    }
+    if (promo2Cards) {
+      deckJoin(theCards.earlyWarPromo2Set)
+    }
+  }
+
+  def joinMidWarSet(): Unit = {
+    deckJoin(theCards.midWarSet)
+    if (optionalCards) {
+      deckJoin(theCards.midWarOptionalSet)
+    }
+    if (promo1Cards) {
+      deckJoin(theCards.midWarPromo1Set)
+    }
+    if (promo2Cards) {
+      deckJoin(theCards.midWarPromo2Set)
+    }
+  }
+
+  def joinLateWarSet(): Unit = {
+    deckJoin(theCards.lateWarSet)
+    if (optionalCards) {
+      deckJoin(theCards.lateWarOptionalSet)
+    }
+    if (promo1Cards) {
+      deckJoin(theCards.lateWarPromo1Set)
+    }
   }
 
   def pickGameStartHands(count: Int): Unit = {
@@ -430,7 +464,9 @@ abstract class Game extends GameTrait with InfluenceProvider {
   }
 
   def nextActionState: State = {
-    if (flags.hasFlag(phasingPlayer, Flags.QuagmireBearTrap)) {
+    if (flags.hasFlag(phasingPlayer, Flags.KremlinFlu)) {
+      kremlinFluPlayScoringCard
+    } else if (flags.hasFlag(phasingPlayer, Flags.QuagmireBearTrap)) {
       val scoringCardCount = hand(phasingPlayer).count(!_.canHeld(this))
       if (hand(phasingPlayer).exists(card => card.canHeld(this) && card.canPlay(this, phasingPlayer)) &&
         scoringCardCount < turnRoundCount + 1 - round) {
@@ -549,21 +585,23 @@ abstract class Game extends GameTrait with InfluenceProvider {
   }
 
   def beginFirstRound(): Unit = {
-    round = 1
-    phasingPlayer = USSR
-    operatingPlayer = phasingPlayer
+    round = 0
+    phasingPlayer = US
+
+    nextRound()
 
     stateStack.push(nextActionState)
     flags.setFlagData(US, Flags.NORAD, defcon)
-
-    recordHistory(new HistoryTurnRound(turn, round, phasingPlayer))
   }
 
   @tailrec
-  private def nextRound(): Boolean = {
+  final def nextRound(): Boolean = {
     increaseRoundCounter()
     operatingPlayer = phasingPlayer
     if (hand(phasingPlayer).canPlayCardCount(this, phasingPlayer) == 0 && !isAfterFinalRound) {
+      if (flags.hasFlag(phasingPlayer, Flags.KremlinFlu)) {
+        removeFlag(phasingPlayer, Flags.KremlinFlu)
+      }
       nextRound()
     } else {
       if (!isAfterFinalRound) {
@@ -643,7 +681,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
 
   def setDefcon(newVal: Int): Unit = {
     val oldVal = defcon
-    defcon = newVal
+    defcon = Math.min(5, Math.max(1, newVal))
     recordHistory(new HistoryDefcon(oldVal, defcon))
     checkDefcon()
     if (defcon > 2) {
@@ -703,15 +741,9 @@ abstract class Game extends GameTrait with InfluenceProvider {
     recordHistory(new HistoryTurnRound(turn, -1, Neutral))
 
     if (turn == 4) {
-      deckJoin(theCards.midWarSet)
-      if (optionalCards) {
-        deckJoin(theCards.midWarOptionalSet)
-      }
+      joinMidWarSet()
     } else if (turn == 8) {
-      deckJoin(theCards.lateWarSet)
-      if (optionalCards) {
-        deckJoin(theCards.lateWarOptionalSet)
-      }
+      joinLateWarSet()
     }
 
     val usHandCount = hand(US).cardCount
@@ -980,9 +1012,6 @@ abstract class Game extends GameTrait with InfluenceProvider {
     if (defcon <= 1) {
       defcon = 1
       gameOver(Faction.getOpposite(phasingPlayer))
-    }
-    if (defcon > 5) {
-      defcon = 5
     }
     if (defcon <= 4) addFlag(Neutral, Flags.Defcon4Penalty) else removeFlag(Neutral, Flags.Defcon4Penalty)
     if (defcon <= 3) addFlag(Neutral, Flags.Defcon3Penalty) else removeFlag(Neutral, Flags.Defcon3Penalty)
@@ -1303,6 +1332,30 @@ abstract class Game extends GameTrait with InfluenceProvider {
     }
   }
 
+  def nextStateKremlinFluScoringCard(input: Operation) = {
+    val op = input.asInstanceOf[OperationSelectCard]
+    val card = op.card.get
+
+    handRemove(op.faction, card)
+    discardCard(card, op.faction)
+
+    recordHistory(new HistoryCardAction(op.faction, card, Action.Event, false))
+    removeFlag(phasingPlayer, Flags.KremlinFlu)
+
+    currentCard = card
+
+    operatingPlayerChange(operatingPlayer)
+    currentCardChange(currentCard)
+
+    stateStack.pop()
+    stateStack.push(cardE)
+
+    recordHistory(new HistoryEvent(operatingPlayer, currentCard))
+    stateStack.push(cardEvent)
+    stateStack.push(cardEventStart)
+    currentCard.nextState(this, operatingPlayer, null)
+  }
+
   def checkFlags(): Unit = {
     for ((faction, set) <- flags.flagSets) {
       for (flag <- set) {
@@ -1456,6 +1509,13 @@ abstract class Game extends GameTrait with InfluenceProvider {
         if (flags.hasFlag(playerFaction, Flags.CubaMissile)) {
           OperationHint(classOf[OperationSelectCountry], 1, 0,
             Card040CubaMissile.getConditionByFaction(playerFaction), false)
+        } else {
+          OperationHint.NOP
+        }
+      case State.kremlinFluPlayScoringCard =>
+        if (operatingPlayer == playerFaction) {
+          OperationHint(classOf[OperationSelectCard], false, (game, card) =>
+            card.canPlay(this, playerFaction) && !card.canHeld(this))
         } else {
           OperationHint.NOP
         }

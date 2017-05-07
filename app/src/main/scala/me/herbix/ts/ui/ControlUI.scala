@@ -12,6 +12,7 @@ import me.herbix.ts.logic.card._
 import me.herbix.ts.logic.turnzero.{TZFlags, GameTurnZero, TZState}
 import me.herbix.ts.util._
 
+import scala.collection.immutable.Range.Inclusive
 import scala.collection.mutable
 import scala.List
 
@@ -40,7 +41,7 @@ class ControlUI(val game: Game) extends JPanel {
     val GameOver = Value
     // Special
     val Summit = Value
-    val StopWorry = Value
+    val Defcon = Value
     val GrainSales = Value
   }
 
@@ -65,7 +66,7 @@ class ControlUI(val game: Game) extends JPanel {
   val uiGameOver = new ControlSubUIText(this, Array("", "", Lang.gameOver, "", Lang.winnerIs))
   // Special
   val uiSummit = new ControlSubUISummit(this)
-  val uiStopWorry = new ControlSubUIHowILearnStopWorry(this)
+  val uiDefcon = new ControlSubUIDefcon(this)
   val uiGrainSales = new ControlSubUIGrainSales(this)
 
   var operationListeners: List[Operation => Unit] = List()
@@ -88,7 +89,7 @@ class ControlUI(val game: Game) extends JPanel {
   addUI(uiGameOver, GameOver)
   // Special
   addUI(uiSummit, Summit)
-  addUI(uiStopWorry, StopWorry)
+  addUI(uiDefcon, Defcon)
   addUI(uiGrainSales, GrainSales)
 
   updateState()
@@ -122,17 +123,18 @@ class ControlUI(val game: Game) extends JPanel {
         case State.selectHeadlineCard | State.selectHeadlineCard2 => Lang.selectHeadline
         case State.discardHeldCard => Lang.discardHeldCard
         case State.quagmireDiscard => Lang.selectQuagmireDiscard
-        case State.quagmirePlayScoringCard => Lang.selectQuagmireScoringCard
+        case State.quagmirePlayScoringCard => Lang.selectScoringCard
         case State.cardOperationRealignment => Lang.operationRealignment
         case State.cardOperationCoup => Lang.operationCoup
         case State.cubaMissileRemove => Lang.cardTips(Card040CubaMissile.id)(0)
         case State.selectTake8Rounds => Lang.take8rounds
+        case State.kremlinFluPlayScoringCard => Lang.selectScoringCard
         case State.EventStates(_) =>
           val card = game.currentCard
           val step = card.asInstanceOf[CardMultiStep].getStep(game)
           Lang.cardTips(card.id)(step - 1)
         case TZState.chooseStateCraft => Lang.chooseStateCarft
-        case TZState.solveFlags => Lang.turnZeroFlagInfo(game.asInstanceOf[GameTurnZero].currentSolvingFlag.id)
+        case TZState.solveFlags => Lang.turnZeroFlagInfo(game.asInstanceOf[GameTurnZero].currentSolvingFlag.id - TZFlags.FlagIdOffset)
         case _ => ""
       }
     } catch {
@@ -174,7 +176,7 @@ class ControlUI(val game: Game) extends JPanel {
       case oh: OperationIntValueHint =>
         game.currentCard match {
           case Card045Summit => showSubUI(Summit)
-          case Card046HowILearnStopWorry => showSubUI(StopWorry)
+          case Card046HowILearnStopWorry | CardP04Stanislav => defconUI(oh.min, oh.max)
         }
       case oh: OperationSelectCardsHint =>
         selectMultipleCardsUI(tip);
@@ -278,6 +280,11 @@ class ControlUI(val game: Game) extends JPanel {
 
   def selectRegionUI() = {
     showSubUI(SelectRegion)
+  }
+
+  def defconUI(min: Int, max: Int) = {
+    showSubUI(Defcon)
+    uiDefcon.setRange(min, max)
   }
 
   def gameOverUI(): Unit = {
@@ -591,9 +598,9 @@ class ControlSubUISelectCardAndAction(parent: ControlUI)
       val cardProperties = CardInfo.info(card.id).properties
       if (cardProperties.contains("nuclear")) {
         val nuclear = cardProperties("nuclear")
-        if (nuclear == "true" || nuclear == parent.game.playerFaction.toString) {
+        if (nuclear == "true" || nuclear == "afterPlay" || nuclear == parent.game.playerFaction.toString) {
           buttonEvent.setIcon(Resource.nuclearIcon)
-          if (oppositeEvent) {
+          if (oppositeEvent || nuclear == "afterPlay") {
             buttonOperation.setIcon(Resource.nuclearIcon)
           }
         }
@@ -842,10 +849,16 @@ class ControlSubUISummit(parent: ControlUI) extends ControlSubUIText(parent, Arr
   }
 }
 
-class ControlSubUIHowILearnStopWorry(parent: ControlUI)
+class ControlSubUIDefcon(parent: ControlUI)
   extends ControlSubUIText(parent, Array("", "", Lang.cardTips(Card046HowILearnStopWorry.id)(0))) {
 
   val buttons = (1 to 5).map(i => addButton(i.toString, 5 + (5 - i) * 38, 120, 38, 30) -> i).toMap
+
+  def setRange(min: Int, max: Int) = {
+    buttons.foreach(_._1.setEnabled(false))
+    val range = min to max
+    buttons.filter(e => range.contains(e._2)).foreach(_._1.setEnabled(true))
+  }
 
   override def actionPerformed(e: ActionEvent): Unit = {
     val v = buttons(e.getSource.asInstanceOf[JButton])

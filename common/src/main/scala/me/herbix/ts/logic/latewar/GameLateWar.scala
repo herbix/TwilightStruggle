@@ -14,6 +14,8 @@ class GameLateWar extends GameRecordingHistory {
   lazy override val gameVariant = GameVariant.LateWar
 
   override def initGame() = {
+    theWorldMap.reset()
+
     turn = 8
     setDefcon(4)
     space(USSR) = SpaceLevel.Orbit
@@ -35,6 +37,15 @@ class GameLateWar extends GameRecordingHistory {
       deckJoin(theCards.earlyWarOptionalSet.filter(!theCards.isCardStarred(_)))
       deckJoin(theCards.midWarOptionalSet.filter(!theCards.isCardStarred(_)))
       deckJoin(theCards.lateWarOptionalSet)
+    }
+    if (promo1Cards) {
+      deckAdd(CardP01NonAlignMovement)
+      deckAdd(CardP02Mobutu)
+      deckAdd(CardP04Stanislav)
+    }
+    if (promo2Cards) {
+      deckAdd(CardP05KremlinFlu)
+      deckAdd(CardP07WhoLostChina)
     }
     deckAdd(Card044BearTrap)
     deckAdd(Card065CampDavidAccords)

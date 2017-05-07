@@ -11,6 +11,7 @@ import scala.collection.mutable
   */
 abstract class Crisis(val id: Int) {
   Crisis.byId(id) = this
+  println(Crisis.byId)
   def effect(value: Int, game: GameTurnZero): Unit =
     value match {
       case 1 => effect1(game)
@@ -27,13 +28,15 @@ abstract class Crisis(val id: Int) {
 }
 
 object Crisis {
-  def byId = mutable.Map[Int, Crisis]()
+  val byId = mutable.Map[Int, Crisis]()
   def fromId(id: Int): Crisis = {
     Crisis.byId(id)
   }
 
   val setA = Set(CrisisYaltaAndPotsdam, CrisisVEDay, Crisis1945UKElection)
   val setB = Set(CrisisIsrael, CrisisChineseCivilWar, CrisisVJDay)
+
+  System.out.println(byId)
 }
 
 object CrisisYaltaAndPotsdam extends Crisis(0) {

@@ -15,7 +15,8 @@ object TZWorldMap extends WorldMapTrait {
     addCountry(battlefieldTaiwan, Set("Japan", "S.Korea"))
   }
 
-  def reset(): Unit = {
+  override def reset(): Unit = {
+    super.reset()
     if (countries("Taiwan") eq battlefieldTaiwan) {
       removeCountry(battlefieldTaiwan)
       addCountry(normalTaiwan, Set("Japan", "S.Korea"))

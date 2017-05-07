@@ -5,7 +5,7 @@ import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 
 import me.herbix.ts.logic.Faction._
-import me.herbix.ts.logic.card.Cards
+import me.herbix.ts.logic.card.{PromoCards, Cards}
 import me.herbix.ts.logic.chinesecivilwar.CCWFlags
 import me.herbix.ts.logic.turnzero.{TZCards, TZFlags}
 import me.herbix.ts.logic.{Faction, Flags, FlagsTrait}
@@ -21,7 +21,7 @@ object Resource {
     .map(i => (i, ImageIO.read(getClass.getResourceAsStream(f"/cards/$i%03d.png"))))
     .toMap ++
       (1 to 8)
-    .map(i => (i + Cards.PromoteOffset, ImageIO.read(getClass.getResourceAsStream(f"/cards/p$i%02d.png"))))
+    .map(i => (i + PromoCards.Offset, ImageIO.read(getClass.getResourceAsStream(f"/cards/p$i%02d.png"))))
     .toMap ++
       (1 to 12)
     .map(i => (i + TZCards.IdInc, ImageIO.read(getClass.getResourceAsStream(f"/turnzero/cards/$i%02d.png"))))
@@ -38,20 +38,26 @@ object Resource {
   CCWFlags.init()
   TZFlags.init()
   val flag = (0 to FlagsTrait.flagId).map(i => {
-    val (dir, id) =
-      if (i > 46) {
-        ("turnzero/flags", i - 47)
-      } else {
-        ("flags", i)
-      }
-    val in = getClass.getResourceAsStream(f"/$dir/$id%02d.png")
-    if (in != null) {
+    if (i == CCWFlags.FlagIdOffset + 1) {
+      val in = getClass.getResourceAsStream(f"/flags/ccw.png")
       val img = ImageIO.read(in)
       (i, Map(US -> img, USSR -> img, Neutral -> img))
     } else {
-      val inA = getClass.getResourceAsStream(f"/$dir/$id%02dA.png")
-      val inS = getClass.getResourceAsStream(f"/$dir/$id%02dS.png")
-      (i, Map(US -> ImageIO.read(inA), USSR -> ImageIO.read(inS)))
+      val (dir, id) =
+        if (i > TZFlags.FlagIdOffset) {
+          ("turnzero/flags", i - TZFlags.FlagIdOffset - 1)
+        } else {
+          ("flags", i)
+        }
+      val in = getClass.getResourceAsStream(f"/$dir/$id%02d.png")
+      if (in != null) {
+        val img = ImageIO.read(in)
+        (i, Map(US -> img, USSR -> img, Neutral -> img))
+      } else {
+        val inA = getClass.getResourceAsStream(f"/$dir/$id%02dA.png")
+        val inS = getClass.getResourceAsStream(f"/$dir/$id%02dS.png")
+        (i, Map(US -> ImageIO.read(inA), USSR -> ImageIO.read(inS)))
+      }
     }
   }).toMap
 
@@ -77,6 +83,7 @@ object Resource {
   val chineseCivilWarBg = ImageIO.read(getClass.getResourceAsStream("/other/ccw-bg.png"))
 
   val battlefieldTaiwan = ImageIO.read(getClass.getResourceAsStream("/turnzero/other/battlefield-taiwan.png"))
+  val stability3Zaire = ImageIO.read(getClass.getResourceAsStream("/other/3-stability-zaire.png"))
 
   val textFont = new Font(Lang.heiti, 0, 16)
   val textFont2 = new Font(Lang.lishu, 0, 32)

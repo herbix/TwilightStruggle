@@ -22,16 +22,18 @@ object NewRoomDialog extends JDialog {
 
   val panel = new JPanel
   panel.setLayout(null)
-  panel.setPreferredSize(new Dimension(400, 240))
+  panel.setPreferredSize(new Dimension(400, 320))
   add(panel)
 
   panel.add(label("游戏变体", 50, 30, 50, 20))
   panel.add(label("苏联让点", 50, 70, 50, 20))
   panel.add(label("平局胜者", 50, 110, 50, 20))
   panel.add(label("可选牌", 50, 150, 50, 20))
+  panel.add(label("扩展牌1", 50, 190, 50, 20))
+  panel.add(label("扩展牌2", 50, 230, 50, 20))
 
   val done = new JButton("完成")
-  done.setLocation(150, 190)
+  done.setLocation(150, 270)
   done.setSize(100, 30)
   panel.add(done)
 
@@ -75,6 +77,18 @@ object NewRoomDialog extends JDialog {
   optional.setSize(50, 20)
   optional.setSelected(true)
   panel.add(optional)
+
+  val promo1 = new JCheckBox()
+  promo1.setLocation(120, 190)
+  promo1.setSize(50, 20)
+  promo1.setSelected(true)
+  panel.add(promo1)
+
+  val promo2 = new JCheckBox()
+  promo2.setLocation(120, 230)
+  promo2.setSize(50, 20)
+  promo2.setSelected(true)
+  panel.add(promo2)
 
   pack()
 

@@ -180,10 +180,7 @@ class GameTurnZero extends GameRecordingHistory {
 
     deckPrepared = true
 
-    deckJoin(theCards.earlyWarSet)
-    if (optionalCards) {
-      deckJoin(theCards.earlyWarOptionalSet)
-    }
+    joinEarlyWarSet()
 
     pickGameStartHands(8)
 
@@ -242,14 +239,13 @@ class GameTurnZero extends GameRecordingHistory {
   }
 
   override def beginFirstRound(): Unit = {
-    round = 1
-    phasingPlayer = if (flags.hasFlag(TZFlags.usGoesFirst)) US else USSR
-    operatingPlayer = phasingPlayer
+    round = 0
+    phasingPlayer = if (!flags.hasFlag(TZFlags.usGoesFirst)) US else USSR
+
+    nextRound()
 
     stateStack.push(nextActionState)
     flags.setFlagData(US, Flags.NORAD, defcon)
-
-    recordHistory(new HistoryTurnRound(turn, round, phasingPlayer))
   }
 
   override def increaseRoundCounter(): Unit = {
@@ -311,7 +307,7 @@ class GameTurnZero extends GameRecordingHistory {
                 ConditionBuilder.influence.inRegion(Region.EastEurope).build, true, true, false)
             case TZFlags.ussrMidEastPlus2 =>
               OperationHint(classOf[OperationModifyInfluence], 2, true, USSR,
-                ConditionBuilder.influence.inRegion(Region.MidEast).max(2).build, true, true, false)
+                ConditionBuilder.influence.inRegion(Region.MidEast).max(1).build, true, true, false)
             case TZFlags.ussrVietnamOrArab =>
               OperationHint(classOf[OperationSelectCard], true, (game, card) => true)
             case TZFlags.usMarshall =>
