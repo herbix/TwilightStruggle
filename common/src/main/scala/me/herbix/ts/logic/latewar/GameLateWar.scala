@@ -52,7 +52,7 @@ class GameLateWar extends GameRecordingHistory {
     deckAdd(Card068JohnPaulII)
     deckAdd(Card064PanamaCanalReturned)
 
-    pickGameStartHands(9)
+    pickHandsUntilEnough()
 
     handAdd(USSR, theCards.chinaCard)
     recordHistory(new HistoryGetCard(USSR, theCards.chinaCard))

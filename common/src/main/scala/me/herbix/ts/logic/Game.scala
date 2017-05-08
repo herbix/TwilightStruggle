@@ -339,7 +339,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
   def initGameExceptChinaCard(): Unit = {
     joinEarlyWarSet()
 
-    pickGameStartHands(8)
+    pickHandsUntilEnough()
 
     modifyInfluence(USSR, true, theWorldMap.ussrStandardStart)
     modifyInfluence(US, true, theWorldMap.usStandardStart)
@@ -381,13 +381,22 @@ abstract class Game extends GameTrait with InfluenceProvider {
     }
   }
 
-  def pickGameStartHands(count: Int): Unit = {
-    for (i <- 0 until count) {
-      handAdd(US, pickCardFromDeck())
-      handAdd(USSR, pickCardFromDeck())
+  def pickHandsUntilEnough(): Unit = {
+    val usHandCount = hand(US).cardCount
+    val ussrHandCount = hand(USSR).cardCount
+
+    val handCount = turnRoundCount + 2
+    for (i <- 0 until handCount) {
+      if (hand(US).cardCountExcludingChinaCard < handCount) {
+        handAdd(US, pickCardFromDeck())
+      }
+      if (hand(USSR).cardCountExcludingChinaCard < handCount) {
+        handAdd(USSR, pickCardFromDeck())
+      }
     }
-    recordHistory(new HistoryPickCard(US, 8))
-    recordHistory(new HistoryPickCard(USSR, 8))
+
+    recordHistory(new HistoryPickCard(US, hand(US).cardCount - usHandCount))
+    recordHistory(new HistoryPickCard(USSR, hand(USSR).cardCount - ussrHandCount))
   }
 
   def nextStatePutStartUS(input: Operation): Unit = {
@@ -746,21 +755,7 @@ abstract class Game extends GameTrait with InfluenceProvider {
       joinLateWarSet()
     }
 
-    val usHandCount = hand(US).cardCount
-    val ussrHandCount = hand(USSR).cardCount
-
-    val handCount = turnRoundCount + 2
-    for (i <- 0 until handCount) {
-      if (hand(US).cardCountExcludingChinaCard < handCount) {
-        handAdd(US, pickCardFromDeck())
-      }
-      if (hand(USSR).cardCountExcludingChinaCard < handCount) {
-        handAdd(USSR, pickCardFromDeck())
-      }
-    }
-
-    recordHistory(new HistoryPickCard(US, hand(US).cardCount - usHandCount))
-    recordHistory(new HistoryPickCard(USSR, hand(USSR).cardCount - ussrHandCount))
+    pickHandsUntilEnough()
 
     if (military(US) < defcon) {
       addVp(USSR, defcon - military(US))

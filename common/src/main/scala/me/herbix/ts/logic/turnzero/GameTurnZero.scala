@@ -181,8 +181,10 @@ class GameTurnZero extends GameRecordingHistory {
     deckPrepared = true
 
     joinEarlyWarSet()
+    hand(US).foreach(deck.remove)
+    hand(USSR).foreach(deck.remove)
 
-    pickGameStartHands(8)
+    pickHandsUntilEnough()
 
     handAdd(USSR, theCards.chinaCard)
     recordHistory(new HistoryGetCard(USSR, theCards.chinaCard))
