@@ -686,7 +686,7 @@ class DetailUI(game: Game) extends JPanel {
         x, color)
     } else {
       paintScoreList(g,
-        List(Lang.battlefieldCountry -> countries.count(_.isBattlefield) * 2, Lang.nonbattlefieldCountry -> countries.count(!_.isBattlefield), Lang.sum -> vp),
+        List(Lang.battlefieldCountry -> countries.count(_.isBattlefield) * 2, Lang.nonBattlefieldCountry -> countries.count(!_.isBattlefield), Lang.sum -> vp),
         x, color)
     }
   }

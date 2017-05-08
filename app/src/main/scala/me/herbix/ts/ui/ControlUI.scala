@@ -134,7 +134,7 @@ class ControlUI(val game: Game) extends JPanel {
           val step = card.asInstanceOf[CardMultiStep].getStep(game)
           Lang.cardTips(card.id)(step - 1)
         case TZState.chooseStateCraft => Lang.chooseStateCarft
-        case TZState.solveFlags => Lang.turnZeroFlagInfo(game.asInstanceOf[GameTurnZero].currentSolvingFlag.id - TZFlags.FlagIdOffset)
+        case TZState.solveFlags => Lang.turnZeroFlagTips(game.asInstanceOf[GameTurnZero].currentSolvingFlag.id - TZFlags.FlagIdOffset)
         case _ => ""
       }
     } catch {

@@ -93,3 +93,7 @@ object CardInfo extends Info(getClass.getResourceAsStream("/cards.txt")) {
 object CrisisInfo extends Info(getClass.getResourceAsStream("/turnzero/crisis.txt")) {
   val info = infoItems.map(item => (item.name, item)).toMap
 }
+
+object FlagInfo extends Info(getClass.getResourceAsStream("/flags.txt"))
+object CardTipInfo extends Info(getClass.getResourceAsStream("/cardtips.txt"))
+object SpaceInfo extends Info(getClass.getResourceAsStream("/space.txt"))

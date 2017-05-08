@@ -34,9 +34,7 @@ object Resource {
     }
   })
 
-  Flags.init()
-  CCWFlags.init()
-  TZFlags.init()
+  FlagsTrait.initFlags()
   val flag = (0 to FlagsTrait.flagId).map(i => {
     if (i == CCWFlags.FlagIdOffset + 1) {
       val in = getClass.getResourceAsStream(f"/flags/ccw.png")

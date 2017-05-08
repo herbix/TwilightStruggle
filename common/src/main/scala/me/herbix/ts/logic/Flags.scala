@@ -5,6 +5,7 @@ import me.herbix.ts.logic.FlagType.FlagType
 import me.herbix.ts.logic.Faction._
 import me.herbix.ts.logic.card.Card049MissileEnvy
 import me.herbix.ts.logic.chinesecivilwar.CCWFlags
+import me.herbix.ts.logic.turnzero.TZFlags
 
 import scala.collection.mutable
 
@@ -101,6 +102,14 @@ object FlagsTrait {
   val flags = mutable.Map[Int, Flag]()
   def fromId(id: Int) = {
     flags.getOrElse(id, null)
+  }
+
+  def initFlags(): Unit = {
+    this.synchronized {
+      Flags.init()
+      CCWFlags.init()
+      TZFlags.init()
+    }
   }
 }
 

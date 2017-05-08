@@ -160,8 +160,8 @@ object CrisisVJDay extends Crisis(5) {
 }
 
 object CrisisUnknown extends Crisis(6) {
-  override def effect1(game: GameTurnZero): Unit = ???
-  override def effect6(game: GameTurnZero): Unit = ???
-  override def effect23(game: GameTurnZero): Unit = ???
-  override def effect45(game: GameTurnZero): Unit = ???
+  override def effect1(game: GameTurnZero): Unit = throw new NotImplementedError
+  override def effect6(game: GameTurnZero): Unit = throw new NotImplementedError
+  override def effect23(game: GameTurnZero): Unit = throw new NotImplementedError
+  override def effect45(game: GameTurnZero): Unit = throw new NotImplementedError
 }
