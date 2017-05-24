@@ -123,14 +123,14 @@ class WorldMapUI(g: Game) extends JPanel {
     }
     override def mouseReleased(e: MouseEvent): Unit = {
       dragging = false
-    }
-    override def mouseClicked(e: MouseEvent): Unit = {
-      val country = findCountry(e.getX, e.getY)
-      if (country != oldHoverCountry) {
-        oldHoverCountry = country
-      }
-      if (country != null) {
-        countryClickListeners.foreach(_(country, e.getButton))
+      if (e.getButton == MouseEvent.BUTTON1) {
+        val country = findCountry(e.getX, e.getY)
+        if (country != oldHoverCountry) {
+          oldHoverCountry = country
+        }
+        if (country != null) {
+          countryClickListeners.foreach(_(country, e.getButton))
+        }
       }
     }
     override def mouseMoved(e: MouseEvent): Unit = {

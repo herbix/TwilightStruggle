@@ -143,14 +143,14 @@ class HandUI(val game: Game) extends JPanel with ActionListener {
       updateCardPos()
       repaint()
     }
-    override def mouseClicked(e: MouseEvent): Unit = {
+    override def mouseClicked(e: MouseEvent): Unit = {}
+    override def mouseEntered(e: MouseEvent): Unit = {}
+    override def mousePressed(e: MouseEvent): Unit = {}
+    override def mouseReleased(e: MouseEvent): Unit = {
       if (hoverCardId != -1 && cardsEnabled(hoverCardId)) {
         cardClickListeners.foreach(_(cards(hoverCardId)))
       }
     }
-    override def mouseEntered(e: MouseEvent): Unit = {}
-    override def mousePressed(e: MouseEvent): Unit = {}
-    override def mouseReleased(e: MouseEvent): Unit = {}
   })
 
   addComponentListener(new ComponentAdapter {
