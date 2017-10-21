@@ -25,7 +25,7 @@ object SinglePlayerFrame extends JFrame {
 
   setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
 
-  setTitle("冷战热斗")
+  setTitle(Lang.twilightStruggle)
 
   val panel = new JPanel()
   panel.setPreferredSize(new Dimension(400, 300))
@@ -39,22 +39,22 @@ object SinglePlayerFrame extends JFrame {
   info.setSize(220, 80)
   panel.add(info)
 
-  val infoChange = new JButton("游戏设置")
+  val infoChange = new JButton(Lang.gameSettings)
   infoChange.setLocation(280, 30)
   infoChange.setSize(100, 40)
   panel.add(infoChange)
 
-  val labelPlayer1 = new JLabel("玩家一")
+  val labelPlayer1 = new JLabel(Lang.player1)
   labelPlayer1.setLocation(30, 120)
   labelPlayer1.setSize(60, 25)
   panel.add(labelPlayer1)
 
-  val radio1Player = new JRadioButton("玩家", true)
+  val radio1Player = new JRadioButton(Lang.player, true)
   radio1Player.setLocation(100, 105)
   radio1Player.setSize(60, 25)
   panel.add(radio1Player)
 
-  val radio1Agent = new JRadioButton("智能")
+  val radio1Agent = new JRadioButton(Lang.agent)
   radio1Agent.setLocation(100, 135)
   radio1Agent.setSize(60, 25)
   panel.add(radio1Agent)
@@ -70,7 +70,7 @@ object SinglePlayerFrame extends JFrame {
   agentLoad1.setSize(25, 25)
   panel.add(agentLoad1)
 
-  val labelPlayer2 = new JLabel("玩家二")
+  val labelPlayer2 = new JLabel(Lang.player2)
   labelPlayer2.setLocation(30, 190)
   labelPlayer2.setSize(60, 25)
   panel.add(labelPlayer2)
@@ -79,12 +79,12 @@ object SinglePlayerFrame extends JFrame {
   group1.add(radio1Player)
   group1.add(radio1Agent)
 
-  val radio2Player = new JRadioButton("玩家", true)
+  val radio2Player = new JRadioButton(Lang.player, true)
   radio2Player.setLocation(100, 175)
   radio2Player.setSize(60, 25)
   panel.add(radio2Player)
 
-  val radio2Agent = new JRadioButton("智能")
+  val radio2Agent = new JRadioButton(Lang.agent)
   radio2Agent.setLocation(100, 205)
   radio2Agent.setSize(60, 25)
   panel.add(radio2Agent)
@@ -104,7 +104,7 @@ object SinglePlayerFrame extends JFrame {
   group2.add(radio2Player)
   group2.add(radio2Agent)
 
-  val start = new JButton("开始游戏")
+  val start = new JButton(Lang.startGame)
   start.setLocation(140, 250)
   start.setSize(120, 45)
   panel.add(start)
@@ -122,10 +122,11 @@ object SinglePlayerFrame extends JFrame {
 
   def showInfo(): Unit = {
     info.setText("<html><body>" +
-      s"游戏变体：${new GameVariantDelegate(gameVariant)}<br/>" +
-      s"苏联让点：$extraInfluence<br/>" +
-      s"平局胜者：${Lang.getFactionName(drawWinner)}<br/>" +
-      s"额外牌：　${if (hasOptional) "可选 " else ""}${if (hasPromo1) "扩展1 " else ""}${if (hasPromo2) "扩展2 " else ""}<br/>" +
+      s"${Lang.gameVariant}: ${new GameVariantDelegate(gameVariant)}<br/>" +
+      s"${Lang.extraInfluence}: $extraInfluence<br/>" +
+      s"${Lang.drawGameWinner}: ${Lang.getFactionName(drawWinner)}<br/>" +
+      s"${Lang.extraCards}: ${if (hasOptional) s"${Lang.optional} " else ""}" +
+      s"${if (hasPromo1) s"${Lang.promo}1 " else ""}${if (hasPromo2) s"${Lang.promo}2 " else ""}<br/>" +
       "</body></html>"
     )
   }

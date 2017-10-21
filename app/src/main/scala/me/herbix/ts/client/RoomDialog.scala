@@ -1,12 +1,12 @@
 package me.herbix.ts.client
 
 import java.awt.event._
-import java.awt.{Dimension, BorderLayout}
+import java.awt.{BorderLayout, Dimension}
 import javax.swing._
 import javax.swing.table.DefaultTableModel
 
-import me.herbix.ts.client.NewRoomDialog._
 import me.herbix.ts.ui.GameUI
+import me.herbix.ts.util.Lang
 
 /**
   * Created by Chaofan on 2016/7/4.
@@ -15,7 +15,7 @@ object RoomDialog extends JDialog {
 
   var gameUI: GameUI = null
 
-  setTitle("房间")
+  setTitle(Lang.room)
   setModal(true)
   setResizable(false)
 
@@ -34,8 +34,8 @@ object RoomDialog extends JDialog {
   tableOut.setSize(400, 180)
   panel.add(tableOut)
 
-  tableModel.addColumn("玩家号")
-  tableModel.addColumn("玩家名")
+  tableModel.addColumn(Lang.playerId)
+  tableModel.addColumn(Lang.playerName)
 
   table.setRowHeight(25)
   table.getColumnModel.getColumn(0).setPreferredWidth(50)
@@ -46,7 +46,7 @@ object RoomDialog extends JDialog {
   info.setSize(260, 90)
   panel.add(info)
 
-  val start = new JButton("开始")
+  val start = new JButton(Lang.start)
   start.setLocation(300, 210)
   start.setSize(80, 30)
   panel.add(start)

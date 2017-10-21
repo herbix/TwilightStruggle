@@ -46,9 +46,9 @@ object MultiplePlayerFrame extends JFrame {
 
   add(tableOut)
 
-  tableModel.addColumn("房间号")
-  tableModel.addColumn("房间名")
-  tableModel.addColumn("游戏版本")
+  tableModel.addColumn(Lang.roomId)
+  tableModel.addColumn(Lang.roomName)
+  tableModel.addColumn(Lang.gameVersion)
 
   table.setRowHeight(25)
   table.getColumnModel.getColumn(0).setPreferredWidth(50)
@@ -61,9 +61,9 @@ object MultiplePlayerFrame extends JFrame {
   val panelBottom = new JPanel
   add(panelBottom, BorderLayout.SOUTH)
 
-  val newRoom = new JButton("新建")
+  val newRoom = new JButton(Lang.`new`)
   newRoom.setPreferredSize(new Dimension(100, 30))
-  val joinRoom = new JButton("加入")
+  val joinRoom = new JButton(Lang.join)
   joinRoom.setPreferredSize(new Dimension(100, 30))
 
   panelBottom.add(newRoom)
@@ -73,7 +73,7 @@ object MultiplePlayerFrame extends JFrame {
 
   setLocationRelativeTo(getOwner)
 
-  setTitle(s"冷战热斗[$gameVersion] - 正在连接...")
+  setTitle(s"${Lang.twilightStruggle}[$gameVersion] - ${Lang.connecting}")
   newRoom.setEnabled(false)
   joinRoom.setEnabled(false)
 
@@ -97,7 +97,7 @@ object MultiplePlayerFrame extends JFrame {
 
         SwingUtilities.invokeLater(new Runnable {
           override def run(): Unit = {
-            setTitle(s"冷战热斗[$gameVersion] - " + netHandler.name)
+            setTitle(s"${Lang.twilightStruggle}[$gameVersion] - " + netHandler.name)
             newRoom.setEnabled(true)
             joinRoom.setEnabled(true)
           }
@@ -108,7 +108,7 @@ object MultiplePlayerFrame extends JFrame {
         case e: Throwable =>
           SwingUtilities.invokeLater(new Runnable {
             override def run(): Unit = {
-              setTitle(s"冷战热斗[$gameVersion] - 连接失败")
+              setTitle(s"${Lang.twilightStruggle}[$gameVersion] - ${Lang.connectFailed}")
             }
           })
       } finally {
@@ -135,10 +135,11 @@ object MultiplePlayerFrame extends JFrame {
 
   def showInfo(): Unit = {
     RoomDialog.info.setText("<html><body>" +
-      s"游戏变体：${new GameVariantDelegate(gameVariant)}<br/>" +
-      s"苏联让点：$extraInfluence<br/>" +
-      s"平局胜者：${Lang.getFactionName(drawWinner)}<br/>" +
-      s"额外牌：　${if (hasOptional) "可选 " else ""}${if (hasPromo1) "扩展1 " else ""}${if (hasPromo2) "扩展2 " else ""}<br/>" +
+      s"${Lang.gameVariant}: ${new GameVariantDelegate(gameVariant)}<br/>" +
+      s"${Lang.extraInfluence}: $extraInfluence<br/>" +
+      s"${Lang.drawGameWinner}: ${Lang.getFactionName(drawWinner)}<br/>" +
+      s"${Lang.extraCards}: ${if (hasOptional) s"${Lang.optional} " else ""}" +
+      s"${if (hasPromo1) s"${Lang.promo}1 " else ""}${if (hasPromo2) s"${Lang.promo}2 " else ""}<br/>" +
       "</body></html>"
     )
   }
@@ -156,7 +157,7 @@ object MultiplePlayerFrame extends JFrame {
           }
         } catch {
           case e: Throwable =>
-            JOptionPane.showMessageDialog(MultiplePlayerFrame, "版本不同，不能加入。", "冷战热斗", JOptionPane.ERROR_MESSAGE)
+            JOptionPane.showMessageDialog(MultiplePlayerFrame, Lang.versionNotMatch, Lang.twilightStruggle, JOptionPane.ERROR_MESSAGE)
         }
       }
     }

@@ -16,20 +16,20 @@ import scala.collection.mutable
   * Created by Chaofan on 2016/6/17.
   */
 object Resource {
-  val worldMap = ImageIO.read(getClass.getResourceAsStream("/worldmap.jpg"))
+  val worldMap = ImageIO.read(Localization.getResourceAsStream("/worldmap.jpg"))
   val card = (0 to 110)
-    .map(i => (i, ImageIO.read(getClass.getResourceAsStream(f"/cards/$i%03d.png"))))
+    .map(i => (i, ImageIO.read(Localization.getResourceAsStream(f"/cards/$i%03d.png"))))
     .toMap ++
       (1 to 8)
-    .map(i => (i + PromoCards.Offset, ImageIO.read(getClass.getResourceAsStream(f"/cards/p$i%02d.png"))))
+    .map(i => (i + PromoCards.Offset, ImageIO.read(Localization.getResourceAsStream(f"/cards/p$i%02d.png"))))
     .toMap ++
       (1 to 12)
-    .map(i => (i + TZCards.IdInc, ImageIO.read(getClass.getResourceAsStream(f"/turnzero/cards/$i%02d.png"))))
+    .map(i => (i + TZCards.IdInc, ImageIO.read(Localization.getResourceAsStream(f"/turnzero/cards/$i%02d.png"))))
     .toMap
   val cardBg = card.map(pair => {
     pair._1 match {
-      case 78 => (78, ImageIO.read(getClass.getResourceAsStream("/cards/078_bg.png")))
-      case 95 => (95, ImageIO.read(getClass.getResourceAsStream("/cards/095_bg.png")))
+      case 78 => (78, ImageIO.read(Localization.getResourceAsStream("/cards/078_bg.png")))
+      case 95 => (95, ImageIO.read(Localization.getResourceAsStream("/cards/095_bg.png")))
       case _ => pair
     }
   })
@@ -37,7 +37,7 @@ object Resource {
   FlagsTrait.initFlags()
   val flag = (0 to FlagsTrait.flagId).map(i => {
     if (i == CCWFlags.FlagIdOffset + 1) {
-      val in = getClass.getResourceAsStream(f"/flags/ccw.png")
+      val in = Localization.getResourceAsStream(f"/flags/ccw.png")
       val img = ImageIO.read(in)
       (i, Map(US -> img, USSR -> img, Neutral -> img))
     } else {
@@ -47,41 +47,41 @@ object Resource {
         } else {
           ("flags", i)
         }
-      val in = getClass.getResourceAsStream(f"/$dir/$id%02d.png")
+      val in = Localization.getResourceAsStream(f"/$dir/$id%02d.png")
       if (in != null) {
         val img = ImageIO.read(in)
         (i, Map(US -> img, USSR -> img, Neutral -> img))
       } else {
-        val inA = getClass.getResourceAsStream(f"/$dir/$id%02dA.png")
-        val inS = getClass.getResourceAsStream(f"/$dir/$id%02dS.png")
+        val inA = Localization.getResourceAsStream(f"/$dir/$id%02dA.png")
+        val inS = Localization.getResourceAsStream(f"/$dir/$id%02dS.png")
         (i, Map(US -> ImageIO.read(inA), USSR -> ImageIO.read(inS)))
       }
     }
   }).toMap
 
   val crisis = (1 to 6).map(i => {
-    ImageIO.read(getClass.getResourceAsStream(f"/turnzero/crisis/crisis$i%d.png"))
+    ImageIO.read(Localization.getResourceAsStream(f"/turnzero/crisis/crisis$i%d.png"))
   }).toArray
 
-  val crisisBack = ImageIO.read(getClass.getResourceAsStream("/turnzero/crisis/crisis-back.png"))
+  val crisisBack = ImageIO.read(Localization.getResourceAsStream("/turnzero/crisis/crisis-back.png"))
 
   val nuclearIcon = new ImageIcon(Resource.flag(Flags.Defcon2Penalty.id)(Faction.Neutral).getScaledInstance(25, 25, Image.SCALE_SMOOTH))
 
-  val tokenSpaceUs = ImageIO.read(getClass.getResourceAsStream("/tokens/spaceus.png"))
-  val tokenSpaceUssr = ImageIO.read(getClass.getResourceAsStream("/tokens/spaceussr.png"))
-  val tokenDefcon = ImageIO.read(getClass.getResourceAsStream("/tokens/defcon.png"))
-  val tokenMilitaryUs = ImageIO.read(getClass.getResourceAsStream("/tokens/militaryus.png"))
-  val tokenMilitaryUssr = ImageIO.read(getClass.getResourceAsStream("/tokens/militaryussr.png"))
-  val tokenActionUs = ImageIO.read(getClass.getResourceAsStream("/tokens/actionus.png"))
-  val tokenActionUssr = ImageIO.read(getClass.getResourceAsStream("/tokens/actionussr.png"))
+  val tokenSpaceUs = ImageIO.read(Localization.getResourceAsStream("/tokens/spaceus.png"))
+  val tokenSpaceUssr = ImageIO.read(Localization.getResourceAsStream("/tokens/spaceussr.png"))
+  val tokenDefcon = ImageIO.read(Localization.getResourceAsStream("/tokens/defcon.png"))
+  val tokenMilitaryUs = ImageIO.read(Localization.getResourceAsStream("/tokens/militaryus.png"))
+  val tokenMilitaryUssr = ImageIO.read(Localization.getResourceAsStream("/tokens/militaryussr.png"))
+  val tokenActionUs = ImageIO.read(Localization.getResourceAsStream("/tokens/actionus.png"))
+  val tokenActionUssr = ImageIO.read(Localization.getResourceAsStream("/tokens/actionussr.png"))
 
-  val buttonClose = ImageIO.read(getClass.getResourceAsStream("/other/close.png"))
-  val buttonCloseHover = ImageIO.read(getClass.getResourceAsStream("/other/close-hover.png"))
+  val buttonClose = ImageIO.read(Localization.getResourceAsStream("/other/close.png"))
+  val buttonCloseHover = ImageIO.read(Localization.getResourceAsStream("/other/close-hover.png"))
 
-  val chineseCivilWarBg = ImageIO.read(getClass.getResourceAsStream("/other/ccw-bg.png"))
+  val chineseCivilWarBg = ImageIO.read(Localization.getResourceAsStream("/other/ccw-bg.png"))
 
-  val battlefieldTaiwan = ImageIO.read(getClass.getResourceAsStream("/turnzero/other/battlefield-taiwan.png"))
-  val stability3Zaire = ImageIO.read(getClass.getResourceAsStream("/other/3-stability-zaire.png"))
+  val battlefieldTaiwan = ImageIO.read(Localization.getResourceAsStream("/turnzero/other/battlefield-taiwan.png"))
+  val stability3Zaire = ImageIO.read(Localization.getResourceAsStream("/other/3-stability-zaire.png"))
 
   val textFont = new Font(Lang.heiti, 0, 16)
   val textFont2 = new Font(Lang.lishu, 0, 32)

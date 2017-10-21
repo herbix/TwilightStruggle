@@ -1,6 +1,8 @@
 package me.herbix.ts.util
 
-import java.io.{InputStreamReader, BufferedReader, InputStream}
+import java.io.{BufferedReader, InputStream, InputStreamReader}
+
+import me.herbix.ts.util.CrisisInfo.infoItems
 
 import scala.collection.mutable
 
@@ -86,14 +88,20 @@ case class InfoLine(val content: String, val properties: Map[String, String] = M
   }
 }
 
-object CardInfo extends Info(getClass.getResourceAsStream("/cards.txt")) {
-  val info = infoItems.map(item => (item.name.toInt, item)).toMap
-}
-
-object CrisisInfo extends Info(getClass.getResourceAsStream("/turnzero/crisis.txt")) {
+object StringInfo extends Info(Localization.getResourceAsStream("/strings.txt")) {
   val info = infoItems.map(item => (item.name, item)).toMap
 }
 
-object FlagInfo extends Info(getClass.getResourceAsStream("/flags.txt"))
-object CardTipInfo extends Info(getClass.getResourceAsStream("/cardtips.txt"))
-object SpaceInfo extends Info(getClass.getResourceAsStream("/space.txt"))
+object CardInfo extends Info(Localization.getResourceAsStream("/cards.txt")) {
+  val info = infoItems.map(item => (item.name.toInt, item)).toMap
+}
+
+object CrisisInfo extends Info(Localization.getResourceAsStream("/turnzero/crisis.txt")) {
+  val info = infoItems.map(item => (item.name, item)).toMap
+}
+
+object FlagInfo extends Info(Localization.getResourceAsStream("/flags.txt"))
+object CardTipInfo extends Info(Localization.getResourceAsStream("/cardtips.txt"))
+object SpaceInfo extends Info(Localization.getResourceAsStream("/space.txt"))
+object CountryInfo extends Info(Localization.getResourceAsStream("/countries.txt"))
+

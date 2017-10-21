@@ -48,21 +48,17 @@ object HelpDialog extends JFrame {
 
   add(helpInfoOuter)
 
-  setTitle("帮助")
+  setTitle(Lang.help)
 
   pack()
 
   setLocationRelativeTo(getOwner)
 
-  class DummyCard(id: Int) extends CardInstant(id, 0, Faction.US, true) {
-    override def instantEvent(game: Game, faction: Faction): Boolean = ???
-  }
-
-  helpListModel.addElement(new ListItem("=========标准版卡牌列表========="))
+  helpListModel.addElement(new ListItem(Lang.cardListStandard))
   (1 to 110).map(Cards.fromId).foreach(card => helpListModel.addElement(new ListItem(card)))
-  helpListModel.addElement(new ListItem("===========扩展牌列表==========="))
-  (1 to 8).map(i => new DummyCard(i + PromoCards.Offset)).foreach(card => helpListModel.addElement(new ListItem(card)))
-  helpListModel.addElement(new ListItem("========第零回合卡牌列表========"))
+  helpListModel.addElement(new ListItem(Lang.cardListPromo))
+  (1 to 8).map(i => Cards.fromId(i + PromoCards.Offset)).foreach(card => helpListModel.addElement(new ListItem(card)))
+  helpListModel.addElement(new ListItem(Lang.cardListTurnZero))
   (1 to 12).map(x => TZCards.fromId(x + TZCards.IdInc)).foreach(card => helpListModel.addElement(new ListItem(card)))
 
   helpList.addListSelectionListener(new ListSelectionListener {

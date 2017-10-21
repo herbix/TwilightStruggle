@@ -6,7 +6,7 @@ import me.herbix.ts.logic.Region.Region
 import me.herbix.ts.logic._
 import me.herbix.ts.logic.card._
 import me.herbix.ts.logic.chinesecivilwar.CCWFlags
-import me.herbix.ts.logic.turnzero.{TZCards, TZFlags, CardTZ02NationalistChina}
+import me.herbix.ts.logic.turnzero.{TZCards, TZFlags}
 
 import scala.collection.mutable
 
@@ -14,252 +14,220 @@ import scala.collection.mutable
   * Created by Chaofan on 2016/6/17.
   */
 object Lang {
-  val USSR = "苏联"
-  val US = "美国"
-  val Neutral = "中立"
+  val USSR = Localization.string("USSR")
+  val US = Localization.string("US")
+  val Neutral = Localization.string("Neutral")
 
-  val vp = "ＶＰ: "
-  val defcon = "核战: %s"
-  val military = "军事: "
-  val spaceComma = "太空: "
-  val deck = "牌堆: %s"
-  val turn = "回合: %s-%s"
-  val currentPlayer = "当前玩家为："
+  val vp = Localization.string("vp")
+  val defcon = Localization.string("defcon")
+  val military = Localization.string("military")
+  val spaceComma = Localization.string("spaceComma")
+  val deck = Localization.string("deck")
+  val turn = Localization.string("turn")
+  val currentPlayer = Localization.string("currentPlayer")
 
-  val songti = "宋体"
-  val heiti = "黑体"
-  val lishu = "隶书"
-  val kaiti = "楷体"
+  val songti = Localization.string("songti")
+  val heiti = Localization.string("heiti")
+  val lishu = Localization.string("lishu")
+  val kaiti = Localization.string("kaiti")
 
-  val selectFaction = "选择你的阵营"
-  val waitingForOpposite = "等待对方行动"
-  val spectator = "观察者模式"
+  val selectFaction = Localization.string("selectFaction")
+  val waitingForOpposite = Localization.string("waitingForOpposite")
+  val spectator = Localization.string("spectator")
 
-  val selfHand = "自己手牌"
-  val oppositeHand = "对手手牌"
-  val discardedCards = "弃牌堆"
-  val eventCards = "事件用牌"
-  val usHand = "美国手牌"
-  val ussrHand = "苏联手牌"
+  val selfHand = Localization.string("selfHand")
+  val oppositeHand = Localization.string("oppositeHand")
+  val discardedCards = Localization.string("discardedCards")
+  val eventCards = Localization.string("eventCards")
+  val usHand = Localization.string("usHand")
+  val ussrHand = Localization.string("ussrHand")
 
-  val putEastEurope = "请在东欧放置%s点影响力"
-  val putWestEurope = "请在西欧放置%s点影响力"
-  val putExtra = "请在已有国放置%s点影响力"
+  val putEastEurope = Localization.string("putEastEurope")
+  val putWestEurope = Localization.string("putWestEurope")
+  val putExtra = Localization.string("putExtra")
 
-  var country = "国家"
-  val influence = "影响力"
+  val country = Localization.string("country")
+  val influence = Localization.string("influence")
 
-  val done = "完成"
-  val cancel = "取消"
-  val reset = "重置"
-  val remove = "去除"
+  val done = Localization.string("done")
+  val cancel = Localization.string("cancel")
+  val reset = Localization.string("reset")
+  val remove = Localization.string("remove")
 
-  val earlyWar = "冷战早期"
-  val midWar = "冷战中期"
-  val lateWar = "冷战后期"
-  val special = "特殊"
+  val earlyWar = Localization.string("earlyWar")
+  val midWar = Localization.string("midWar")
+  val lateWar = Localization.string("lateWar")
+  val special = Localization.string("special")
 
-  val goodFlag = "有利标记"
-  val badFlag = "不利标记"
+  val goodFlag = Localization.string("goodFlag")
+  val badFlag = Localization.string("badFlag")
 
-  val crisisCard = "危机牌"
+  val crisisCard = Localization.string("crisisCard")
 
-  val selectHeadline = "请选择头条牌"
+  val selectHeadline = Localization.string("selectHeadline")
 
-  val selectCardAndAction = "请选择要打出的牌"
+  val selectCardAndAction = Localization.string("selectCardAndAction")
 
-  val space = "太空"
-  val event = "事件"
-  val operation = "行动"
-  val eventFirst = "先事件"
-  val operationFirst = "先行动"
+  val space = Localization.string("space")
+  val event = Localization.string("event")
+  val operation = Localization.string("operation")
+  val eventFirst = Localization.string("eventFirst")
+  val operationFirst = Localization.string("operationFirst")
 
-  val addInfluence = "增加影响力"
-  val realignment = "调整阵营"
-  val coup = "政变"
+  val addInfluence = Localization.string("addInfluence")
+  val realignment = Localization.string("realignment")
+  val coup = Localization.string("coup")
 
-  val operationSelect = "请用%s行动力来行动"
-  val operationAddInfluence = "请用%s行动力来增加影响力"
-  val operationRealignment = "请调整%1$s个国家（剩余%2$s）"
-  val operationCoup = "请政变%1$s个国家（行动力%2$s）"
+  val operationSelect = Localization.string("operationSelect")
+  val operationAddInfluence = Localization.string("operationAddInfluence")
+  val operationRealignment = Localization.string("operationRealignment")
+  val operationCoup = Localization.string("operationCoup")
 
-  val increase = "增加"
-  val decrease = "减少"
+  val increase = Localization.string("increase")
+  val decrease = Localization.string("decrease")
 
-  val discardHeldCard = "可以弃掉一张持牌"
+  val discardHeldCard = Localization.string("discardHeldCard")
 
-  val yes = "是"
-  val no = "否"
+  val yes = Localization.string("yes")
+  val no = Localization.string("no")
 
-  val take8rounds = "是否要进行8个行动轮"
+  val take8rounds = Localization.string("take8rounds")
 
-  val selectQuagmireDiscard = "请弃一张2以上行动力的牌"
-  val selectScoringCard = "请打出一张计分牌"
+  val selectQuagmireDiscard = Localization.string("selectQuagmireDiscard")
+  val selectScoringCard = Localization.string("selectScoringCard")
 
-  val thisTurnFlag = "回合结束时标记失效。"
-  val duringSetupFlag = "此标记在开局时生效。"
+  val thisTurnFlag = Localization.string("thisTurnFlag")
+  val duringSetupFlag = Localization.string("duringSetupFlag")
 
-  val removeFromGame = "此牌于事件发动后移出游戏"
+  val removeFromGame = Localization.string("removeFromGame")
 
-  val improve = "改善"
-  val degrade = "恶化"
-  val keep = "不变"
+  val improve = Localization.string("improve")
+  val degrade = Localization.string("degrade")
+  val keep = Localization.string("keep")
 
-  val selectRegion = "请选择一个区域"
+  val selectRegion = Localization.string("selectRegion")
 
-  val play = "打出"
-  val giveBack = "归还"
+  val play = Localization.string("play")
+  val giveBack = Localization.string("giveBack")
 
-  val gameOver = "游戏结束"
-  val winnerIs = "胜利者是%s"
-  val drawGame = "平局"
+  val gameOver = Localization.string("gameOver")
+  val winnerIs = Localization.string("winnerIs")
+  val drawGame = Localization.string("drawGame")
 
-  val presence = "存在"
-  val domination = "支配"
-  val control = "控制"
+  val presence = Localization.string("presence")
+  val domination = Localization.string("domination")
+  val control = Localization.string("control")
 
-  val success = "胜利"
+  val success = Localization.string("success")
 
-  val chooseStateCarft = "请选择一张状态修改牌"
+  val chooseStateCarft = Localization.string("chooseStateCarft")
 
-  val sum = "总数"
-  val battlefieldCountry = "战场国"
-  val nonBattlefieldCountry = "非战场国"
-  val opponentNear = "对方邻国"
+  val sum = Localization.string("sum")
+  val battlefieldCountry = Localization.string("battlefieldCountry")
+  val nonBattlefieldCountry = Localization.string("nonBattlefieldCountry")
+  val opponentNear = Localization.string("opponentNear")
 
-  val southEastAsiaScore =
-    "缅甸，老挝/柬埔寨，越南，马来西亚，印度尼西亚，菲律宾的控制者各+1VP\n" +
-    "泰国的控制者+2VP"
+  val southEastAsiaScore = Localization.string("southEastAsiaScore")
 
-  val chineseCivilWar = "中国内战"
+  val chineseCivilWar = Localization.string("chineseCivilWar")
 
-  val historyStartGame = "开始游戏"
-  val historyTurnStart = "第%s回合开始"
-  val historyTurnHeadline = "第%s回合头条"
-  val historyTurnRound = "第%s回合第%s行动轮"
-  val historyPickCard = "%s抽取了%s张牌"
-  val historyGetCard = "%s获得了“%s”"
-  val historyDiscardCard = "%s丢弃了“%s”"
-  val historyLoseCard = "%s失去了“%s”"
-  val historyModifyInfluence = "%2$s了%1$s影响力："
-  val historyModifyInfluenceDetail = "%1$s %2$s -> %3$s"
-  val historyPlayHeadline = "%s打出“%s”作为头条"
-  val historyEvent = "%s发动了“%s”的事件"
-  val historyCardAction = "%s打出“%s”用于%s"
-  val historyCardActionOpposite = "%s打出“%s”，先%s，后%s"
-  val historyCardOperation = "%s用“%s”的行动力%s点进行%s行动"
-  val historyOperationSpace = "%s的太空竞赛掷点为%s"
-  val historyOperationRealignment = "在%s进行调整阵营：美国掷得%s，调整为%s；苏联掷得%s，调整为%s"
-  val historyOperationCoup = "%s在%s发动政变，掷得%s，行动力%s，影响力变数得%s"
-  val historySpace = "%s的太空竞赛等级从%s前进到%s"
-  val historyVp = "%s得%sVP"
-  val historyDefconImprove = "核战等级从%s级改善到%s级"
-  val historyDefconDegrade = "核战等级从%s级恶化到%s级"
-  val historyDefconStay = "核战等级保持%s级不变"
-  val historyMilitary = "%s的军事行动数从%s增加到%s"
-  val historyMilitaryReset = "重置%s的军事行动数"
-  val historyScoring = "%s计分\n美国：控制国家%s个，战场国%s个\n苏联：控制国家%s个，战场国%s个"
-  val historyWar = "%s操纵，入侵%s，掷点得%s，调整为%s"
-  val historyRollDice = "%s掷出了%s"
-  val historyRollDiceModified = "%s掷出了%s，调整为%s"
-  val historyPokeChest = "%s戳了%s的胸口"
-  val historyAddFlag = "%s获得了标记“%s”"
-  val historyRemoveFlag = "%s失去了标记“%s”"
-  val historyAddFlagNeutral = "双方获得了标记“%s”"
-  val historyRemoveFlagNeutral = "双方失去了标记“%s”"
-  val historyRegion = "%s选择了%s"
-  val historyYesNo = "%s选择了%s"
-  val historyAddCardToDeck = "“%s”被加入%s牌堆"
-  val historyRemoveCardFromDeck = "“%s”被从%s牌堆移除"
-  val historyCrisis = "开始处理危机牌“%s”"
+  val historyStartGame = Localization.string("historyStartGame")
+  val historyTurnStart = Localization.string("historyTurnStart")
+  val historyTurnHeadline = Localization.string("historyTurnHeadline")
+  val historyTurnRound = Localization.string("historyTurnRound")
+  val historyPickCard = Localization.string("historyPickCard")
+  val historyGetCard = Localization.string("historyGetCard")
+  val historyDiscardCard = Localization.string("historyDiscardCard")
+  val historyLoseCard = Localization.string("historyLoseCard")
+  val historyModifyInfluence = Localization.string("historyModifyInfluence")
+  val historyModifyInfluenceDetail = Localization.string("historyModifyInfluenceDetail")
+  val historyPlayHeadline = Localization.string("historyPlayHeadline")
+  val historyEvent = Localization.string("historyEvent")
+  val historyCardAction = Localization.string("historyCardAction")
+  val historyCardActionOpposite = Localization.string("historyCardActionOpposite")
+  val historyCardOperation = Localization.string("historyCardOperation")
+  val historyOperationSpace = Localization.string("historyOperationSpace")
+  val historyOperationRealignment = Localization.string("historyOperationRealignment")
+  val historyOperationCoup = Localization.string("historyOperationCoup")
+  val historySpace = Localization.string("historySpace")
+  val historyVp = Localization.string("historyVp")
+  val historyDefconImprove = Localization.string("historyDefconImprove")
+  val historyDefconDegrade = Localization.string("historyDefconDegrade")
+  val historyDefconStay = Localization.string("historyDefconStay")
+  val historyMilitary = Localization.string("historyMilitary")
+  val historyMilitaryReset = Localization.string("historyMilitaryReset")
+  val historyScoring = Localization.string("historyScoring")
+  val historyWar = Localization.string("historyWar")
+  val historyRollDice = Localization.string("historyRollDice")
+  val historyRollDiceModified = Localization.string("historyRollDiceModified")
+  val historyPokeChest = Localization.string("historyPokeChest")
+  val historyAddFlag = Localization.string("historyAddFlag")
+  val historyRemoveFlag = Localization.string("historyRemoveFlag")
+  val historyAddFlagNeutral = Localization.string("historyAddFlagNeutral")
+  val historyRemoveFlagNeutral = Localization.string("historyRemoveFlagNeutral")
+  val historyRegion = Localization.string("historyRegion")
+  val historyYesNo = Localization.string("historyYesNo")
+  val historyAddCardToDeck = Localization.string("historyAddCardToDeck")
+  val historyRemoveCardFromDeck = Localization.string("historyRemoveCardFromDeck")
+  val historyCrisis = Localization.string("historyCrisis")
+
+  val twilightStruggle = Localization.string("twilightStruggle")
+  val inputDebugCommand = Localization.string("inputDebugCommand")
+  val help = Localization.string("help")
+  val cardListStandard = Localization.string("cardListStandard")
+  val cardListPromo = Localization.string("cardListPromo")
+  val cardListTurnZero = Localization.string("cardListTurnZero")
+  val singlePlayer = Localization.string("singlePlayer")
+  val multiPlayer = Localization.string("multiPlayer")
+  val exit = Localization.string("exit")
+  val room = Localization.string("room")
+  val roomId = Localization.string("roomId")
+  val roomName = Localization.string("roomName")
+  val gameVersion = Localization.string("gameVersion")
+  val `new` = Localization.string("`new`")
+  val join = Localization.string("join")
+  val connecting = Localization.string("connecting")
+  val connectFailed = Localization.string("connectFailed")
+  val gameVariant = Localization.string("gameVariant")
+  val extraInfluence = Localization.string("extraInfluence")
+  val drawGameWinner = Localization.string("drawGameWinner")
+  val extraCards = Localization.string("extraCards")
+  val optional = Localization.string("optional")
+  val promo = Localization.string("promo")
+  val versionNotMatch = Localization.string("versionNotMatch")
+  val newRoom = Localization.string("newRoom")
+  val optionalCards = Localization.string("optionalCards")
+  val promoCards = Localization.string("promoCards")
+  val standard = Localization.string("standard")
+  val turnZero = Localization.string("turnZero")
+  val start = Localization.string("start")
+  val player = Localization.string("player")
+  val player1 = Localization.string("player1")
+  val player2 = Localization.string("player2")
+  val playerId = Localization.string("playerId")
+  val playerName = Localization.string("playerName")
+  val startGame = Localization.string("startGame")
+  val agent = Localization.string("agent")
+  val gameSettings = Localization.string("gameSettings")
+
+  val early = Localization.string("early")
+  val mid = Localization.string("mid")
+  val late = Localization.string("late")
+
+  val europe = Localization.string("europe")
+  val asia = Localization.string("asia")
+  val midEast = Localization.string("midEast")
+  val africa = Localization.string("africa")
+  val midAmerica = Localization.string("midAmerica")
+  val southAmerica = Localization.string("southAmerica")
+  val eastEurope = Localization.string("eastEurope")
+  val westEurope = Localization.string("westEurope")
+  val southEastAsia = Localization.string("southEastAsia")
 
   val countryNames = mutable.Map[String, String]()
-
-  countryNames += "China" -> "中国"
-  countryNames += "Mexico" -> "墨西哥"
-  countryNames += "Guatemala" -> "危地马拉"
-  countryNames += "El Salvador" -> "萨尔瓦多"
-  countryNames += "Honduras" -> "洪都拉斯"
-  countryNames += "Costa Rica" -> "哥斯达黎加"
-  countryNames += "Cuba" -> "古巴"
-  countryNames += "Nicaragua" -> "尼加拉瓜"
-  countryNames += "Haiti" -> "海地"
-  countryNames += "Dominican Rep" -> "多明尼加共和国"
-  countryNames += "Panama" -> "巴拿马"
-  countryNames += "Colombia" -> "哥伦比亚"
-  countryNames += "Ecuador" -> "厄瓜多尔"
-  countryNames += "Peru" -> "秘鲁"
-  countryNames += "Chile" -> "智利"
-  countryNames += "Argentina" -> "阿根廷"
-  countryNames += "Venezuela" -> "委内瑞拉"
-  countryNames += "Bolivia" -> "玻利维亚"
-  countryNames += "Paraguay" -> "巴拉圭"
-  countryNames += "Uruguay" -> "乌拉圭"
-  countryNames += "Brazil" -> "巴西"
-  countryNames += "Canada" -> "加拿大"
-  countryNames += "UK" -> "英国"
-  countryNames += "Benelux" -> "比荷卢联盟"
-  countryNames += "France" -> "法国"
-  countryNames += "Spain/Portugal" -> "西班牙/葡萄牙"
-  countryNames += "Norway" -> "挪威"
-  countryNames += "Denmark" -> "丹麦"
-  countryNames += "W.Germany" -> "西德"
-  countryNames += "Sweden" -> "瑞典"
-  countryNames += "Italy" -> "意大利"
-  countryNames += "Greece" -> "希腊"
-  countryNames += "Turkey" -> "土耳其"
-  countryNames += "Finland" -> "芬兰"
-  countryNames += "Austria" -> "奥地利"
-  countryNames += "E.Germany" -> "东德"
-  countryNames += "Poland" -> "波兰"
-  countryNames += "Czechoslovakia" -> "捷克斯洛伐克"
-  countryNames += "Hungary" -> "匈牙利"
-  countryNames += "Yugoslavia" -> "南斯拉夫"
-  countryNames += "Romania" -> "罗马尼亚"
-  countryNames += "Bulgaria" -> "保加利亚"
-  countryNames += "Lebanon" -> "黎巴嫩"
-  countryNames += "Syria" -> "叙利亚"
-  countryNames += "Israel" -> "以色列"
-  countryNames += "Iraq" -> "伊拉克"
-  countryNames += "Iran" -> "伊朗"
-  countryNames += "Libya" -> "利比亚"
-  countryNames += "Egypt" -> "埃及"
-  countryNames += "Jordan" -> "约旦"
-  countryNames += "Gulf States" -> "海湾国家"
-  countryNames += "Saudi Arabia" -> "沙特阿拉伯"
-  countryNames += "Afghanistan" -> "阿富汗"
-  countryNames += "Pakistan" -> "巴基斯坦"
-  countryNames += "India" -> "印度"
-  countryNames += "Burma" -> "缅甸"
-  countryNames += "Laos/Cambodia" -> "老挝/柬埔寨"
-  countryNames += "Thailand" -> "泰国"
-  countryNames += "Vietnam" -> "越南"
-  countryNames += "Malaysia" -> "马来西亚"
-  countryNames += "Indonesia" -> "印度尼西亚"
-  countryNames += "Australia" -> "澳大利亚"
-  countryNames += "Philippines" -> "菲律宾"
-  countryNames += "Japan" -> "日本"
-  countryNames += "Taiwan" -> "台湾"
-  countryNames += "S.Korea" -> "韩国"
-  countryNames += "N.Korea" -> "朝鲜"
-  countryNames += "Tunisia" -> "突尼斯"
-  countryNames += "Algeria" -> "阿尔及利亚"
-  countryNames += "Morocco" -> "摩洛哥"
-  countryNames += "West African States" -> "西非国家"
-  countryNames += "Saharan States" -> "撒哈拉联邦"
-  countryNames += "Sudan" -> "苏丹"
-  countryNames += "Ivory Coast" -> "科特迪瓦"
-  countryNames += "Nigeria" -> "尼日利亚"
-  countryNames += "Ethiopia" -> "埃塞俄比亚"
-  countryNames += "Somalia" -> "索马里"
-  countryNames += "Cameroon" -> "喀麦隆"
-  countryNames += "Zaire" -> "扎伊尔"
-  countryNames += "Kenya" -> "肯尼亚"
-  countryNames += "Angola" -> "安哥拉"
-  countryNames += "Zimbabwe" -> "津巴布韦"
-  countryNames += "SE African States" -> "东南非洲诸国"
-  countryNames += "Botswana" -> "博茨瓦纳"
-  countryNames += "South Africa" -> "南非"
+  for (item <- CountryInfo.infoItems) {
+    countryNames += item(0).content -> item(1).content
+  }
 
   def getFactionName(faction: Faction) = faction match {
     case Faction.US => US
@@ -277,15 +245,15 @@ object Lang {
   }
 
   def getRegionName(region: Region) = region match {
-    case Region.Europe => "欧洲"
-    case Region.Asia => "亚洲"
-    case Region.MidEast => "中东"
-    case Region.Africa => "非洲"
-    case Region.MidAmerica => "中美洲"
-    case Region.SouthAmerica => "南美洲"
-    case Region.EastEurope => "东欧"
-    case Region.WestEurope => "西欧"
-    case Region.SouthEastAsia => "东南亚"
+    case Region.Europe => europe
+    case Region.Asia => asia
+    case Region.MidEast => midEast
+    case Region.Africa => africa
+    case Region.MidAmerica => midAmerica
+    case Region.SouthAmerica => southAmerica
+    case Region.EastEurope => eastEurope
+    case Region.WestEurope => westEurope
+    case Region.SouthEastAsia => southEastAsia
   }
 
   val cardInfo = new Array[(String, String)](300)
@@ -365,9 +333,9 @@ object Lang {
   }
 
   def getPeriodName(period: Int) = period match {
-    case 1 => "前期"
-    case 2 => "中期"
-    case 3 => "后期"
-    case 4 => "特殊"
+    case 1 => early
+    case 2 => mid
+    case 3 => late
+    case 4 => special
   }
 }

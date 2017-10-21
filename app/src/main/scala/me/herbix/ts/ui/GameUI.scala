@@ -250,7 +250,7 @@ class GameUI(playerId: Int) extends JFrame {
           return
         }
         if (e.isControlDown && e.getKeyCode == KeyEvent.VK_D) {
-          val cmd = JOptionPane.showInputDialog(GameUI.this, "输入调试命令", "冷战热斗", JOptionPane.PLAIN_MESSAGE)
+          val cmd = JOptionPane.showInputDialog(GameUI.this, Lang.inputDebugCommand, Lang.twilightStruggle, JOptionPane.PLAIN_MESSAGE)
           if (cmd != null && cmd != "") {
             val params = cmd.substring(1).trim.split(" ")
             cmd.charAt(0) match {

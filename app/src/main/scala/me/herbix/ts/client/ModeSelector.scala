@@ -4,6 +4,8 @@ import java.awt.Dimension
 import java.awt.event._
 import javax.swing._
 
+import me.herbix.ts.util.Lang
+
 /**
   * Created by Chaofan on 2016/9/10.
   */
@@ -14,7 +16,7 @@ object ModeSelector extends JFrame {
 
   var result: String = null
 
-  setTitle("冷战热斗")
+  setTitle(Lang.twilightStruggle)
 
   private val panel = new JPanel()
 
@@ -23,10 +25,10 @@ object ModeSelector extends JFrame {
 
   add(panel)
 
-  private val singlePlayer = new JButton("单人游戏")
-  private val multiPlayer = new JButton("多人游戏")
-  private val help = new JButton("帮助")
-  private val exit = new JButton("退出")
+  private val singlePlayer = new JButton(Lang.singlePlayer)
+  private val multiPlayer = new JButton(Lang.multiPlayer)
+  private val help = new JButton(Lang.help)
+  private val exit = new JButton(Lang.exit)
 
   singlePlayer.setSize(120, 40)
   singlePlayer.setLocation(90, 180)
