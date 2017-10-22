@@ -1,3 +1,5 @@
+// Copyright (C) 2017 Chaofan
+
 package me.herbix.ts.client
 
 import me.herbix.ts.logic.{Operation, GameTrait}

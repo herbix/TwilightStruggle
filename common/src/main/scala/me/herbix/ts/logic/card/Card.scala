@@ -1,3 +1,5 @@
+// Copyright (C) 2017 Chaofan
+
 package me.herbix.ts.logic.card
 
 import me.herbix.ts.logic.Faction.Faction

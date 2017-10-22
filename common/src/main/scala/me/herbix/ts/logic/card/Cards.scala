@@ -1,3 +1,5 @@
+// Copyright (C) 2017 Chaofan
+
 package me.herbix.ts.logic.card
 
 import scala.collection.mutable

@@ -1,3 +1,5 @@
+// Copyright (C) 2017 Chaofan
+
 package me.herbix.ts.agent.simulator
 
 import me.herbix.ts.logic.{Game, Operation}

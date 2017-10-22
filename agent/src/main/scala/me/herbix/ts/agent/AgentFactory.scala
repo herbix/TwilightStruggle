@@ -1,3 +1,5 @@
+// Copyright (C) 2017 Chaofan
+
 package me.herbix.ts.agent
 
 import javax.security.auth.callback.Callback

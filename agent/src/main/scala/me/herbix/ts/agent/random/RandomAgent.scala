@@ -1,3 +1,5 @@
+// Copyright (C) 2017 Chaofan
+
 package me.herbix.ts.agent.random
 
 import me.herbix.ts.agent.Agent

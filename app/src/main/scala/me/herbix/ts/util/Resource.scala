@@ -1,3 +1,5 @@
+// Copyright (C) 2017 Chaofan
+
 package me.herbix.ts.util
 
 import java.awt.{Color, Font, Image}
