@@ -44,11 +44,11 @@ class Info(in: InputStream) {
         first = false
         val str = line.substring(1, line.length - 1)
         val split = str.split("[\\s]+")
-        name = split(0)
+        name = split(0).replace('_', ' ')
         properties ++= split.toStream.takeRight(split.length - 1).map(_.trim).map(s => {
           s.indexOf('=') match {
             case -1 => (s, "true")
-            case index => (s.substring(0, index), s.substring(index + 1))
+            case index => (s.substring(0, index).replace('_', ' '), s.substring(index + 1).replace('_', ' '))
           }
         }).toMap
       } else if (line.startsWith("#")) {

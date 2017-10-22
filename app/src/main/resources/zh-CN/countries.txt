@@ -1,339 +1,254 @@
-[Country]
-China
+[China]
 中国
 
-[Country]
-Mexico
+[Mexico]
 墨西哥
 
-[Country]
-Guatemala
+[Guatemala]
 危地马拉
 
-[Country]
-El Salvador
+[El_Salvador]
 萨尔瓦多
 
-[Country]
-Honduras
+[Honduras]
 洪都拉斯
 
-[Country]
-Costa Rica
+[Costa_Rica]
 哥斯达黎加
 
-[Country]
-Cuba
+[Cuba]
 古巴
 
-[Country]
-Nicaragua
+[Nicaragua]
 尼加拉瓜
 
-[Country]
-Haiti
+[Haiti]
 海地
 
-[Country]
-Dominican Rep
+[Dominican_Rep]
 多明尼加共和国
 
-[Country]
-Panama
+[Panama]
 巴拿马
 
-[Country]
-Colombia
+[Colombia]
 哥伦比亚
 
-[Country]
-Ecuador
+[Ecuador]
 厄瓜多尔
 
-[Country]
-Peru
+[Peru]
 秘鲁
 
-[Country]
-Chile
+[Chile]
 智利
 
-[Country]
-Argentina
+[Argentina]
 阿根廷
 
-[Country]
-Venezuela
+[Venezuela]
 委内瑞拉
 
-[Country]
-Bolivia
+[Bolivia]
 玻利维亚
 
-[Country]
-Paraguay
+[Paraguay]
 巴拉圭
 
-[Country]
-Uruguay
+[Uruguay]
 乌拉圭
 
-[Country]
-Brazil
+[Brazil]
 巴西
 
-[Country]
-Canada
+[Canada]
 加拿大
 
-[Country]
-UK
+[UK]
 英国
 
-[Country]
-Benelux
+[Benelux]
 比荷卢联盟
 
-[Country]
-France
+[France]
 法国
 
-[Country]
-Spain/Portugal
+[Spain/Portugal]
 西班牙/葡萄牙
 
-[Country]
-Norway
+[Norway]
 挪威
 
-[Country]
-Denmark
+[Denmark]
 丹麦
 
-[Country]
-W.Germany
+[W.Germany]
 西德
 
-[Country]
-Sweden
+[Sweden]
 瑞典
 
-[Country]
-Italy
+[Italy]
 意大利
 
-[Country]
-Greece
+[Greece]
 希腊
 
-[Country]
-Turkey
+[Turkey]
 土耳其
 
-[Country]
-Finland
+[Finland]
 芬兰
 
-[Country]
-Austria
+[Austria]
 奥地利
 
-[Country]
-E.Germany
+[E.Germany]
 东德
 
-[Country]
-Poland
+[Poland]
 波兰
 
-[Country]
-Czechoslovakia
+[Czechoslovakia]
 捷克斯洛伐克
 
-[Country]
-Hungary
+[Hungary]
 匈牙利
 
-[Country]
-Yugoslavia
+[Yugoslavia]
 南斯拉夫
 
-[Country]
-Romania
+[Romania]
 罗马尼亚
 
-[Country]
-Bulgaria
+[Bulgaria]
 保加利亚
 
-[Country]
-Lebanon
+[Lebanon]
 黎巴嫩
 
-[Country]
-Syria
+[Syria]
 叙利亚
 
-[Country]
-Israel
+[Israel]
 以色列
 
-[Country]
-Iraq
+[Iraq]
 伊拉克
 
-[Country]
-Iran
+[Iran]
 伊朗
 
-[Country]
-Libya
+[Libya]
 利比亚
 
-[Country]
-Egypt
+[Egypt]
 埃及
 
-[Country]
-Jordan
+[Jordan]
 约旦
 
-[Country]
-Gulf States
+[Gulf_States]
 海湾国家
 
-[Country]
-Saudi Arabia
+[Saudi_Arabia]
 沙特阿拉伯
 
-[Country]
-Afghanistan
+[Afghanistan]
 阿富汗
 
-[Country]
-Pakistan
+[Pakistan]
 巴基斯坦
 
-[Country]
-India
+[India]
 印度
 
-[Country]
-Burma
+[Burma]
 缅甸
 
-[Country]
-Laos/Cambodia
+[Laos/Cambodia]
 老挝/柬埔寨
 
-[Country]
-Thailand
+[Thailand]
 泰国
 
-[Country]
-Vietnam
+[Vietnam]
 越南
 
-[Country]
-Malaysia
+[Malaysia]
 马来西亚
 
-[Country]
-Indonesia
+[Indonesia]
 印度尼西亚
 
-[Country]
-Australia
+[Australia]
 澳大利亚
 
-[Country]
-Philippines
+[Philippines]
 菲律宾
 
-[Country]
-Japan
+[Japan]
 日本
 
-[Country]
-Taiwan
+[Taiwan]
 台湾
 
-[Country]
-S.Korea
+[S.Korea]
 韩国
 
-[Country]
-N.Korea
+[N.Korea]
 朝鲜
 
-[Country]
-Tunisia
+[Tunisia]
 突尼斯
 
-[Country]
-Algeria
+[Algeria]
 阿尔及利亚
 
-[Country]
-Morocco
+[Morocco]
 摩洛哥
 
-[Country]
-West African States
+[West_African_States]
 西非国家
 
-[Country]
-Saharan States
+[Saharan_States]
 撒哈拉联邦
 
-[Country]
-Sudan
+[Sudan]
 苏丹
 
-[Country]
-Ivory Coast
+[Ivory_Coast]
 科特迪瓦
 
-[Country]
-Nigeria
+[Nigeria]
 尼日利亚
 
-[Country]
-Ethiopia
+[Ethiopia]
 埃塞俄比亚
 
-[Country]
-Somalia
+[Somalia]
 索马里
 
-[Country]
-Cameroon
+[Cameroon]
 喀麦隆
 
-[Country]
-Zaire
+[Zaire]
 扎伊尔
 
-[Country]
-Kenya
+[Kenya]
 肯尼亚
 
-[Country]
-Angola
+[Angola]
 安哥拉
 
-[Country]
-Zimbabwe
+[Zimbabwe]
 津巴布韦
 
-[Country]
-SE African States
+[SE_African_States]
 东南非洲诸国
 
-[Country]
-Botswana
+[Botswana]
 博茨瓦纳
 
-[Country]
-South Africa
+[South_Africa]
 南非

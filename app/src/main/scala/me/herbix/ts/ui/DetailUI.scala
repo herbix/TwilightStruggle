@@ -481,7 +481,14 @@ class DetailUI(game: Game) extends JPanel {
     val str1 = Lang.getRegionName(region)
     val w1 = fm1.stringWidth(str1)
 
-    g.drawString(str1, (180-w1) / 2, 27)
+    if (w1 > 175) {
+      val trans = g.getTransform
+      g.scale(175.0 / w1, 1)
+      g.drawString(str1, 2.5f*w1/175, 27)
+      g.setTransform(trans)
+    } else {
+      g.drawString(str1, (180-w1)/2, 27)
+    }
 
     if (region != Region.SouthEastAsia) {
       val info = if (region == Region.Europe && game.isInstanceOf[GameTurnZero] && game.asInstanceOf[GameTurnZero].isEuropeAlliedBerlin) {

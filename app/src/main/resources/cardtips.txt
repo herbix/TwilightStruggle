@@ -1,172 +1,172 @@
 [7]
-请从西欧移除%s美国影响力
+Please remove %s US influence from Western Europe
 
 [10]
-请弃一张3以上行动力的牌
+Please give up a card of 3 or more action
 
 [14]
-请在东欧%s国各加1影响力
+Please add 1 influence in Eastern Europe %s country
 
 [16]
-是否要移除美国的影响力
-请选择%s个东欧国家
-请在东欧增加%s影响力
+Whether to remove the influence of the United States
+Please select %s Eastern European countries
+Please increase %s influence in Eastern Europe
 
 [19]
-请移除欧洲%s国苏联影响力
+Please remove the European influence of the Soviet Union
 
 [20]
-是否要参加奥运会
+Whether you want to participate in the Olympic Games
 
 [22]
-请选择%s个独立的红色国家
+Please select %s independent red country
 
 [23]
-请在西欧%s国各加1影响力
+Please add 1 influence in Western Europe %s country
 
 [24]
-请选择印巴战争被入侵国
+Please choose the Indo-Pakistan War invaded
 
 [26]
-已经确认对方手牌
+Has confirmed the other hand
 
 [28]
-请移除%s美国影响力
+Please remove %s US influence
 
 [29]
-请选择%s个东欧国家
+Please select %s Eastern European countries
 
 [30]
-请选择非洲或东南亚%s国
+Please choose Africa or Southeast Asia %s country
 
 [32]
-请选择要打出的牌
+Please choose the card you want to play
 
 [33]
-请先移除%s苏联影响力
-请放置%s苏联影响力
+Please remove %s Soviet influence first
+Please put %s Soviet influence
 
 [36]
-请选择被入侵国
+Please choose the invaded country
 
 [40]
-请选择去除影响力的国家
+Please choose to remove the influence of the country
 
 [43]
-请从弃牌中回收一张牌
+Please pick up a card from the fold
 
 [45]
-请改变核战等级
+Please change the nuclear war level
 
 [46]
-请改变核战等级
+Please change the nuclear war level
 
 [47]
-请选择%s个中南美国家
+Please select %s in South and South America
 #emptyline#
-请调整%1$s个国家（剩余%2$s）
-请政变%1$s个国家（行动力%2$s）
+Please adjust %1$s country (remaining %2$s)
+Please coup %1$s country (action %2$s)
 
 [49]
-请选择一张交给对手的牌
+Please choose a card to the opponent
 
 [53]
-请选择增加影响力的国家
+Please choose to increase the influence of the country
 
 [56]
-请选择%s个穆斯林革命国家
+Please choose %s Muslim revolutionary country
 
 [62]
-已经确认对方手牌
+Has confirmed the other hand
 
 [63]
-请选择非洲或东南亚%s国
+Please choose Africa or Southeast Asia %s country
 
 [66]
-请选择%s个无影响力国
+Please select %s no influence
 
 [67]
-请选择打出或归还
+Please choose to play or return
 
 [70]
-请在中南美放置%s影响力
+Please place %s influence in Central and South America
 
 [74]
-请移除非欧洲%s苏联影响力
+Please remove non-European %s Soviet influence
 
 [75]
-请在中美洲放置%s影响力
+Please put %s influence in Central America
 
 [76]
-请在亚洲放置%s影响力
+Please put %s influence in Asia
 
 [77]
-请弃掉任意张牌
+Please discard any cards
 
 [85]
-请从弃牌中选一张牌
+Please pick a card from the fold
 
 [87]
-请在欧洲增加%s影响力
-请在欧洲增加%s影响力
+Please increase %s in Europe
+Please increase %s in Europe
 
 [88]
-请移除中东%s美国影响力
+Please remove the Middle East %s US influence
 
 [89]
 #emptyline#
-请用%s行动力来增加影响力
-请调整%1$s个国家（剩余%2$s）
+Please use %s to increase your influence
+Please adjust %1$s country (remaining %2$s)
 
 [90]
 #emptyline#
-请用%s行动力来增加影响力
-请调整%1$s个国家（剩余%2$s）
+Please use %s to increase your influence
+Please adjust %1$s country (remaining %2$s)
 
 [91]
-请政变%1$s个国家（行动力%2$s）
+Please coup %1$s country (action %2$s)
 
 [95]
-请弃一张3以上行动力的牌
-请选择%s个南美国家
+Please give up a card of 3 or more action
+Please select %s South American countries
 
 [96]
 #emptyline#
-请调整%1$s个国家（剩余%2$s）
-请政变%1$s个国家（行动力%2$s）
+Please adjust %1$s country (remaining %2$s)
+Please coup %1$s country (action %2$s)
 
 [98]
-请弃对手一张牌
+Please give opponents a card
 
 [99]
-请移除西欧%s国1美国影响力
+Please remove Western Europe %s country 1 US influence
 
 [102]
-请选择两伊战争被入侵国
+Please choose the Iran-Iraq war to be invaded
 
 [104]
-请选择一张计分牌
-请在相应区域增加%s影响力
+Please choose a scoreboard
+Please increase %s in the area
 
 [105]
-请选择英国的%s个邻国
-请选择%s个西欧国家
+Please choose the UK's %s neighbors
+Please select %s Western European countries
 
 [107]
-请政变%1$s个国家（行动力%2$s）
-请政变%1$s个国家（行动力%2$s）
+Please coup %1$s country (action %2$s)
+Please coup %1$s country (action %2$s)
 
 [108]
-请弃掉任意张牌
+Please discard any cards
 
 [P1]
-请选择%s个国家移除影响力
+Please select %s country to remove influence
 
 [P4]
-请改变核战等级
+Please change the nuclear war level
 
 [P6]
-请选择要打出的牌
+Please choose the card you want to play
 
 [TZ2]
-请在亚洲放置%s影响力
+Please put %s influence in Asia

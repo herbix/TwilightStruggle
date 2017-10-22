@@ -29,7 +29,7 @@ Turn: %s-%s
 Current player is:
 
 [songti]
-Times New Roman
+Calibri
 
 [heiti]
 Arial
@@ -38,484 +38,484 @@ Arial
 Arial
 
 [kaiti]
-Calibri
+Times New Roman
 
 [selectFaction]
-选择你的阵营
+Select a faction
 
 [waitingForOpposite]
-等待对方行动
+Waiting for opponent
 
 [spectator]
-观察者模式
+Spectator mode
 
 [selfHand]
-自己手牌
+Mine
 
 [oppositeHand]
-对手手牌
+Opponent
 
 [discardedCards]
-弃牌堆
+Discarded
 
 [eventCards]
-事件用牌
+Event
 
 [usHand]
-美国手牌
+US
 
 [ussrHand]
-苏联手牌
+USSR
 
 [putEastEurope]
-请在东欧放置%s点影响力
+Put %s influence to E.Europe
 
 [putWestEurope]
-请在西欧放置%s点影响力
+Put %s influence to W.Europe
 
 [putExtra]
-请在已有国放置%s点影响力
+Put %s influence
 
 [country]
-国家
+Country
 
 [influence]
-影响力
+Influence
 
 [done]
-完成
+Done
 
 [cancel]
-取消
+Cancel
 
 [reset]
-重置
+Reset
 
 [remove]
-去除
+Remove
 
 [earlyWar]
-冷战早期
+Early War
 
 [midWar]
-冷战中期
+Mid War
 
 [lateWar]
-冷战后期
+Late War
 
 [special]
-特殊
+Special
 
 [goodFlag]
-有利标记
+Good Flag
 
 [badFlag]
-不利标记
+Bad Flag
 
 [crisisCard]
-危机牌
+Crisis
 
 [selectHeadline]
-请选择头条牌
+Select a headline card
 
 [selectCardAndAction]
-请选择要打出的牌
+Select a card
 
 [space]
-太空
+Space
 
 [event]
-事件
+Event
 
 [operation]
-行动
+Operation
 
 [eventFirst]
-先事件
+Event First
 
 [operationFirst]
-先行动
+Op. First
 
 [addInfluence]
-增加影响力
+Add Influence
 
 [realignment]
-调整阵营
+Realignmeent
 
 [coup]
-政变
+Coup
 
 [operationSelect]
-请用%s行动力来行动
+Select an operation (%s op)
 
 [operationAddInfluence]
-请用%s行动力来增加影响力
+Add influence (%s op left)
 
 [operationRealignment]
-请调整%1$s个国家（剩余%2$s）
+Realignment %1$s country (%2$s op)
 
 [operationCoup]
-请政变%1$s个国家（行动力%2$s）
+Coup %1$s country(s) (%2$s op)
 
 [increase]
-增加
+Increase
 
 [decrease]
-减少
+Decrease
 
 [discardHeldCard]
-可以弃掉一张持牌
+Discard a held card
 
 [yes]
-是
+Yes
 
 [no]
-否
+No
 
 [take8rounds]
-是否要进行8个行动轮
+Do you want to have an 8th round?
 
 [selectQuagmireDiscard]
-请弃一张2以上行动力的牌
+Discard a card with 2 op or more
 
 [selectScoringCard]
-请打出一张计分牌
+Select a scoring card
 
 [thisTurnFlag]
-回合结束时标记失效。
+The flag is removed when turn ends.
 
 [duringSetupFlag]
-此标记在开局时生效。
+The flag is enabled when game starts.
 
 [removeFromGame]
-此牌于事件发动后移出游戏
+Remove from play if used as an event.
 
 [improve]
-改善
+Improve
 
 [degrade]
-恶化
+Degrade
 
 [keep]
-不变
+Maintain
 
 [selectRegion]
-请选择一个区域
+Select a regoin
 
 [play]
-打出
+Play
 
 [giveBack]
-归还
+Give back
 
 [gameOver]
-游戏结束
+Game Over
 
 [winnerIs]
-胜利者是%s
+Winner is %s
 
 [drawGame]
-平局
+Draw game
 
 [presence]
-存在
+Presence
 
 [domination]
-支配
+Domination
 
 [control]
-控制
+Control
 
 [success]
-胜利
+Success
 
 [chooseStateCarft]
-请选择一张状态修改牌
+Select a state craft card
 
 [sum]
-总数
+Sum
 
 [battlefieldCountry]
-战场国
+Battlefield Country
 
 [nonBattlefieldCountry]
-非战场国
+Non-battlefield Country
 
 [opponentNear]
-对方邻国
+Opponent Neighboring Countries
 
 [southEastAsiaScore]
-缅甸，老挝/柬埔寨，越南，马来西亚，印度尼西亚，菲律宾的控制者各+1VP
-泰国的控制者+2VP
+1VP for each Control of Burma, Cambodia/Laos, Vietnam, Malaysia, Indonesia, the Philippines.
+2VPs for Control of Thailand.
 
 [chineseCivilWar]
-中国内战
+Chinese Civil War
 
 [historyStartGame]
-开始游戏
+Start game
 
 [historyTurnStart]
-第%s回合开始
+Turn %s begins
 
 [historyTurnHeadline]
-第%s回合头条
+Headline in turn %s
 
 [historyTurnRound]
-第%s回合第%s行动轮
+Turn %s, round %s
 
 [historyPickCard]
-%s抽取了%s张牌
+%s draws %s cards
 
 [historyGetCard]
-%s获得了“%s”
+%s gets "%s"
 
 [historyDiscardCard]
-%s丢弃了“%s”
+%s discards "%s"
 
 [historyLoseCard]
-%s失去了“%s”
+%s losts "%s"
 
 [historyModifyInfluence]
-%2$s了%1$s影响力：
+%2$s %1$s influence(s):
 
 [historyModifyInfluenceDetail]
 %1$s %2$s -> %3$s
 
 [historyPlayHeadline]
-%s打出“%s”作为头条
+%s headlines "%s"
 
 [historyEvent]
-%s发动了“%s”的事件
+%s activates event of "%s"
 
 [historyCardAction]
-%s打出“%s”用于%s
+%s plays "%s" for %s
 
 [historyCardActionOpposite]
-%s打出“%s”，先%s，后%s
+%s plays "%s", %s first, %s then
 
 [historyCardOperation]
-%s用“%s”的行动力%s点进行%s行动
+%s plays "%s" (op %s) for operation %s
 
 [historyOperationSpace]
-%s的太空竞赛掷点为%s
+%s rolls %s for space
 
 [historyOperationRealignment]
-在%s进行调整阵营：美国掷得%s，调整为%s；苏联掷得%s，调整为%s
+Realignment at %s. US roll: %s, modified to %s; USSR roll: %s, modified to %s
 
 [historyOperationCoup]
-%s在%s发动政变，掷得%s，行动力%s，影响力变数得%s
+%s coup %s. Roll: %s. Op: %s. Influence change: %s
 
 [historySpace]
-%s的太空竞赛等级从%s前进到%s
+%s space level increase from %s to %s
 
 [historyVp]
-%s得%sVP
+%s gets %sVP(s)
 
 [historyDefconImprove]
-核战等级从%s级改善到%s级
+DEFCON improve from %s to %s
 
 [historyDefconDegrade]
-核战等级从%s级恶化到%s级
+DEFCON degrade from %s to %s
 
 [historyDefconStay]
-核战等级保持%s级不变
+DEFCON maintain %s
 
 [historyMilitary]
-%s的军事行动数从%s增加到%s
+%s military increase from %s to %s
 
 [historyMilitaryReset]
-重置%s的军事行动数
+Reset %s military
 
 [historyScoring]
-%s计分
-美国：控制国家%s个，战场国%s个
-苏联：控制国家%s个，战场国%s个
+Scoring %s
+US: Countries: %s, Battlefield: %s
+USSR: Countries: %s, Battlefield: %s
 
 [historyWar]
-%s操纵，入侵%s，掷点得%s，调整为%s
+%s war at %s. Rolls %s, modified to %s
 
 [historyRollDice]
-%s掷出了%s
+%s rolls %s
 
 [historyRollDiceModified]
-%s掷出了%s，调整为%s
+%s rolls %s, modified to %s
 
 [historyPokeChest]
-%s戳了%s的胸口
+%s pokes %s's chest
 
 [historyAddFlag]
-%s获得了标记“%s”
+%s gets flag "%s"
 
 [historyRemoveFlag]
-%s失去了标记“%s”
+%s losts flag "%s"
 
 [historyAddFlagNeutral]
-双方获得了标记“%s”
+Both get flag "%s"
 
 [historyRemoveFlagNeutral]
-双方失去了标记“%s”
+Both remove flag "%s"
 
 [historyRegion]
-%s选择了%s
+%s select %s
 
 [historyYesNo]
-%s选择了%s
+%s select %s
 
 [historyAddCardToDeck]
-“%s”被加入%s牌堆
+"%s" is added to %s deck
 
 [historyRemoveCardFromDeck]
-“%s”被从%s牌堆移除
+"%s" is removed from %s deck
 
 [historyCrisis]
-开始处理危机牌“%s”
+Processing crisis "%s"
 
 [twilightStruggle]
-冷战热斗
+Twilight Struggle
 
 [inputDebugCommand]
-输入调试命令
+Input debug command
 
 [help]
-帮助
+Help
 
 [cardListStandard]
-=========标准版卡牌列表=========
+=======Standard Card List=======
 
 [cardListPromo]
-===========扩展牌列表===========
+========Promo Card List=========
 
 [cardListTurnZero]
-========第零回合卡牌列表========
+======Turn Zero Card List=======
 
 [singlePlayer]
-单人游戏
+Single Player
 
 [multiPlayer]
-多人游戏
+Multi Players
 
 [exit]
-退出
+Exit
 
 [room]
-房间
+Room
 
 [roomId]
-房间号
+Room Id
 
 [roomName]
-房间名
+Room Name
 
 [gameVersion]
-游戏版本
+Game Version
 
 [`new`]
-新建
+New
 
 [join]
-加入
+Join
 
 [connecting]
-正在连接...
+Connecting...
 
 [connectFailed]
-连接失败
+Connect failed
 
 [gameVariant]
-游戏变体
+Game Variant
 
 [extraInfluence]
-苏联让点
+US extra influences
 
 [drawGameWinner]
-平局胜者
+Draw Game Winner
 
 [extraCards]
-额外牌
+Extra Cards
 
 [optional]
-可选
+Optional
 
 [promo]
-扩展
+Promo
 
 [versionNotMatch]
-版本不同，不能加入。
+Versions not match
 
 [newRoom]
-新建房间
+New Room
 
 [optionalCards]
-可选牌
+Optional Cards
 
 [promoCards]
-扩展牌
+Promo Cards
 
 [standard]
-标准
+Standard
 
 [turnZero]
-第零回合
+Turn Zero
 
 [start]
-开始
+Start
 
 [player]
-玩家
+Player
 
 [player1]
-玩家一
+Player 1
 
 [player2]
-玩家二
+Player 2
 
 [playerId]
-玩家号
+Player Id
 
 [playerName]
-玩家名
+Player Name
 
 [startGame]
-开始游戏
+Start Game
 
 [agent]
-智能
+Agent
 
 [gameSettings]
-游戏设置
+Settings
 
 [early]
-早期
+Early
 
 [mid]
-中期
+Mid
 
 [late]
-后期
+Late
 
 [europe]
-欧洲
+Europe
 
 [asia]
-亚洲
+Asia
 
 [midEast]
-中东
+Mid East
 
 [africa]
-非洲
+Africa
 
 [midAmerica]
-中美洲
+Mid America
 
 [southAmerica]
-南美洲
+South America
 
 [eastEurope]
-东欧
+East Europe
 
 [westEurope]
-西欧
+West Europe
 
 [southEastAsia]
-东南亚
+Southeast Asia

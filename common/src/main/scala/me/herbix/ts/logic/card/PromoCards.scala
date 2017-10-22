@@ -78,9 +78,9 @@ object CardP06FirstLightning extends CardMultiStep(6 + PromoCards.Offset, 2, USS
     val map = (0 to 4).map(i => i -> new CardP06FirstLightningDummy(i)).toMap
     def apply(op: Int) = map(op)
   }
-  //override def canEvent(game: Game, faction: Faction) = game.hand(USSR).exists(_.faction == US)
+  override def canEvent(game: Game, faction: Faction) = game.hand(USSR).exists(_.faction == US)
 
-  @step1(cardEventSelectCardOrCancel, selectCard.isOppositeCard)
+  @step1(cardEventSelectCard, selectCard.isOppositeCard)
   def selectOpponentCard(game: Game, faction: Faction, input: Operation): Int = {
     if (input.asInstanceOf[OperationSelectCard].card.isEmpty) {
       3

@@ -1,51 +1,51 @@
 [0]
-遥望天空
-遥望天空 -> 人造卫星：2行动力，掷骰1-3
+Start
+Start -> Earth Satellite: 2 Ops, Roll 1-3
 
 [1]
-人造卫星
-先手2VP，后手1VP。
-遥望天空 -> 人造卫星：2行动力，掷骰1-3
-人造卫星 -> 动物实验：2行动力，掷骰1-4
+Earth Satellite
+First arrive gain 2VP, second 1VP.
+Start -> Earth Satellite: 2 Ops, Roll 1-3
+Earth Satellite -> Animal in Space: 2 Ops, Roll 1-4
 
 [2]
-动物实验
-每回合可以进行2次太空竞赛尝试。
-人造卫星 -> 动物实验：2行动力，掷骰1-4
-动物实验 -> 载人航天：2行动力，掷骰1-3
+Animal in Space
+Each round can be tried twice in space.
+Earth Satellite -> Animal in Space: 2 Ops, Roll 1-4
+Animal in Space -> Man in Space: 2 Ops, Roll 1-3
 
 [3]
-人造卫星
-先手2VP。
-动物实验 -> 载人航天：2行动力，掷骰1-3
-载人航天 -> 常驻轨道：2行动力，掷骰1-4
+Man in Space
+First arrive gain 2VP.
+Animal in Space -> Man in Space: 2 Ops, Roll 1-3
+Man in Space -> Man in Earth Orbit: 2 Ops, Roll 1-4
 
 [4]
-常驻轨道
-对手须先选择和展示头条牌。
-载人航天 -> 常驻轨道：2行动力，掷骰1-4
-常驻轨道 -> 探月计划：3行动力，掷骰1-3
+Man in Earth Orbit
+The opponent must first select and display the first card.
+Man in Space -> Man in Earth Orbit: 2 Ops, Roll 1-4
+Man in Earth Orbit -> Lunar Orbit: 3 Ops, Roll 1-3
 
 [5]
-探月计划
-先手3VP，后手1VP。
-常驻轨道 -> 探月计划：3行动力，掷骰1-3
-探月计划 -> 登月计划：3行动力，掷骰1-4
+Lunar Orbit
+First hand 3VP, second 1VP.
+Man in Earth Orbit -> Lunar Orbit: 3 Ops, Roll 1-3
+Lunar Orbit -> Eagle/Bear has Landed: 3 Ops, Roll 1-4
 
 [6]
-登月计划
-可以弃掉1张持牌。
-探月计划 -> 登月计划：3行动力，掷骰1-4
-登月计划 -> 航天飞机：3行动力，掷骰1-3
+Eagle/Bear has Landed
+You can abandon a license.
+Lunar Orbit -> Eagle/Bear has Landed: 3 Ops, Roll 1-4
+Eagle/Bear has Landed -> Space Shuttle: 3 Ops, Roll 1-3
 
 [7]
-航天飞机
-先手4VP，后手2VP。
-登月计划 -> 航天飞机：3行动力，掷骰1-3
-航天飞机 -> 空间基地：3行动力，掷骰1-2
+Space Shuttle
+First arrive gain 4VP, second 2VP.
+Eagle/Bear has Landed -> Space Shuttle: 3 Ops, Roll 1-3
+Space Shuttle -> Space Station: 3 Ops, Roll 1-2
 
 [8]
-空间基地
-先手2VP。
-可以进行8个行动轮。
-航天飞机 -> 空间基地：3行动力，掷骰1-2
+Space Station
+First arrive gain 2VP.
+Can carry out eight Ops wheels.
+Space Shuttle -> Space Station: 3 Ops, Roll 1-2

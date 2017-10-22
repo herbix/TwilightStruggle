@@ -226,7 +226,7 @@ object Lang {
 
   val countryNames = mutable.Map[String, String]()
   for (item <- CountryInfo.infoItems) {
-    countryNames += item(0).content -> item(1).content
+    countryNames += item.name -> item(0).content
   }
 
   def getFactionName(faction: Faction) = faction match {

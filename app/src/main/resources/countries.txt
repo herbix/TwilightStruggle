@@ -1,339 +1,254 @@
-[Country]
-China
+[China]
 China
 
-[Country]
-Mexico
+[Mexico]
 Mexico
 
-[Country]
-Guatemala
+[Guatemala]
 Guatemala
 
-[Country]
-El Salvador
+[El_Salvador]
 El Salvador
 
-[Country]
-Honduras
+[Honduras]
 Honduras
 
-[Country]
-Costa Rica
+[Costa_Rica]
 Costa Rica
 
-[Country]
-Cuba
+[Cuba]
 Cuba
 
-[Country]
-Nicaragua
+[Nicaragua]
 Nicaragua
 
-[Country]
-Haiti
+[Haiti]
 Haiti
 
-[Country]
-Dominican Rep
+[Dominican_Rep]
 Dominican Rep
 
-[Country]
-Panama
+[Panama]
 Panama
 
-[Country]
-Colombia
+[Colombia]
 Colombia
 
-[Country]
-Ecuador
+[Ecuador]
 Ecuador
 
-[Country]
-Peru
+[Peru]
 Peru
 
-[Country]
-Chile
+[Chile]
 Chile
 
-[Country]
-Argentina
+[Argentina]
 Argentina
 
-[Country]
-Venezuela
+[Venezuela]
 Venezuela
 
-[Country]
-Bolivia
+[Bolivia]
 Bolivia
 
-[Country]
-Paraguay
+[Paraguay]
 Paraguay
 
-[Country]
-Uruguay
+[Uruguay]
 Uruguay
 
-[Country]
-Brazil
+[Brazil]
 Brazil
 
-[Country]
-Canada
+[Canada]
 Canada
 
-[Country]
-UK
+[UK]
 UK
 
-[Country]
-Benelux
+[Benelux]
 Benelux
 
-[Country]
-France
+[France]
 France
 
-[Country]
-Spain/Portugal
+[Spain/Portugal]
 Spain/Portugal
 
-[Country]
-Norway
+[Norway]
 Norway
 
-[Country]
-Denmark
+[Denmark]
 Denmark
 
-[Country]
-W.Germany
+[W.Germany]
 W.Germany
 
-[Country]
-Sweden
+[Sweden]
 Sweden
 
-[Country]
-Italy
+[Italy]
 Italy
 
-[Country]
-Greece
+[Greece]
 Greece
 
-[Country]
-Turkey
+[Turkey]
 Turkey
 
-[Country]
-Finland
+[Finland]
 Finland
 
-[Country]
-Austria
+[Austria]
 Austria
 
-[Country]
-E.Germany
+[E.Germany]
 E.Germany
 
-[Country]
-Poland
+[Poland]
 Poland
 
-[Country]
-Czechoslovakia
+[Czechoslovakia]
 Czechoslovakia
 
-[Country]
-Hungary
+[Hungary]
 Hungary
 
-[Country]
-Yugoslavia
+[Yugoslavia]
 Yugoslavia
 
-[Country]
-Romania
+[Romania]
 Romania
 
-[Country]
-Bulgaria
+[Bulgaria]
 Bulgaria
 
-[Country]
-Lebanon
+[Lebanon]
 Lebanon
 
-[Country]
-Syria
+[Syria]
 Syria
 
-[Country]
-Israel
+[Israel]
 Israel
 
-[Country]
-Iraq
+[Iraq]
 Iraq
 
-[Country]
-Iran
+[Iran]
 Iran
 
-[Country]
-Libya
+[Libya]
 Libya
 
-[Country]
-Egypt
+[Egypt]
 Egypt
 
-[Country]
-Jordan
+[Jordan]
 Jordan
 
-[Country]
-Gulf States
+[Gulf_States]
 Gulf States
 
-[Country]
-Saudi Arabia
+[Saudi_Arabia]
 Saudi Arabia
 
-[Country]
-Afghanistan
+[Afghanistan]
 Afghanistan
 
-[Country]
-Pakistan
+[Pakistan]
 Pakistan
 
-[Country]
-India
+[India]
 India
 
-[Country]
-Burma
+[Burma]
 Burma
 
-[Country]
-Laos/Cambodia
+[Laos/Cambodia]
 Laos/Cambodia
 
-[Country]
-Thailand
+[Thailand]
 Thailand
 
-[Country]
-Vietnam
+[Vietnam]
 Vietnam
 
-[Country]
-Malaysia
+[Malaysia]
 Malaysia
 
-[Country]
-Indonesia
+[Indonesia]
 Indonesia
 
-[Country]
-Australia
+[Australia]
 Australia
 
-[Country]
-Philippines
+[Philippines]
 Philippines
 
-[Country]
-Japan
+[Japan]
 Japan
 
-[Country]
-Taiwan
+[Taiwan]
 Taiwan
 
-[Country]
-S.Korea
+[S.Korea]
 S.Korea
 
-[Country]
-N.Korea
+[N.Korea]
 N.Korea
 
-[Country]
-Tunisia
+[Tunisia]
 Tunisia
 
-[Country]
-Algeria
+[Algeria]
 Algeria
 
-[Country]
-Morocco
+[Morocco]
 Morocco
 
-[Country]
-West African States
+[West_African_States]
 West African States
 
-[Country]
-Saharan States
+[Saharan_States]
 Saharan States
 
-[Country]
-Sudan
+[Sudan]
 Sudan
 
-[Country]
-Ivory Coast
+[Ivory_Coast]
 Ivory Coast
 
-[Country]
-Nigeria
+[Nigeria]
 Nigeria
 
-[Country]
-Ethiopia
+[Ethiopia]
 Ethiopia
 
-[Country]
-Somalia
+[Somalia]
 Somalia
 
-[Country]
-Cameroon
+[Cameroon]
 Cameroon
 
-[Country]
-Zaire
+[Zaire]
 Zaire
 
-[Country]
-Kenya
+[Kenya]
 Kenya
 
-[Country]
-Angola
+[Angola]
 Angola
 
-[Country]
-Zimbabwe
+[Zimbabwe]
 Zimbabwe
 
-[Country]
-SE African States
+[SE_African_States]
 SE African States
 
-[Country]
-Botswana
+[Botswana]
 Botswana
 
-[Country]
-South Africa
+[South_Africa]
 South Africa
